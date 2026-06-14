@@ -34,7 +34,7 @@ export function GameGrid() {
               href={`/product/${game.id}`} 
               className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95"
             >
-              <div className="relative h-[155px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl shadow-primary/5 bg-card group-hover:border-primary/50 transition-all duration-500">
+              <div className="relative h-[145px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl shadow-primary/5 bg-card group-hover:border-primary/50 transition-all duration-500">
                 <Image
                   src={img?.imageUrl || "https://picsum.photos/seed/game/400/600"}
                   alt={game.name}
