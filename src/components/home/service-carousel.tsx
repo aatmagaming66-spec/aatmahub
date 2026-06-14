@@ -38,6 +38,14 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
+                
+                {/* Active Badge Overlay */}
+                <div className="absolute top-2 right-2 z-10 pointer-events-none">
+                  <div className="bg-green-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg">
+                    Active
+                  </div>
+                </div>
+
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent opacity-40" />
               </div>
               <div className="text-center px-1">

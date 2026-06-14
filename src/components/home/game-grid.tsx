@@ -5,10 +5,12 @@ import Link from "next/link";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const GAMES = [
-  { id: "mlbb-in", name: "MLBB India", imgId: "game-mlbb" },
-  { id: "mlbb-id", name: "MLBB Indonesia", imgId: "game-mlbb" },
-  { id: "mlbb-ph", name: "MLBB Philippines", imgId: "game-mlbb" },
-  { id: "mlbb-my", name: "MLBB Malaysia", imgId: "game-mlbb" },
+  { id: "mlbb-in", name: "MLBB India", imgId: "game-mlbb", flag: "🇮🇳" },
+  { id: "mlbb-id", name: "MLBB Indonesia", imgId: "game-mlbb", flag: "🇮🇩" },
+  { id: "mlbb-ph", name: "MLBB Philippines", imgId: "game-mlbb", flag: "🇵🇭" },
+  { id: "mlbb-my", name: "MLBB Malaysia", imgId: "game-mlbb", flag: "🇲🇾" },
+  { id: "mlbb-sg", name: "MLBB Singapore", imgId: "game-mlbb", flag: "🇸🇬" },
+  { id: "mlbb-ru", name: "MLBB Russia", imgId: "game-mlbb", flag: "🇷🇺" },
   { id: "hok", name: "Honor of Kings", imgId: "game-hok" },
   { id: "genshin", name: "Genshin Impact", imgId: "game-genshin" },
   { id: "bgmi", name: "BGMI", imgId: "game-bgmi" },
@@ -42,6 +44,24 @@ export function GameGrid() {
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
                   data-ai-hint="mobile game poster"
                 />
+                
+                {/* Badges Layer */}
+                <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
+                  <div className="flex justify-between items-start">
+                    {/* Flag Badge */}
+                    {game.flag ? (
+                      <div className="bg-black/60 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center border border-white/10">
+                        <span className="text-xs leading-none">{game.flag}</span>
+                      </div>
+                    ) : <div />}
+                    
+                    {/* Active Badge */}
+                    <div className="bg-green-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg">
+                      Active
+                    </div>
+                  </div>
+                </div>
+
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
               </div>
               <div className="text-center px-1">
