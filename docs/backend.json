@@ -118,38 +118,19 @@
       },
       "required": ["transactionId", "userId", "amount", "type", "status", "createdAt"]
     },
-    "SmileOneSettings": {
-      "title": "SmileOne Settings",
-      "description": "API configuration for Smile.one provider",
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "Security and activity logs",
       "type": "object",
       "properties": {
-        "apiUid": { "type": "string" },
-        "apiKey": { "type": "string" },
-        "secretKey": { "type": "string" },
-        "isEnabled": { "type": "boolean" },
-        "lastSync": { "type": "string", "format": "date-time" }
-      }
-    },
-    "UniPinSettings": {
-      "title": "UniPin Settings",
-      "description": "API configuration for UniPin provider",
-      "type": "object",
-      "properties": {
-        "apiKey": { "type": "string" },
-        "secretKey": { "type": "string" },
-        "isEnabled": { "type": "boolean" },
-        "lastSync": { "type": "string", "format": "date-time" }
-      }
-    },
-    "ProductMapping": {
-      "title": "Product Mapping",
-      "description": "Maps internal products to provider IDs",
-      "type": "object",
-      "properties": {
-        "internalId": { "type": "string" },
-        "provider": { "type": "string", "enum": ["smileone", "unipin"] },
-        "providerId": { "type": "string" }
-      }
+        "timestamp": { "type": "string", "format": "date-time" },
+        "userId": { "type": "string" },
+        "event": { "type": "string" },
+        "details": { "type": "object" },
+        "ip": { "type": "string" },
+        "severity": { "type": "string", "enum": ["info", "warning", "critical"] }
+      },
+      "required": ["timestamp", "event", "severity"]
     }
   },
   "auth": {
@@ -174,17 +155,9 @@
       "schema": "Transaction",
       "description": "Wallet transactions"
     },
-    "/settings/smileone": {
-      "schema": "SmileOneSettings",
-      "description": "Global Smile.one configuration"
-    },
-    "/settings/unipin": {
-      "schema": "UniPinSettings",
-      "description": "Global UniPin configuration"
-    },
-    "/productMappings/{internalId}": {
-      "schema": "ProductMapping",
-      "description": "Mapping for third-party products"
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "System audit logs"
     }
   }
 }

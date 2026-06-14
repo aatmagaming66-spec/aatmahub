@@ -7,6 +7,7 @@ import { GameGrid } from "@/components/home/game-grid";
 import { ServiceCarousel } from "@/components/home/service-carousel";
 import { LiveActivity } from "@/components/home/live-activity";
 import { ShieldCheck, Zap, Lock, Headphones } from "lucide-react";
+import Link from 'next/link';
 
 const OTT_SERVICES = [
   { id: "netflix", name: "Netflix Premium", imgId: "ott-netflix" },
@@ -27,7 +28,7 @@ export default function Home() {
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <HeroBanner />
       
-      {/* Trust Badges Section - Moved under Hero Banner */}
+      {/* Trust Badges Section */}
       <section className="px-4 py-0.5 mt-4">
         <div className="grid grid-cols-4 gap-1.5">
           <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
@@ -87,11 +88,13 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-4 mb-8 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
-          <button className="hover:text-primary transition-colors">Terms</button>
+          <Link href="/terms" className="hover:text-primary transition-colors">Terms</Link>
           <span className="text-border opacity-30">•</span>
-          <button className="hover:text-primary transition-colors">Privacy</button>
+          <Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
           <span className="text-border opacity-30">•</span>
-          <button className="hover:text-primary transition-colors">Refund Policy</button>
+          <Link href="/refund-policy" className="hover:text-primary transition-colors">Refund Policy</Link>
+          <span className="text-border opacity-30">•</span>
+          <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
         </div>
 
         <div className="flex flex-col items-center">

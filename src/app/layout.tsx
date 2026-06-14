@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { TopHeader } from '@/components/navigation/top-header';
@@ -10,7 +11,24 @@ import { CartProvider } from '@/context/cart-context';
 
 export const metadata: Metadata = {
   title: 'AATMA HUB - Premium Digital Solutions',
-  description: 'Premium Digital Solutions for Gaming and Social Needs',
+  description: 'Premium Digital Solutions for Gaming and Social Needs. Instant top-ups, OTT access, and social media growth.',
+  keywords: ['MLBB Top up', 'Free Fire Diamonds', 'OTT Premium', 'Gaming India', 'Social Media Services'],
+  authors: [{ name: 'AATMA OFFICIAL' }],
+  openGraph: {
+    title: 'AATMA HUB - Premium Digital Marketplace',
+    description: 'Instant Game Top-Ups, OTT Services, and Social Growth.',
+    url: 'https://aatmahub.com',
+    siteName: 'AATMA HUB',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AATMA HUB | Gaming & Social Solutions',
+    description: 'India\'s fastest digital service hub.',
+    images: ['/twitter-image.jpg'],
+  },
 };
 
 export default function RootLayout({
