@@ -1,3 +1,4 @@
+
 "use client"
 
 import { HeroBanner } from "@/components/home/hero-banner";
@@ -26,7 +27,7 @@ export default function Home() {
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <HeroBanner />
       
-      {/* Trust Badges Section */}
+      {/* Trust Badges Section - Moved under Hero Banner */}
       <section className="px-4 py-0.5 mt-4">
         <div className="grid grid-cols-4 gap-1.5">
           <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
@@ -71,15 +72,21 @@ export default function Home() {
       <LiveActivity />
 
       {/* Ultra Compact Premium Footer */}
-      <footer className="px-6 pt-10 pb-12 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
-        <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2 leading-none">
+      <footer className="px-6 py-10 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
+        <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 leading-none">
           AATMA HUB
         </h2>
-        <p className="text-[9px] font-bold text-white uppercase tracking-widest mb-6 opacity-80">
-          Premium Digital Solutions for Gaming and Social Needs
-        </p>
+        
+        <div className="space-y-1 mb-6">
+          <p className="text-[10px] font-bold text-white uppercase tracking-wider opacity-90">
+            Premium Digital Solutions for Gaming and Social Needs.
+          </p>
+          <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest">
+            © 2024 Aatma HUB. All rights reserved.
+          </p>
+        </div>
 
-        <div className="flex items-center gap-4 mb-4 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
+        <div className="flex items-center gap-4 mb-6 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
           <button className="hover:text-primary transition-colors">Terms</button>
           <span className="text-border opacity-30">•</span>
           <button className="hover:text-primary transition-colors">Privacy</button>
@@ -87,8 +94,8 @@ export default function Home() {
           <button className="hover:text-primary transition-colors">Refund Policy</button>
         </div>
 
-        <p className="text-[8px] font-black text-primary/40 uppercase tracking-[0.3em]">
-          Developed by Aatma Official
+        <p className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em]">
+          Developed by _ AATMA OFFICIAL
         </p>
       </footer>
     </div>
