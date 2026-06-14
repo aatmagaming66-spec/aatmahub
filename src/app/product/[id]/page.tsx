@@ -2,44 +2,88 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, ShieldCheck, Zap, Info } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Zap, Info, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCart } from "@/context/cart-context";
+import { useToast } from "@/hooks/use-toast";
 
 const PACKS = [
-  { id: "p1", name: "86 Diamonds", price: 99, currency: "₹" },
-  { id: "p2", name: "172 Diamonds", price: 199, currency: "₹" },
-  { id: "p3", name: "257 Diamonds", price: 299, currency: "₹" },
-  { id: "p4", name: "429 Diamonds", price: 499, currency: "₹" },
-  { id: "p5", name: "Weekly Pass", price: 159, currency: "₹", badge: "Hot" },
-  { id: "p6", name: "Monthly Pass", price: 799, currency: "₹" },
+  { id: "p1", name: "86 Diamonds", price: 99, currency: "₹", tab: "small" },
+  { id: "p2", name: "172 Diamonds", price: 199, currency: "₹", tab: "small" },
+  { id: "p3", name: "257 Diamonds", price: 299, currency: "₹", tab: "small" },
+  { id: "p4", name: "429 Diamonds", price: 499, currency: "₹", tab: "large" },
+  { id: "p5", name: "Weekly Pass", price: 159, currency: "₹", badge: "Hot", tab: "pass" },
+  { id: "p6", name: "Monthly Pass", price: 799, currency: "₹", tab: "pass" },
 ];
 
 export default function ProductPage() {
   const { id } = useParams();
+  const router = useRouter();
+  const { toast } = useToast();
+  const { addItem } = useCart();
+  
   const [selectedPack, setSelectedPack] = useState(PACKS[0]);
+  const [activeTab, setActiveTab] = useState("small");
   const [playerId, setPlayerId] = useState("");
   const [serverId, setServerId] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
+  const productName = id?.toString().replace('-', ' ').toUpperCase() || "DIGITAL ASSET";
   const imgId = id?.toString().startsWith('mlbb') ? 'game-mlbb' : 
                 id === 'hok' ? 'game-hok' : 
                 id === 'genshin' ? 'game-genshin' : 'game-mlbb';
   const img = PlaceHolderImages.find(i => i.id === imgId);
 
   const handleVerify = () => {
-    if (!playerId || !serverId) return;
+    if (!playerId || !serverId) {
+      toast({ variant: "destructive", title: "Error", description: "Please enter your Player ID and Server ID." });
+      return;
+    }
     setVerifying(true);
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
+      toast({ title: "Success", description: "Account verified successfully!" });
     }, 1200);
+  };
+
+  const handleAddToCart = () => {
+    if (!isVerified) {
+      toast({ variant: "destructive", title: "Verification Required", description: "Please verify your account before adding to cart." });
+      return;
+    }
+
+    const cartId = `${id}-${selectedPack.id}-${playerId}`;
+    addItem({
+      id: cartId,
+      name: `${productName} - ${selectedPack.name}`,
+      price: selectedPack.price,
+      quantity: 1,
+      image: img?.imageUrl || "https://picsum.photos/seed/game/400/400",
+      region: id?.toString().split('-')[1]?.toUpperCase() || "GLOBAL",
+      tabName: selectedPack.tab.toUpperCase()
+    });
+
+    toast({
+      title: "Added to Hub",
+      description: `${selectedPack.name} added to your cart.`,
+    });
+  };
+
+  const handleBuyNow = () => {
+    if (!isVerified) {
+      toast({ variant: "destructive", title: "Verification Required", description: "Please verify your account before checkout." });
+      return;
+    }
+    handleAddToCart();
+    router.push('/cart');
   };
 
   return (
@@ -55,7 +99,7 @@ export default function ProductPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
         <div className="absolute bottom-6 left-6">
           <h1 className="text-3xl font-headline font-black text-white uppercase tracking-tighter">
-            {id?.toString().replace('-', ' ').toUpperCase()}
+            {productName}
           </h1>
           <div className="flex items-center gap-2 mt-2">
             <span className="flex items-center gap-1 text-[9px] font-black text-accent bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full uppercase tracking-widest">
@@ -115,17 +159,17 @@ export default function ProductPage() {
 
         {/* Product Selection */}
         <div className="space-y-6">
-          <Tabs defaultValue="small" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-4 bg-card border border-border h-12 rounded-2xl p-1.5">
               <TabsTrigger value="small" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Small</TabsTrigger>
               <TabsTrigger value="large" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Large</TabsTrigger>
               <TabsTrigger value="pass" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Pass</TabsTrigger>
-              <TabsTrigger value="first" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Promo</TabsTrigger>
+              <TabsTrigger value="promo" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Promo</TabsTrigger>
             </TabsList>
             
-            <TabsContent value="small" className="mt-6">
+            <TabsContent value={activeTab} className="mt-6">
               <div className="grid grid-cols-2 gap-4">
-                {PACKS.map((pack) => (
+                {PACKS.filter(p => p.tab === activeTab).map((pack) => (
                   <button
                     key={pack.id}
                     onClick={() => setSelectedPack(pack)}
@@ -153,6 +197,11 @@ export default function ProductPage() {
                     )}
                   </button>
                 ))}
+                {PACKS.filter(p => p.tab === activeTab).length === 0 && (
+                  <div className="col-span-2 text-center py-10 opacity-40">
+                    <p className="text-[10px] font-black uppercase tracking-widest">No promo items active</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
@@ -167,15 +216,15 @@ export default function ProductPage() {
               <span className="text-white font-black">{selectedPack.name}</span>
             </div>
             <div className="flex justify-between items-center text-xs">
-              <span className="text-muted-foreground font-bold">Wallet Credit:</span>
-              <span className="text-white font-black">₹0.00</span>
+              <span className="text-muted-foreground font-bold">Region:</span>
+              <span className="text-white font-black uppercase">{id?.toString().split('-')[1] || "Global"}</span>
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground font-bold">Method:</span>
-              <span className="text-accent font-black uppercase tracking-widest">Gateway</span>
+              <span className="text-accent font-black uppercase tracking-widest">InstaPay</span>
             </div>
             <div className="pt-5 border-t border-border flex justify-between items-end">
-              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Total Amount:</span>
+              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Price:</span>
               <span className="text-2xl font-black text-primary tracking-tighter">{selectedPack.currency}{selectedPack.price}</span>
             </div>
           </div>
@@ -183,11 +232,18 @@ export default function ProductPage() {
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-4">
-          <Button className="w-full h-14 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl transition-all">
-            Proceed to Buy
+          <Button 
+            onClick={handleBuyNow}
+            className="w-full h-14 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl transition-all"
+          >
+            Buy Now
           </Button>
-          <Button variant="outline" className="w-full h-14 border-accent/20 bg-transparent text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-accent/5 hover:text-accent transition-all">
-            Add to Basket
+          <Button 
+            variant="outline" 
+            onClick={handleAddToCart}
+            className="w-full h-14 border-accent/20 bg-transparent text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-accent/5 hover:text-accent transition-all gap-2"
+          >
+            <ShoppingBag className="h-4 w-4" /> Add to Hub
           </Button>
         </div>
 

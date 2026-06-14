@@ -1,4 +1,3 @@
-
 import type { Metadata } from 'next';
 import './globals.css';
 import { TopHeader } from '@/components/navigation/top-header';
@@ -7,6 +6,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/navigation/app-sidebar';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Toaster } from '@/components/ui/toaster';
+import { CartProvider } from '@/context/cart-context';
 
 export const metadata: Metadata = {
   title: 'AATMA HUB - Premium Digital Solutions',
@@ -27,19 +27,21 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased bg-background text-foreground min-h-screen flex flex-col">
         <FirebaseClientProvider>
-          <SidebarProvider defaultOpen={false}>
-            <div className="flex w-full min-h-screen">
-              <AppSidebar />
-              <div className="flex-1 flex flex-col w-full relative">
-                <TopHeader />
-                <main className="flex-1 pb-20 w-full overflow-x-hidden">
-                  {children}
-                </main>
-                <BottomNav />
+          <CartProvider>
+            <SidebarProvider defaultOpen={false}>
+              <div className="flex w-full min-h-screen">
+                <AppSidebar />
+                <div className="flex-1 flex flex-col w-full relative">
+                  <TopHeader />
+                  <main className="flex-1 pb-20 w-full overflow-x-hidden">
+                    {children}
+                  </main>
+                  <BottomNav />
+                </div>
               </div>
-            </div>
-          </SidebarProvider>
-          <Toaster />
+            </SidebarProvider>
+            <Toaster />
+          </CartProvider>
         </FirebaseClientProvider>
       </body>
     </html>
