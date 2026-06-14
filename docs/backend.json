@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -111,6 +112,33 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["transactionId", "userId", "amount", "type", "status", "createdAt"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Digital products/packages for sale",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "region": { "type": "string" },
+        "price": { "type": "number" },
+        "status": { "type": "string", "enum": ["enabled", "disabled"] },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["id", "name", "category", "price", "status"]
+    },
+    "Region": {
+      "title": "Region",
+      "description": "Available gaming regions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "flag": { "type": "string" },
+        "status": { "type": "string", "enum": ["enabled", "disabled"] }
+      },
+      "required": ["id", "name", "status"]
     }
   },
   "auth": {
@@ -134,6 +162,14 @@
     "/transactions/{transactionId}": {
       "schema": "Transaction",
       "description": "Wallet transactions"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Available products"
+    },
+    "/regions/{regionId}": {
+      "schema": "Region",
+      "description": "Gaming regions"
     }
   }
 }
