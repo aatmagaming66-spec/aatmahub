@@ -24,16 +24,12 @@ export default function Home() {
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <HeroBanner />
+      
+      {/* Quick Actions with 4 items */}
       <QuickActions />
       
-      <GameGrid />
-      
-      <ServiceCarousel title="OTT Services" items={OTT_SERVICES} />
-      
-      <ServiceCarousel title="Social Services" items={SOCIAL_SERVICES} />
-
-      {/* Trust Features Section - Now part of Home Content */}
-      <section className="px-4 py-2 mt-4">
+      {/* Trust Features Section - Moved directly below Quick Actions */}
+      <section className="px-4 py-1">
         <div className="grid grid-cols-4 gap-2">
           {/* Card 1: Secure */}
           <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
@@ -68,6 +64,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      <GameGrid />
+      
+      <ServiceCarousel title="OTT Services" items={OTT_SERVICES} />
+      
+      <ServiceCarousel title="Social Services" items={SOCIAL_SERVICES} />
 
       {/* Ultra Compact Premium Footer */}
       <footer className="px-6 pt-10 pb-12 mt-10 border-t border-border bg-background flex flex-col items-center text-center">
