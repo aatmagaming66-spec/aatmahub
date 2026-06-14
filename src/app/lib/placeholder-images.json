@@ -2,10 +2,34 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-banner",
+      "id": "hero-main",
       "description": "Premium dark purple gaming banner",
-      "imageUrl": "https://picsum.photos/seed/aatma-hero/1200/600",
-      "imageHint": "gaming background purple"
+      "imageUrl": "https://picsum.photos/seed/aatma-main/1200/600",
+      "imageHint": "gaming background red"
+    },
+    {
+      "id": "hero-mlbb",
+      "description": "Mobile Legends Banner",
+      "imageUrl": "https://picsum.photos/seed/aatma-mlbb/1200/600",
+      "imageHint": "mobile legends action"
+    },
+    {
+      "id": "hero-ott",
+      "description": "OTT Services Banner",
+      "imageUrl": "https://picsum.photos/seed/aatma-ott/1200/600",
+      "imageHint": "streaming movies background"
+    },
+    {
+      "id": "hero-social",
+      "description": "Social Media Banner",
+      "imageUrl": "https://picsum.photos/seed/aatma-social/1200/600",
+      "imageHint": "social media marketing"
+    },
+    {
+      "id": "hero-trust",
+      "description": "Trust & Safety Banner",
+      "imageUrl": "https://picsum.photos/seed/aatma-trust/1200/600",
+      "imageHint": "cyber security abstract"
     },
     {
       "id": "game-mlbb",
