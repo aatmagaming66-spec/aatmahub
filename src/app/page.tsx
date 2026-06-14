@@ -28,39 +28,39 @@ export default function Home() {
       {/* Quick Actions with 4 items */}
       <QuickActions />
       
-      {/* Trust Features Section - Moved directly below Quick Actions */}
-      <section className="px-4 py-1">
-        <div className="grid grid-cols-4 gap-2">
+      {/* Ultra Compact Trust Features Section */}
+      <section className="px-4 py-0.5">
+        <div className="grid grid-cols-4 gap-1.5">
           {/* Card 1: Secure */}
-          <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
-            <div className="p-1 bg-primary/10 rounded-lg">
-              <Lock className="h-3.5 w-3.5 text-primary" />
+          <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
+            <div className="p-0.5 bg-primary/10 rounded-md">
+              <Lock className="h-2.5 w-2.5 text-primary" />
             </div>
-            <span className="text-[7px] font-black uppercase tracking-widest text-foreground">Secure</span>
+            <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Secure</span>
           </div>
           
           {/* Card 2: Instant */}
-          <div className="bg-card/40 backdrop-blur-md border border-accent/20 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
-            <div className="p-1 bg-accent/10 rounded-lg">
-              <Zap className="h-3.5 w-3.5 text-accent" />
+          <div className="bg-card/40 backdrop-blur-md border border-accent/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
+            <div className="p-0.5 bg-accent/10 rounded-md">
+              <Zap className="h-2.5 w-2.5 text-accent" />
             </div>
-            <span className="text-[7px] font-black uppercase tracking-widest text-foreground">Instant</span>
+            <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Instant</span>
           </div>
 
           {/* Card 3: Trusted */}
-          <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
-            <div className="p-1 bg-white/5 rounded-lg">
-              <ShieldCheck className="h-3.5 w-3.5 text-white" />
+          <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
+            <div className="p-0.5 bg-white/5 rounded-md">
+              <ShieldCheck className="h-2.5 w-2.5 text-white" />
             </div>
-            <span className="text-[7px] font-black uppercase tracking-widest text-foreground">Trusted</span>
+            <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Trusted</span>
           </div>
 
           {/* Card 4: Support */}
-          <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
-            <div className="p-1 bg-primary/10 rounded-lg">
-              <Headphones className="h-3.5 w-3.5 text-primary" />
+          <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
+            <div className="p-0.5 bg-primary/10 rounded-md">
+              <Headphones className="h-2.5 w-2.5 text-primary" />
             </div>
-            <span className="text-[7px] font-black uppercase tracking-widest text-foreground">Support</span>
+            <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Support</span>
           </div>
         </div>
       </section>
