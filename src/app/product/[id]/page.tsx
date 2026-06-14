@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react";
@@ -8,10 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, ShieldCheck, Zap, Info, ShoppingBag } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Zap, Info, ShoppingBag, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
+import { useUser } from "@/firebase/auth/use-user";
 
 const PACKS = [
   { id: "p1", name: "86 Diamonds", price: 99, currency: "₹", tab: "small" },
@@ -26,7 +28,8 @@ export default function ProductPage() {
   const { id } = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const { addItem } = useCart();
+  const { addItem, clearCart } = useCart();
+  const { user } = useUser();
   
   const [selectedPack, setSelectedPack] = useState(PACKS[0]);
   const [activeTab, setActiveTab] = useState("small");
@@ -35,7 +38,7 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  const productName = id?.toString().replace('-', ' ').toUpperCase() || "DIGITAL ASSET";
+  const productName = id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
   const imgId = id?.toString().startsWith('mlbb') ? 'game-mlbb' : 
                 id === 'hok' ? 'game-hok' : 
                 id === 'genshin' ? 'game-genshin' : 'game-mlbb';
@@ -43,24 +46,25 @@ export default function ProductPage() {
 
   const handleVerify = () => {
     if (!playerId || !serverId) {
-      toast({ variant: "destructive", title: "Error", description: "Please enter your Player ID and Server ID." });
+      toast({ variant: "destructive", title: "Missing Data", description: "Player ID and Server ID are required for verification." });
       return;
     }
     setVerifying(true);
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      toast({ title: "Success", description: "Account verified successfully!" });
+      toast({ title: "Identity Confirmed", description: "Profile authenticated successfully." });
     }, 1200);
   };
 
   const handleAddToCart = () => {
-    if (!isVerified) {
-      toast({ variant: "destructive", title: "Verification Required", description: "Please verify your account before adding to cart." });
+    if (!user) {
+      toast({ variant: "destructive", title: "Login Required", description: "Please login to add items to your hub." });
+      router.push('/login');
       return;
     }
 
-    const cartId = `${id}-${selectedPack.id}-${playerId}`;
+    const cartId = `${id}-${selectedPack.id}`;
     addItem({
       id: cartId,
       name: `${productName} - ${selectedPack.name}`,
@@ -73,17 +77,31 @@ export default function ProductPage() {
 
     toast({
       title: "Added to Hub",
-      description: `${selectedPack.name} added to your cart.`,
+      description: `${selectedPack.name} is ready for checkout.`,
     });
   };
 
   const handleBuyNow = () => {
-    if (!isVerified) {
-      toast({ variant: "destructive", title: "Verification Required", description: "Please verify your account before checkout." });
+    if (!user) {
+      toast({ variant: "destructive", title: "Login Required", description: "Please login to proceed with your purchase." });
+      router.push('/login');
       return;
     }
-    handleAddToCart();
-    router.push('/cart');
+
+    // Clear cart and add only this item for "Direct Checkout"
+    clearCart();
+    const cartId = `${id}-${selectedPack.id}`;
+    addItem({
+      id: cartId,
+      name: `${productName} - ${selectedPack.name}`,
+      price: selectedPack.price,
+      quantity: 1,
+      image: img?.imageUrl || "https://picsum.photos/seed/game/400/400",
+      region: id?.toString().split('-')[1]?.toUpperCase() || "GLOBAL",
+      tabName: selectedPack.tab.toUpperCase()
+    });
+
+    router.push('/checkout');
   };
 
   return (
@@ -95,6 +113,7 @@ export default function ProductPage() {
           alt="Product Header" 
           fill 
           className="object-cover"
+          priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
         <div className="absolute bottom-6 left-6">
@@ -117,14 +136,14 @@ export default function ProductPage() {
         <div className="space-y-6 bg-card p-6 rounded-3xl border border-border shadow-2xl">
           <div className="flex items-center gap-3">
             <div className="h-8 w-1.5 bg-primary rounded-full" />
-            <h3 className="text-sm font-headline font-black uppercase tracking-widest">Enter Account Data</h3>
+            <h3 className="text-sm font-headline font-black uppercase tracking-widest text-white/90">Identity Config</h3>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Player ID</Label>
               <Input 
                 placeholder="12345678" 
-                className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary transition-all"
+                className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary transition-all font-bold"
                 value={playerId}
                 onChange={(e) => setPlayerId(e.target.value)}
               />
@@ -133,7 +152,7 @@ export default function ProductPage() {
               <Label className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Server ID</Label>
               <Input 
                 placeholder="1234" 
-                className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary transition-all"
+                className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary transition-all font-bold"
                 value={serverId}
                 onChange={(e) => setServerId(e.target.value)}
               />
@@ -144,14 +163,14 @@ export default function ProductPage() {
             onClick={handleVerify}
             disabled={verifying}
           >
-            {verifying ? "Processing..." : "Verify Player"}
+            {verifying ? "Searching Data..." : "Verify Identity"}
           </Button>
 
           {isVerified && (
             <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center justify-between animate-in zoom-in-95">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <span className="text-xs font-bold text-green-500">Player Found: <span className="text-white">AATMA_HUB</span></span>
+                <span className="text-xs font-bold text-green-500 uppercase">Target Verified: <span className="text-white">AATMA_USER</span></span>
               </div>
             </div>
           )}
@@ -161,10 +180,10 @@ export default function ProductPage() {
         <div className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-4 bg-card border border-border h-12 rounded-2xl p-1.5">
-              <TabsTrigger value="small" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Small</TabsTrigger>
-              <TabsTrigger value="large" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Large</TabsTrigger>
-              <TabsTrigger value="pass" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Pass</TabsTrigger>
-              <TabsTrigger value="promo" className="text-[10px] font-black uppercase data-[state=active]:bg-primary data-[state=active]:text-white">Promo</TabsTrigger>
+              <TabsTrigger value="small" className="text-[10px] font-black uppercase data-[state=active]:bg-primary">Small</TabsTrigger>
+              <TabsTrigger value="large" className="text-[10px] font-black uppercase data-[state=active]:bg-primary">Large</TabsTrigger>
+              <TabsTrigger value="pass" className="text-[10px] font-black uppercase data-[state=active]:bg-primary">Pass</TabsTrigger>
+              <TabsTrigger value="promo" className="text-[10px] font-black uppercase data-[state=active]:bg-primary">Promo</TabsTrigger>
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-6">
@@ -181,7 +200,7 @@ export default function ProductPage() {
                     )}
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none">Pack</span>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none">Package</span>
                       <span className="text-sm font-black text-white">{pack.name}</span>
                     </div>
                     <div className="mt-4 flex items-baseline gap-1">
@@ -197,35 +216,29 @@ export default function ProductPage() {
                     )}
                   </button>
                 ))}
-                {PACKS.filter(p => p.tab === activeTab).length === 0 && (
-                  <div className="col-span-2 text-center py-10 opacity-40">
-                    <p className="text-[10px] font-black uppercase tracking-widest">No promo items active</p>
-                  </div>
-                )}
               </div>
             </TabsContent>
           </Tabs>
         </div>
 
-        {/* Order Summary */}
-        <div className="bg-card border border-border rounded-3xl p-6 space-y-5 shadow-2xl">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Final Summary</h3>
+        {/* Final Summary Card */}
+        <div className="bg-card border border-border rounded-3xl p-6 space-y-5 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-5 rotate-12">
+            <ShoppingBag size={80} />
+          </div>
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Selection Preview</h3>
           <div className="space-y-4">
             <div className="flex justify-between items-center text-xs">
-              <span className="text-muted-foreground font-bold">Selected Item:</span>
+              <span className="text-muted-foreground font-bold">Item:</span>
               <span className="text-white font-black">{selectedPack.name}</span>
             </div>
             <div className="flex justify-between items-center text-xs">
               <span className="text-muted-foreground font-bold">Region:</span>
               <span className="text-white font-black uppercase">{id?.toString().split('-')[1] || "Global"}</span>
             </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-muted-foreground font-bold">Method:</span>
-              <span className="text-accent font-black uppercase tracking-widest">InstaPay</span>
-            </div>
             <div className="pt-5 border-t border-border flex justify-between items-end">
-              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Price:</span>
-              <span className="text-2xl font-black text-primary tracking-tighter">{selectedPack.currency}{selectedPack.price}</span>
+              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Total:</span>
+              <span className="text-3xl font-black text-primary tracking-tighter">₹{selectedPack.price}</span>
             </div>
           </div>
         </div>
@@ -234,34 +247,27 @@ export default function ProductPage() {
         <div className="flex flex-col gap-4">
           <Button 
             onClick={handleBuyNow}
-            className="w-full h-14 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl transition-all"
+            className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl group transition-all"
           >
             Buy Now
+            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Button 
             variant="outline" 
             onClick={handleAddToCart}
-            className="w-full h-14 border-accent/20 bg-transparent text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-accent/5 hover:text-accent transition-all gap-2"
+            className="w-full h-14 border-white/10 bg-transparent text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-white/5 transition-all gap-2"
           >
             <ShoppingBag className="h-4 w-4" /> Add to Hub
           </Button>
         </div>
 
-        {/* Info/Trust Section */}
-        <div className="space-y-5 py-6 opacity-80">
-          <div className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl">
-            <div className="mt-0.5 p-2 bg-primary/10 rounded-xl"><Info className="h-5 w-5 text-primary" /></div>
-            <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
-              Verify your Player ID and Server ID carefully. AATMA HUB is not liable for transactions made to incorrect accounts.
+        {/* Security / Notice */}
+        <div className="space-y-5 py-6 opacity-60">
+          <div className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+            <div className="mt-0.5"><Info className="h-4 w-4 text-primary" /></div>
+            <p className="text-[10px] text-muted-foreground font-bold leading-relaxed uppercase tracking-wider">
+              Verification ensures your assets reach the correct game profile. Double check IDs before proceeding.
             </p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-             <div className="flex items-center gap-2 text-[10px] font-black text-white/50 uppercase tracking-widest">
-               <ShieldCheck className="h-4 w-4 text-primary" /> Encrypted Pay
-             </div>
-             <div className="flex items-center gap-2 text-[10px] font-black text-white/50 uppercase tracking-widest">
-               <Zap className="h-4 w-4 text-accent" /> High Speed
-             </div>
           </div>
         </div>
       </div>

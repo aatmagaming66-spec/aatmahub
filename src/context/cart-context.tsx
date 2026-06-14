@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -30,7 +31,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('aatma_cart');
+    const savedCart = localStorage.getItem('aatma_cart_v2');
     if (savedCart) {
       try {
         setItems(JSON.parse(savedCart));
@@ -44,7 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Save cart to localStorage whenever it changes
   useEffect(() => {
     if (isInitialized) {
-      localStorage.setItem('aatma_cart', JSON.stringify(items));
+      localStorage.setItem('aatma_cart_v2', JSON.stringify(items));
     }
   }, [items, isInitialized]);
 

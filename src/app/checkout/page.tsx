@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -5,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -22,9 +23,9 @@ import {
   ArrowRight, 
   ArrowLeft,
   Loader2,
+  Package,
   Info
 } from 'lucide-react';
-import Image from 'next/image';
 
 export default function CheckoutPage() {
   const { items, totalAmount, clearCart } = useCart();
@@ -46,46 +47,42 @@ export default function CheckoutPage() {
 
   const walletBalance = wallet?.balance || 0;
 
-  // Redirect if cart is empty or not logged in
   useEffect(() => {
-    if (!userLoading) {
-      if (!user) {
-        toast({ title: "Login Required", description: "Please login to proceed to checkout." });
-        router.push('/login');
-      } else if (items.length === 0) {
-        router.push('/cart');
-      }
+    if (!userLoading && !user) {
+      toast({ variant: 'destructive', title: 'Session Required', description: 'Please login to complete your order.' });
+      router.push('/login');
+    } else if (!userLoading && items.length === 0) {
+      router.push('/cart');
     }
   }, [user, userLoading, items, router, toast]);
 
   const handleVerify = () => {
     if (!playerId || !serverId) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Player ID and Server ID are required.' });
+      toast({ variant: 'destructive', title: 'Incomplete Data', description: 'Player ID and Server ID are required.' });
       return;
     }
     setVerifying(true);
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      toast({ title: "Verified", description: "Player identity found and confirmed." });
+      toast({ title: "Verified", description: "Identity found in regional database." });
     }, 1500);
   };
 
   const generateOrderId = () => {
-    const timestamp = Date.now().toString().slice(-6);
-    const random = Math.floor(1000 + Math.random() * 9000);
-    return `AH-2026-${timestamp}${random}`;
+    const ts = Date.now().toString().slice(-6);
+    const rand = Math.floor(1000 + Math.random() * 9000);
+    return `AH-2026-${ts}${rand}`;
   };
 
   const handlePlaceOrder = async () => {
     if (!isVerified) {
-      toast({ variant: 'destructive', title: 'Action Required', description: 'Please verify your ID before placing an order.' });
+      toast({ variant: 'destructive', title: 'Verify Identity', description: 'Please authenticate your Game ID before purchase.' });
       return;
     }
 
     if (!user) return;
 
-    // Wallet Balance Check
     if (paymentMethod === 'wallet' && walletBalance < totalAmount) {
       toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Please recharge your wallet to complete this purchase.' });
       return;
@@ -95,9 +92,7 @@ export default function CheckoutPage() {
     const orderId = generateOrderId();
     
     try {
-      // 1. If Wallet payment, deduct balance
       if (paymentMethod === 'wallet') {
-        // Create Purchase Transaction
         const txId = `PUR-${Date.now()}`;
         await setDoc(doc(db, 'transactions', txId), {
           transactionId: txId,
@@ -109,7 +104,6 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         });
 
-        // Update Wallet Balance
         await setDoc(doc(db, 'wallets', user.uid), {
           balance: walletBalance - totalAmount,
           updatedAt: new Date().toISOString(),
@@ -117,7 +111,6 @@ export default function CheckoutPage() {
         }, { merge: true });
       }
 
-      // 2. Create Order
       const orderData = {
         orderId,
         userId: user.uid,
@@ -132,7 +125,7 @@ export default function CheckoutPage() {
 
       await setDoc(doc(db, 'orders', orderId), orderData);
       
-      toast({ title: "Order Placed", description: `Your order ${orderId} has been successfully created.` });
+      toast({ title: "Order Secure", description: `Transaction ${orderId} initialized.` });
       clearCart();
       router.push(`/checkout/success/${orderId}`);
     } catch (error: any) {
@@ -151,17 +144,17 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
+    <div className="flex flex-col w-full p-4 space-y-10 animate-in fade-in duration-700">
       <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Secure Checkout</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Finalize your Digital Asset</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Checkout Hub</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Finalize Digital Distribution</p>
       </header>
 
-      {/* Verification Step */}
-      <div className="space-y-6">
+      {/* ID Verification */}
+      <section className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="h-6 w-1 bg-primary rounded-full" />
-          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Account Identification</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Target Destination</h3>
         </div>
         
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl">
@@ -173,7 +166,7 @@ export default function CheckoutPage() {
                   placeholder="12345678" 
                   value={playerId}
                   onChange={(e) => setPlayerId(e.target.value)}
-                  className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary"
+                  className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold"
                 />
               </div>
               <div className="space-y-2">
@@ -182,7 +175,7 @@ export default function CheckoutPage() {
                   placeholder="1234" 
                   value={serverId}
                   onChange={(e) => setServerId(e.target.value)}
-                  className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary"
+                  className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold"
                 />
               </div>
             </div>
@@ -197,18 +190,18 @@ export default function CheckoutPage() {
             {isVerified && (
               <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in-95">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <span className="text-xs font-bold text-green-500 uppercase tracking-widest">Profile Found: AATMA_MEMBER</span>
+                <span className="text-[9px] font-black text-green-500 uppercase tracking-widest leading-none">Status: Secured & Validated</span>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
+      </section>
 
-      {/* Payment Step */}
-      <div className="space-y-6">
+      {/* Payment Selection */}
+      <section className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="h-6 w-1 bg-accent rounded-full" />
-          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Payment Method</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Select Protocol</h3>
         </div>
         
         <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid gap-3">
@@ -221,9 +214,9 @@ export default function CheckoutPage() {
                 <Wallet className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-black uppercase tracking-tight">Wallet Balance</span>
+                <span className="text-sm font-black uppercase tracking-tight">Wallet</span>
                 <span className={`text-[9px] font-bold uppercase tracking-widest ${walletBalance < totalAmount ? 'text-primary' : 'text-muted-foreground'}`}>
-                  Balance: ₹{walletBalance.toLocaleString()}.00
+                  ₹{walletBalance.toLocaleString()} Available
                 </span>
               </div>
             </div>
@@ -241,37 +234,20 @@ export default function CheckoutPage() {
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-black uppercase tracking-tight">Razorpay</span>
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Cards, UPI, NetBanking</span>
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Global Payments</span>
               </div>
             </div>
             <RadioGroupItem value="razorpay" id="razorpay" className="sr-only" />
             {paymentMethod === 'razorpay' && <CheckCircle2 className="h-5 w-5 text-primary" />}
           </Label>
-
-          <Label
-            htmlFor="phonepe"
-            className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer bg-card shadow-xl ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}
-          >
-            <div className="flex items-center gap-4">
-              <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
-                <Smartphone className={paymentMethod === 'phonepe' ? 'text-primary' : 'text-muted-foreground'} />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-black uppercase tracking-tight">PhonePe</span>
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Instant UPI Transfer</span>
-              </div>
-            </div>
-            <RadioGroupItem value="phonepe" id="phonepe" className="sr-only" />
-            {paymentMethod === 'phonepe' && <CheckCircle2 className="h-5 w-5 text-primary" />}
-          </Label>
         </RadioGroup>
-      </div>
+      </section>
 
-      {/* Order Summary */}
-      <div className="space-y-6">
+      {/* Order Brief */}
+      <section className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="h-6 w-1 bg-white rounded-full" />
-          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Order Summary</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Hub Summary</h3>
         </div>
 
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl">
@@ -280,31 +256,21 @@ export default function CheckoutPage() {
               <div key={item.id} className="flex justify-between items-center text-xs">
                 <div className="flex flex-col">
                   <span className="font-black uppercase text-white/90">{item.name}</span>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">QTY: {item.quantity} • {item.region}</span>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Unit: ₹{item.price} • Qty: {item.quantity}</span>
                 </div>
                 <span className="font-black text-white">₹{item.price * item.quantity}</span>
               </div>
             ))}
             
-            <div className="pt-4 border-t border-border space-y-3">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground font-black uppercase tracking-widest">Subtotal</span>
-                <span className="font-black">₹{totalAmount}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground font-black uppercase tracking-widest">Platform Fee</span>
-                <span className="font-black text-green-400">FREE</span>
-              </div>
-              <div className="pt-3 flex justify-between items-end">
-                <span className="text-sm font-black uppercase tracking-widest">Grand Total</span>
-                <span className="text-3xl font-black text-primary tracking-tighter leading-none">₹{totalAmount}</span>
-              </div>
+            <div className="pt-4 border-t border-border flex justify-between items-end">
+              <span className="text-sm font-black uppercase tracking-widest">Grand Total</span>
+              <span className="text-3xl font-black text-primary tracking-tighter leading-none">₹{totalAmount}</span>
             </div>
           </CardContent>
         </Card>
-      </div>
+      </section>
 
-      {/* Action Buttons */}
+      {/* Action Hub */}
       <div className="flex flex-col gap-4 pt-4">
         <Button 
           className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl group transition-all"
@@ -315,7 +281,7 @@ export default function CheckoutPage() {
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              Confirm & Pay
+              Confirm Order
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </>
           )}
@@ -325,13 +291,13 @@ export default function CheckoutPage() {
           onClick={() => router.push('/cart')}
           className="w-full h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Modify Cart
+          <ArrowLeft className="mr-2 h-4 w-4" /> Return to Cart
         </Button>
       </div>
 
-      <div className="flex items-center justify-center gap-3 py-6 opacity-40">
+      <div className="flex items-center justify-center gap-3 py-6 opacity-30">
         <ShieldCheck className="h-4 w-4" />
-        <span className="text-[8px] font-black uppercase tracking-[0.4em]">End-to-End Encrypted Secure Checkout</span>
+        <span className="text-[8px] font-black uppercase tracking-[0.4em]">Hub-to-Server Secured Distribution</span>
       </div>
     </div>
   );
