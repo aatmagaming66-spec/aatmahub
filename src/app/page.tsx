@@ -62,42 +62,29 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="px-6 pt-12 pb-24 border-t border-border bg-background">
-        <div className="mb-8">
-          <h2 className="text-2xl font-headline font-black tracking-tighter mb-2">
-            <span className="text-primary">AATMA</span> HUB
+      {/* Redesigned Minimal Footer */}
+      <footer className="px-6 py-16 border-t border-border bg-background flex flex-col items-center text-center">
+        <div className="mb-2">
+          <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            AATMA HUB
           </h2>
-          <p className="text-xs text-muted-foreground leading-relaxed max-w-xs font-medium">
-            Global Digital Marketplace providing premium access to gaming assets and entertainment services since 2023.
-          </p>
         </div>
         
-        <div className="grid grid-cols-2 gap-4 mb-10">
-          <div className="space-y-3">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/50">Policies</h3>
-            <div className="flex flex-col gap-2">
-              <button className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors text-left uppercase">Terms</button>
-              <button className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors text-left uppercase">Privacy</button>
-              <button className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors text-left uppercase">Refund</button>
-            </div>
-          </div>
-          <div className="space-y-3">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/50">Company</h3>
-            <div className="flex flex-col gap-2">
-              <button className="text-xs font-bold text-muted-foreground hover:text-accent transition-colors text-left uppercase">About Us</button>
-              <button className="text-xs font-bold text-muted-foreground hover:text-accent transition-colors text-left uppercase">Contact</button>
-              <button className="text-xs font-bold text-muted-foreground hover:text-accent transition-colors text-left uppercase">Partners</button>
-            </div>
-          </div>
+        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-8 opacity-60">
+          Premium Digital Solutions
+        </p>
+
+        <div className="flex items-center gap-3 mb-8">
+          <button className="text-[9px] font-black text-white hover:text-primary transition-colors uppercase tracking-widest">Terms</button>
+          <span className="text-border text-[8px]">•</span>
+          <button className="text-[9px] font-black text-white hover:text-primary transition-colors uppercase tracking-widest">Privacy</button>
+          <span className="text-border text-[8px]">•</span>
+          <button className="text-[9px] font-black text-white hover:text-primary transition-colors uppercase tracking-widest">Refund Policy</button>
         </div>
 
-        <div className="pt-8 border-t border-border flex flex-col items-center gap-2">
-          <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">
+        <div className="pt-8 border-t border-border/50 w-full max-w-[200px]">
+          <p className="text-[8px] font-black text-primary/40 uppercase tracking-[0.3em]">
             Developed by Aatma Official
-          </p>
-          <p className="text-[9px] font-bold text-muted-foreground uppercase opacity-50">
-            © 2024 AATMA HUB. All Rights Reserved.
           </p>
         </div>
       </footer>
