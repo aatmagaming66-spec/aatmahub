@@ -1,12 +1,12 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { useDoc } from '@/firebase/firestore/use-doc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -28,7 +28,7 @@ import Image from 'next/image';
 
 export default function CheckoutPage() {
   const { items, totalAmount, clearCart } = useCart();
-  const { user, profile, loading: userLoading } = useUser();
+  const { user, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
@@ -39,6 +39,12 @@ export default function CheckoutPage() {
   const [verifying, setVerifying] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch Wallet Balance
+  const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
+  const { data: wallet, loading: walletLoading } = useDoc(walletRef);
+
+  const walletBalance = wallet?.balance || 0;
 
   // Redirect if cart is empty or not logged in
   useEffect(() => {
@@ -77,13 +83,44 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!user) return;
+
+    // Wallet Balance Check
+    if (paymentMethod === 'wallet' && walletBalance < totalAmount) {
+      toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Please recharge your wallet to complete this purchase.' });
+      return;
+    }
+
     setSubmitting(true);
     const orderId = generateOrderId();
     
     try {
+      // 1. If Wallet payment, deduct balance
+      if (paymentMethod === 'wallet') {
+        // Create Purchase Transaction
+        const txId = `PUR-${Date.now()}`;
+        await setDoc(doc(db, 'transactions', txId), {
+          transactionId: txId,
+          userId: user.uid,
+          amount: totalAmount,
+          type: 'purchase',
+          status: 'success',
+          createdAt: new Date().toISOString(),
+          serverTimestamp: serverTimestamp(),
+        });
+
+        // Update Wallet Balance
+        await setDoc(doc(db, 'wallets', user.uid), {
+          balance: walletBalance - totalAmount,
+          updatedAt: new Date().toISOString(),
+          serverTimestamp: serverTimestamp(),
+        }, { merge: true });
+      }
+
+      // 2. Create Order
       const orderData = {
         orderId,
-        userId: user?.uid,
+        userId: user.uid,
         items: items,
         totalAmount,
         playerInfo: { playerId, serverId },
@@ -105,7 +142,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (userLoading || !user) {
+  if (userLoading || walletLoading || !user) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
@@ -185,7 +222,9 @@ export default function CheckoutPage() {
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-black uppercase tracking-tight">Wallet Balance</span>
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Balance: ₹1,250.00</span>
+                <span className={`text-[9px] font-bold uppercase tracking-widest ${walletBalance < totalAmount ? 'text-primary' : 'text-muted-foreground'}`}>
+                  Balance: ₹{walletBalance.toLocaleString()}.00
+                </span>
               </div>
             </div>
             <RadioGroupItem value="wallet" id="wallet" className="sr-only" />

@@ -1,18 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
+import { useDoc } from '@/firebase/firestore/use-doc';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, User, Phone, Mail, Calendar, Crown, Shield, Loader2 } from 'lucide-react';
+import { LogOut, User, Phone, Mail, Calendar, Crown, Shield, Loader2, Wallet, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 export default function ProfilePage() {
   const { user, profile, loading: userLoading } = useUser();
@@ -25,6 +27,10 @@ export default function ProfilePage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Fetch Wallet Balance
+  const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
+  const { data: wallet } = useDoc(walletRef);
 
   // Route Protection: Redirect to login if not authenticated
   useEffect(() => {
@@ -122,6 +128,22 @@ export default function ProfilePage() {
       </div>
 
       <div className="p-6 space-y-6">
+        {/* Wallet Quick Access */}
+        <Link href="/wallet">
+          <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 rounded-3xl p-6 flex items-center justify-between group active:scale-[0.98] transition-all">
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 bg-primary/20 rounded-2xl flex items-center justify-center">
+                <Wallet className="text-primary h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Wallet Balance</p>
+                <p className="text-2xl font-black text-white">₹{wallet?.balance?.toLocaleString() || '0'}.00</p>
+              </div>
+            </div>
+            <ArrowRight className="h-5 w-5 text-primary group-hover:translate-x-1 transition-transform" />
+          </Card>
+        </Link>
+
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl">
           <CardHeader className="p-6 border-b border-border">
             <div className="flex justify-between items-center">
