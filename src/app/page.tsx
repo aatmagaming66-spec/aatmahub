@@ -25,13 +25,10 @@ export default function Home() {
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <HeroBanner />
       
-      {/* Quick Actions with 4 items */}
-      <QuickActions />
-      
-      {/* Ultra Compact Trust Features Section */}
-      <section className="px-4 py-0.5">
+      {/* Ultra Compact Trust Features Section (Moved Above Quick Actions) */}
+      <section className="px-4 py-0.5 mt-2">
         <div className="grid grid-cols-4 gap-1.5">
-          {/* Card 1: Secure */}
+          {/* Badge 1: Secure */}
           <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
             <div className="p-0.5 bg-primary/10 rounded-md">
               <Lock className="h-2.5 w-2.5 text-primary" />
@@ -39,7 +36,7 @@ export default function Home() {
             <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Secure</span>
           </div>
           
-          {/* Card 2: Instant */}
+          {/* Badge 2: Instant */}
           <div className="bg-card/40 backdrop-blur-md border border-accent/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
             <div className="p-0.5 bg-accent/10 rounded-md">
               <Zap className="h-2.5 w-2.5 text-accent" />
@@ -47,7 +44,7 @@ export default function Home() {
             <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Instant</span>
           </div>
 
-          {/* Card 3: Trusted */}
+          {/* Badge 3: Trusted */}
           <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
             <div className="p-0.5 bg-white/5 rounded-md">
               <ShieldCheck className="h-2.5 w-2.5 text-white" />
@@ -55,7 +52,7 @@ export default function Home() {
             <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Trusted</span>
           </div>
 
-          {/* Card 4: Support */}
+          {/* Badge 4: Support */}
           <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
             <div className="p-0.5 bg-primary/10 rounded-md">
               <Headphones className="h-2.5 w-2.5 text-primary" />
@@ -64,6 +61,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+      
+      {/* Quick Actions Row */}
+      <QuickActions />
       
       <GameGrid />
       
