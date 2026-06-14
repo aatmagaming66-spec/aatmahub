@@ -22,7 +22,7 @@ const SOCIAL_SERVICES = [
 
 export default function Home() {
   return (
-    <div className="flex flex-col w-full animate-in fade-in duration-500">
+    <div className="flex flex-col w-full animate-in fade-in duration-700">
       <HeroBanner />
       <QuickActions />
       
@@ -33,43 +33,71 @@ export default function Home() {
       <ServiceCarousel title="Social Services" items={SOCIAL_SERVICES} />
 
       {/* Trust Section */}
-      <section className="px-6 py-8 bg-card/50 mt-4 border-t border-white/5">
-        <div className="grid grid-cols-2 gap-6">
-          <div className="flex flex-col items-center text-center gap-2">
-            <Lock className="h-6 w-6 text-primary" />
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Secure Payments</h4>
+      <section className="px-6 py-10 bg-card mt-8 border-y border-border">
+        <div className="grid grid-cols-2 gap-8">
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+              <Lock className="h-6 w-6 text-primary" />
+            </div>
+            <h4 className="text-[9px] font-black uppercase tracking-widest text-foreground">Secure Payments</h4>
           </div>
-          <div className="flex flex-col items-center text-center gap-2">
-            <Zap className="h-6 w-6 text-accent" />
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Instant Delivery</h4>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="p-3 bg-accent/10 rounded-2xl border border-accent/20">
+              <Zap className="h-6 w-6 text-accent" />
+            </div>
+            <h4 className="text-[9px] font-black uppercase tracking-widest text-foreground">Instant Delivery</h4>
           </div>
-          <div className="flex flex-col items-center text-center gap-2">
-            <ShieldCheck className="h-6 w-6 text-green-400" />
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Safe & Trusted</h4>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+              <ShieldCheck className="h-6 w-6 text-white" />
+            </div>
+            <h4 className="text-[9px] font-black uppercase tracking-widest text-foreground">Safe & Trusted</h4>
           </div>
-          <div className="flex flex-col items-center text-center gap-2">
-            <Headphones className="h-6 w-6 text-blue-400" />
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">24/7 Support</h4>
+          <div className="flex flex-col items-center text-center gap-3">
+            <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+              <Headphones className="h-6 w-6 text-primary" />
+            </div>
+            <h4 className="text-[9px] font-black uppercase tracking-widest text-foreground">24/7 Support</h4>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="px-6 pt-10 pb-24 border-t border-white/5 bg-background">
-        <h2 className="text-xl font-headline font-bold text-primary mb-2">AATMA HUB</h2>
-        <p className="text-xs text-muted-foreground mb-6 max-w-xs">
-          Premium Digital Solutions for Gaming and Social Needs. Providing global access to premium assets since 2023.
-        </p>
+      <footer className="px-6 pt-12 pb-24 border-t border-border bg-background">
+        <div className="mb-8">
+          <h2 className="text-2xl font-headline font-black tracking-tighter mb-2">
+            <span className="text-primary">AATMA</span> HUB
+          </h2>
+          <p className="text-xs text-muted-foreground leading-relaxed max-w-xs font-medium">
+            Global Digital Marketplace providing premium access to gaming assets and entertainment services since 2023.
+          </p>
+        </div>
         
-        <div className="flex gap-6 mb-8">
-          <button className="text-[11px] font-bold text-muted-foreground hover:text-foreground">TERMS</button>
-          <button className="text-[11px] font-bold text-muted-foreground hover:text-foreground">PRIVACY</button>
-          <button className="text-[11px] font-bold text-muted-foreground hover:text-foreground">REFUND</button>
+        <div className="grid grid-cols-2 gap-4 mb-10">
+          <div className="space-y-3">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/50">Policies</h3>
+            <div className="flex flex-col gap-2">
+              <button className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors text-left uppercase">Terms</button>
+              <button className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors text-left uppercase">Privacy</button>
+              <button className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors text-left uppercase">Refund</button>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/50">Company</h3>
+            <div className="flex flex-col gap-2">
+              <button className="text-xs font-bold text-muted-foreground hover:text-accent transition-colors text-left uppercase">About Us</button>
+              <button className="text-xs font-bold text-muted-foreground hover:text-accent transition-colors text-left uppercase">Contact</button>
+              <button className="text-xs font-bold text-muted-foreground hover:text-accent transition-colors text-left uppercase">Partners</button>
+            </div>
+          </div>
         </div>
 
-        <div className="pt-6 border-t border-white/5">
-          <p className="text-[10px] font-medium text-muted-foreground opacity-50">
-            © 2024 AATMA HUB. DEVELOPED BY AATMA OFFICIAL
+        <div className="pt-8 border-t border-border flex flex-col items-center gap-2">
+          <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">
+            Developed by Aatma Official
+          </p>
+          <p className="text-[9px] font-bold text-muted-foreground uppercase opacity-50">
+            © 2024 AATMA HUB. All Rights Reserved.
           </p>
         </div>
       </footer>

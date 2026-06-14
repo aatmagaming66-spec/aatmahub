@@ -1,38 +1,37 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 282 30% 6%;
+    --background: 0 0% 4%;
     --foreground: 0 0% 100%;
-    --card: 282 30% 8%;
+    --card: 0 0% 9%;
     --card-foreground: 0 0% 100%;
-    --popover: 282 30% 6%;
+    --popover: 0 0% 4%;
     --popover-foreground: 0 0% 100%;
-    --primary: 265 100% 63%;
+    --primary: 0 72% 51%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 265 20% 15%;
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 265 20% 12%;
-    --muted-foreground: 265 10% 60%;
-    --accent: 240 100% 77%;
-    --accent-foreground: 240 10% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 330 81% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 265 20% 15%;
-    --input: 265 20% 15%;
-    --ring: 265 100% 63%;
-    --radius: 0.75rem;
-    --sidebar-background: 282 30% 6%;
-    --sidebar-foreground: 240 5.3% 85%;
-    --sidebar-primary: 265 100% 63%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 72% 51%;
+    --radius: 1rem;
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 240 5% 85%;
+    --sidebar-primary: 0 72% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 265 20% 15%;
+    --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 265 20% 15%;
-    --sidebar-ring: 265 100% 63%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 72% 51%;
   }
 }
 
