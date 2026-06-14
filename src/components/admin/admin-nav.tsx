@@ -10,12 +10,14 @@ import {
   ShoppingCart, 
   Users, 
   Globe, 
-  IndianRupee,
-  ArrowLeft,
   Settings,
   CreditCard,
   Zap,
-  Cpu
+  Cpu,
+  Activity,
+  Megaphone,
+  Database,
+  ArrowLeft
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -23,6 +25,10 @@ const ADMIN_LINKS = [
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/regions', label: 'Regions', icon: Globe },
+  { href: '/admin/announcements', label: 'Broadcast', icon: Megaphone },
+  { href: '/admin/system', label: 'System Health', icon: Activity },
+  { href: '/admin/backups', label: 'Backups', icon: Database },
+  { href: '/admin/settings', label: 'Site Config', icon: Settings },
   { href: '/admin/settings/telegram', label: 'Telegram', icon: Settings },
   { href: '/admin/settings/payments', label: 'Payments', icon: CreditCard },
   { href: '/admin/settings/smileone', label: 'Smile.one', icon: Zap },
@@ -33,8 +39,8 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-2 p-4">
-      <Link href="/" className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors">
+    <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10">
+      <Link href="/" className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors px-4">
         <ArrowLeft className="h-4 w-4" /> Back to Store
       </Link>
       <div className="space-y-1">
@@ -51,8 +57,8 @@ export function AdminNav() {
                   : "text-muted-foreground hover:bg-white/5 hover:text-white"
               )}
             >
-              <link.icon className="h-5 w-5" />
-              <span className="text-xs font-black uppercase tracking-widest">{link.label}</span>
+              <link.icon className="h-4 w-4" />
+              <span className="text-[10px] font-black uppercase tracking-widest leading-none">{link.label}</span>
             </Link>
           );
         })}

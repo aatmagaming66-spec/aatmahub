@@ -8,6 +8,8 @@ import { AppSidebar } from '@/components/navigation/app-sidebar';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/cart-context';
+import { AnnouncementBar } from '@/components/navigation/announcement-bar';
+import { MaintenanceCheck } from '@/components/navigation/maintenance-check';
 
 export const metadata: Metadata = {
   title: 'AATMA HUB - Premium Digital Solutions',
@@ -50,6 +52,8 @@ export default function RootLayout({
               <div className="flex w-full min-h-screen">
                 <AppSidebar />
                 <div className="flex-1 flex flex-col w-full relative">
+                  <MaintenanceCheck />
+                  <AnnouncementBar />
                   <TopHeader />
                   <main className="flex-1 pb-20 w-full overflow-x-hidden">
                     {children}
