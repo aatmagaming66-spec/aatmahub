@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ import { sendTelegramNotification } from '@/lib/telegram';
 
 export default function DepositPage() {
   const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState('phonepe');
   const [loading, setLoading] = useState(false);
   const { user, profile } = useUser();
   const db = useFirestore();
@@ -36,35 +36,65 @@ export default function DepositPage() {
     const transactionId = `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
     try {
-      // 1. Create Transaction Record
-      const txData = {
-        transactionId,
-        userId: user.uid,
-        amount: numAmount,
-        type: 'deposit',
-        status: 'pending', // Deposits require Admin manual approval via Telegram/Admin panel
-        createdAt: new Date().toISOString(),
-        serverTimestamp: serverTimestamp(),
-      };
-      await setDoc(doc(db, 'transactions', transactionId), txData);
+      if (paymentMethod === 'phonepe') {
+        // 1. Create Pending Transaction
+        await setDoc(doc(db, 'transactions', transactionId), {
+          transactionId,
+          userId: user.uid,
+          amount: numAmount,
+          type: 'deposit',
+          status: 'pending_payment',
+          paymentMethod: 'phonepe',
+          createdAt: new Date().toISOString(),
+          serverTimestamp: serverTimestamp(),
+        });
 
-      // 2. Notify Telegram for Approval
-      const tgMsg = `💰 <b>DEPOSIT REQUESTED</b>\n\n` +
-        `👤 <b>User:</b> ${profile?.fullName}\n` +
-        `💵 <b>Amount:</b> ₹${numAmount}\n` +
-        `💳 <b>Method:</b> ${paymentMethod}\n` +
-        `🔑 <b>TXN ID:</b> <code>${transactionId}</code>\n` +
-        `🕒 <b>Time:</b> ${new Date().toLocaleString()}`;
+        // 2. Initiate PhonePe
+        const res = await fetch('/api/payments/phonepe/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: numAmount,
+            transactionId,
+            userId: user.uid,
+            type: 'deposit',
+          }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || 'Payment initiation failed');
+        }
+      } else {
+        // Default manual approval logic (Razorpay/Manual)
+        const txData = {
+          transactionId,
+          userId: user.uid,
+          amount: numAmount,
+          type: 'deposit',
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          serverTimestamp: serverTimestamp(),
+        };
+        await setDoc(doc(db, 'transactions', transactionId), txData);
 
-      sendTelegramNotification(db, tgMsg, [
-        [
-          { text: '✅ Approve', callback_data: `approve_deposit:${transactionId}` },
-          { text: '❌ Reject', callback_data: `reject_deposit:${transactionId}` }
-        ]
-      ]);
+        const tgMsg = `💰 <b>DEPOSIT REQUESTED</b>\n\n` +
+          `👤 <b>User:</b> ${profile?.fullName}\n` +
+          `💵 <b>Amount:</b> ₹${numAmount}\n` +
+          `💳 <b>Method:</b> ${paymentMethod}\n` +
+          `🔑 <b>TXN ID:</b> <code>${transactionId}</code>\n`;
 
-      toast({ title: 'Deposit Requested', description: `Request for ₹${numAmount} sent for admin approval.` });
-      router.push('/wallet');
+        sendTelegramNotification(db, tgMsg, [
+          [
+            { text: '✅ Approve', callback_data: `approve_deposit:${transactionId}` },
+            { text: '❌ Reject', callback_data: `reject_deposit:${transactionId}` }
+          ]
+        ]);
+
+        toast({ title: 'Deposit Requested', description: `Request for ₹${numAmount} sent for admin approval.` });
+        router.push('/wallet');
+      }
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Request Failed', description: error.message });
     } finally {
@@ -122,23 +152,6 @@ export default function DepositPage() {
 
           <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid gap-3">
             <Label
-              htmlFor="razorpay"
-              className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer bg-card shadow-xl ${paymentMethod === 'razorpay' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}
-            >
-              <div className="flex items-center gap-4">
-                <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${paymentMethod === 'razorpay' ? 'bg-primary/20' : 'bg-white/5'}`}>
-                  <CreditCard className={paymentMethod === 'razorpay' ? 'text-primary' : 'text-muted-foreground'} />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-black uppercase tracking-tight">Razorpay</span>
-                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Cards, NetBanking, Wallet</span>
-                </div>
-              </div>
-              <RadioGroupItem value="razorpay" id="razorpay" className="sr-only" />
-              {paymentMethod === 'razorpay' && <CheckCircle2 className="h-5 w-5 text-primary" />}
-            </Label>
-
-            <Label
               htmlFor="phonepe"
               className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer bg-card shadow-xl ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}
             >
@@ -153,6 +166,23 @@ export default function DepositPage() {
               </div>
               <RadioGroupItem value="phonepe" id="phonepe" className="sr-only" />
               {paymentMethod === 'phonepe' && <CheckCircle2 className="h-5 w-5 text-primary" />}
+            </Label>
+
+            <Label
+              htmlFor="razorpay"
+              className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer bg-card shadow-xl ${paymentMethod === 'razorpay' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}
+            >
+              <div className="flex items-center gap-4">
+                <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${paymentMethod === 'razorpay' ? 'bg-primary/20' : 'bg-white/5'}`}>
+                  <CreditCard className={paymentMethod === 'razorpay' ? 'text-primary' : 'text-muted-foreground'} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-black uppercase tracking-tight">Razorpay</span>
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Cards, NetBanking, Wallet</span>
+                </div>
+              </div>
+              <RadioGroupItem value="razorpay" id="razorpay" className="sr-only" />
+              {paymentMethod === 'razorpay' && <CheckCircle2 className="h-5 w-5 text-primary" />}
             </Label>
           </RadioGroup>
         </div>

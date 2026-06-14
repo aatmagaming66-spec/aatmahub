@@ -110,47 +110,67 @@ export default function CheckoutPage() {
           updatedAt: new Date().toISOString(),
           serverTimestamp: serverTimestamp(),
         }, { merge: true });
+
+        const orderData = {
+          orderId,
+          userId: user.uid,
+          items: items,
+          totalAmount,
+          playerInfo: { playerId, serverId },
+          paymentMethod,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+          serverTimestamp: serverTimestamp(),
+        };
+
+        await setDoc(doc(db, 'orders', orderId), orderData);
+        
+        // Notify Telegram
+        const tgMsg = `🚀 <b>NEW ORDER PLACED (WALLET)</b>\n\n` +
+          `📦 <b>Order ID:</b> ${orderId}\n` +
+          `👤 <b>User:</b> ${profile?.fullName}\n` +
+          `📱 <b>Product:</b> ${items[0].name}\n` +
+          `💰 <b>Amount:</b> ₹${totalAmount}\n`;
+
+        sendTelegramNotification(db, tgMsg);
+        toast({ title: "Order Secure", description: `Transaction ${orderId} initialized.` });
+        clearCart();
+        router.push(`/checkout/success/${orderId}`);
+      } else if (paymentMethod === 'phonepe') {
+        // 1. Create Order with 'pending_payment'
+        const orderData = {
+          orderId,
+          userId: user.uid,
+          items: items,
+          totalAmount,
+          playerInfo: { playerId, serverId },
+          paymentMethod,
+          status: 'pending_payment',
+          createdAt: new Date().toISOString(),
+          serverTimestamp: serverTimestamp(),
+        };
+        await setDoc(doc(db, 'orders', orderId), orderData);
+
+        // 2. Initiate PhonePe
+        const res = await fetch('/api/payments/phonepe/initiate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: totalAmount,
+            transactionId: orderId,
+            userId: user.uid,
+            type: 'order',
+            orderId: orderId,
+          }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          clearCart();
+          window.location.href = data.url;
+        } else {
+          throw new Error(data.error || 'Payment failed to initiate');
+        }
       }
-
-      const orderData = {
-        orderId,
-        userId: user.uid,
-        items: items,
-        totalAmount,
-        playerInfo: { playerId, serverId },
-        paymentMethod,
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        serverTimestamp: serverTimestamp(),
-      };
-
-      await setDoc(doc(db, 'orders', orderId), orderData);
-      
-      // Send Telegram Notification
-      const tgMsg = `🚀 <b>NEW ORDER PLACED</b>\n\n` +
-        `📦 <b>Order ID:</b> ${orderId}\n` +
-        `👤 <b>User:</b> ${profile?.fullName}\n` +
-        `📱 <b>Product:</b> ${items[0].name}\n` +
-        `🌐 <b>Region:</b> ${items[0].region}\n` +
-        `🆔 <b>Player ID:</b> ${playerId}\n` +
-        `🖥 <b>Server ID:</b> ${serverId}\n` +
-        `💰 <b>Amount:</b> ₹${totalAmount}\n` +
-        `💳 <b>Payment:</b> ${paymentMethod}\n` +
-        `🕒 <b>Time:</b> ${new Date().toLocaleString()}`;
-
-      sendTelegramNotification(db, tgMsg, [
-        [
-          { text: '⚙ Process', callback_data: `process_order:${orderId}` },
-          { text: '🎉 Complete', callback_data: `complete_order:${orderId}` }
-        ],
-        [
-          { text: '❌ Cancel', callback_data: `cancel_order:${orderId}` }
-        ]
-      ]);
-
-      toast({ title: "Order Secure", description: `Transaction ${orderId} initialized.` });
-      clearCart();
-      router.push(`/checkout/success/${orderId}`);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Order Failed', description: error.message });
     } finally {
@@ -248,20 +268,20 @@ export default function CheckoutPage() {
           </Label>
 
           <Label
-            htmlFor="razorpay"
-            className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer bg-card shadow-xl ${paymentMethod === 'razorpay' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}
+            htmlFor="phonepe"
+            className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer bg-card shadow-xl ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}
           >
             <div className="flex items-center gap-4">
-              <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${paymentMethod === 'razorpay' ? 'bg-primary/20' : 'bg-white/5'}`}>
-                <CreditCard className={paymentMethod === 'razorpay' ? 'text-primary' : 'text-muted-foreground'} />
+              <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
+                <Smartphone className={paymentMethod === 'phonepe' ? 'text-primary' : 'text-muted-foreground'} />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-black uppercase tracking-tight">Razorpay</span>
-                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Global Payments</span>
+                <span className="text-sm font-black uppercase tracking-tight">PhonePe</span>
+                <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Instant UPI Payment</span>
               </div>
             </div>
-            <RadioGroupItem value="razorpay" id="razorpay" className="sr-only" />
-            {paymentMethod === 'razorpay' && <CheckCircle2 className="h-5 w-5 text-primary" />}
+            <RadioGroupItem value="phonepe" id="phonepe" className="sr-only" />
+            {paymentMethod === 'phonepe' && <CheckCircle2 className="h-5 w-5 text-primary" />}
           </Label>
         </RadioGroup>
       </section>
@@ -304,7 +324,7 @@ export default function CheckoutPage() {
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              Confirm Order
+              Confirm & Pay
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </>
           )}

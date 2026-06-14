@@ -11,16 +11,18 @@ import {
   Users, 
   Globe, 
   IndianRupee,
-  ArrowLeft
+  ArrowLeft,
+  Settings,
+  CreditCard
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-  { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/regions', label: 'Regions', icon: Globe },
-  { href: '/admin/pricing', label: 'Pricing', icon: IndianRupee },
+  { href: '/admin/settings/telegram', label: 'Telegram', icon: Settings },
+  { href: '/admin/settings/payments', label: 'Payments', icon: CreditCard },
 ];
 
 export function AdminNav() {

@@ -77,9 +77,16 @@
           "type": "string",
           "enum": ["wallet", "razorpay", "phonepe"]
         },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["pending", "success", "failed"]
+        },
+        "transactionId": {
+          "type": "string"
+        },
         "status": {
           "type": "string",
-          "enum": ["pending", "processing", "completed", "cancelled", "failed"]
+          "enum": ["pending", "processing", "completed", "cancelled", "failed", "pending_payment"]
         },
         "createdAt": {
           "type": "string",
@@ -108,8 +115,9 @@
         "userId": { "type": "string" },
         "amount": { "type": "number" },
         "type": { "type": "string", "enum": ["deposit", "purchase", "refund"] },
-        "status": { "type": "string", "enum": ["pending", "success", "failed"] },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "status": { "type": "string", "enum": ["pending", "success", "failed", "pending_payment"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "paymentMethod": { "type": "string" }
       },
       "required": ["transactionId", "userId", "amount", "type", "status", "createdAt"]
     },
@@ -123,6 +131,18 @@
         "notificationsEnabled": { "type": "boolean" },
         "controlsEnabled": { "type": "boolean" },
         "lastSync": { "type": "string", "format": "date-time" }
+      }
+    },
+    "PaymentSettings": {
+      "title": "Payment Settings",
+      "description": "Configuration for Payment Gateways like PhonePe",
+      "type": "object",
+      "properties": {
+        "phonepeMerchantId": { "type": "string" },
+        "phonepeSaltKey": { "type": "string" },
+        "phonepeSaltIndex": { "type": "string" },
+        "phonepeEnv": { "type": "string", "enum": ["sandbox", "production"] },
+        "isPhonePeEnabled": { "type": "boolean" }
       }
     }
   },
@@ -151,6 +171,10 @@
     "/settings/telegram": {
       "schema": "TelegramSettings",
       "description": "Global Telegram configuration"
+    },
+    "/settings/payments": {
+      "schema": "PaymentSettings",
+      "description": "Global Payment configuration"
     }
   }
 }
