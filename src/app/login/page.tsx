@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,6 +23,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  // Redirect if already logged in
   useEffect(() => {
     if (!userLoading && user) {
       router.push('/profile');
@@ -38,19 +40,29 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      toast({
+        title: "Access Granted",
+        description: "Welcome back to AATMA HUB Premium.",
+      });
       router.push('/');
     } catch (error: any) {
       toast({ 
         variant: 'destructive', 
         title: 'Login Failed', 
-        description: 'Invalid email or password. Please try again.' 
+        description: 'The credentials provided do not match our records.' 
       });
     } finally {
       setLoading(false);
     }
   };
 
-  if (userLoading) return null;
+  if (userLoading) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center">
+        <Loader2 className="h-8 w-8 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4 animate-in fade-in duration-700">
@@ -86,7 +98,12 @@ export default function LoginPage() {
               className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-primary/20"
               disabled={loading}
             >
-              {loading ? "Verifying..." : "Sign In"}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : "Sign In"}
             </Button>
           </form>
           <div className="text-center pt-4">

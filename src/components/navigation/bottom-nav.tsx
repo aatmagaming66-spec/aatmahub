@@ -1,7 +1,6 @@
-
 'use client';
 
-import { Home, LayoutDashboard, ClipboardList, UserCircle, LogIn } from "lucide-react";
+import { Home, LayoutDashboard, ClipboardList, UserCircle, LogIn, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -16,8 +15,8 @@ export function BottomNav() {
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
     { label: "Orders", icon: ClipboardList, href: "/orders" },
     { 
-      label: user ? "Account" : "Login", 
-      icon: user ? UserCircle : LogIn, 
+      label: loading ? "Loading" : (user ? "Account" : "Login"), 
+      icon: loading ? Loader2 : (user ? UserCircle : LogIn), 
       href: user ? "/profile" : "/login" 
     },
   ];
@@ -27,6 +26,8 @@ export function BottomNav() {
       <div className="flex h-full items-center justify-around px-2">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
+          const isUserItem = item.label === "Account" || item.label === "Login" || item.label === "Loading";
+          
           return (
             <Link 
               key={item.href} 
@@ -36,8 +37,14 @@ export function BottomNav() {
                 isActive ? "text-primary" : "text-muted-foreground hover:text-accent"
               )}
             >
-              <item.icon className={cn("h-5 w-5", isActive && "fill-primary/10")} />
-              <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
+              <item.icon className={cn(
+                "h-5 w-5", 
+                isActive && "fill-primary/10",
+                item.label === "Loading" && "animate-spin"
+              )} />
+              <span className="text-[10px] font-bold uppercase tracking-wider">
+                {item.label}
+              </span>
               {isActive && (
                 <div className="absolute bottom-1 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_#DC2626]" />
               )}
