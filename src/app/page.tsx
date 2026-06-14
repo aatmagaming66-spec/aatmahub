@@ -70,27 +70,25 @@ export default function Home() {
       </section>
 
       {/* Redesigned Minimal Footer */}
-      <footer className="px-6 py-10 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
-        <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-1">
+      <footer className="px-6 py-12 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
+        <h2 className="text-5xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-1">
           AATMA HUB
         </h2>
         <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-6 opacity-60">
           Premium Digital Solutions
         </p>
 
-        <div className="flex items-center gap-3 mb-6 text-white/40 text-[9px] font-black uppercase tracking-widest">
+        <div className="flex items-center gap-3 mb-4 text-white/40 text-[9px] font-black uppercase tracking-widest">
           <button className="hover:text-primary transition-colors">Terms</button>
-          <span className="text-border">•</span>
+          <span className="text-border opacity-50">•</span>
           <button className="hover:text-primary transition-colors">Privacy</button>
-          <span className="text-border">•</span>
+          <span className="text-border opacity-50">•</span>
           <button className="hover:text-primary transition-colors">Refund Policy</button>
         </div>
 
-        <div className="pt-6 border-t border-border/50 w-full max-w-[160px]">
-          <p className="text-[8px] font-black text-primary/40 uppercase tracking-[0.3em]">
-            Developed by Aatma Official
-          </p>
-        </div>
+        <p className="text-[8px] font-black text-primary/40 uppercase tracking-[0.3em]">
+          Developed by Aatma Official
+        </p>
       </footer>
     </div>
   );
