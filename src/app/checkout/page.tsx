@@ -26,10 +26,11 @@ import {
   Package,
   Info
 } from 'lucide-react';
+import { sendTelegramNotification } from '@/lib/telegram';
 
 export default function CheckoutPage() {
   const { items, totalAmount, clearCart } = useCart();
-  const { user, loading: userLoading } = useUser();
+  const { user, profile, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
@@ -125,6 +126,28 @@ export default function CheckoutPage() {
 
       await setDoc(doc(db, 'orders', orderId), orderData);
       
+      // Send Telegram Notification
+      const tgMsg = `🚀 <b>NEW ORDER PLACED</b>\n\n` +
+        `📦 <b>Order ID:</b> ${orderId}\n` +
+        `👤 <b>User:</b> ${profile?.fullName}\n` +
+        `📱 <b>Product:</b> ${items[0].name}\n` +
+        `🌐 <b>Region:</b> ${items[0].region}\n` +
+        `🆔 <b>Player ID:</b> ${playerId}\n` +
+        `🖥 <b>Server ID:</b> ${serverId}\n` +
+        `💰 <b>Amount:</b> ₹${totalAmount}\n` +
+        `💳 <b>Payment:</b> ${paymentMethod}\n` +
+        `🕒 <b>Time:</b> ${new Date().toLocaleString()}`;
+
+      sendTelegramNotification(db, tgMsg, [
+        [
+          { text: '⚙ Process', callback_data: `process_order:${orderId}` },
+          { text: '🎉 Complete', callback_data: `complete_order:${orderId}` }
+        ],
+        [
+          { text: '❌ Cancel', callback_data: `cancel_order:${orderId}` }
+        ]
+      ]);
+
       toast({ title: "Order Secure", description: `Transaction ${orderId} initialized.` });
       clearCart();
       router.push(`/checkout/success/${orderId}`);

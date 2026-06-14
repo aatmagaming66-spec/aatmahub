@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -11,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { sendTelegramNotification } from '@/lib/telegram';
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
@@ -58,6 +60,16 @@ export default function RegisterPage() {
         role: 'user',
         createdAt: new Date().toISOString(),
       });
+
+      // Notify Telegram
+      const tgMsg = `🆕 <b>NEW USER REGISTERED</b>\n\n` +
+        `👤 <b>Name:</b> ${fullName}\n` +
+        `📧 <b>Email:</b> ${email}\n` +
+        `📞 <b>Phone:</b> ${phoneNumber}\n` +
+        `🆔 <b>UID:</b> <code>${user.uid}</code>\n` +
+        `🕒 <b>Time:</b> ${new Date().toLocaleString()}`;
+      
+      sendTelegramNotification(db, tgMsg);
 
       router.push('/');
     } catch (error: any) {

@@ -113,32 +113,17 @@
       },
       "required": ["transactionId", "userId", "amount", "type", "status", "createdAt"]
     },
-    "Product": {
-      "title": "Product",
-      "description": "Digital products/packages for sale",
+    "TelegramSettings": {
+      "title": "Telegram Settings",
+      "description": "Settings for Telegram Bot integration",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "category": { "type": "string" },
-        "region": { "type": "string" },
-        "price": { "type": "number" },
-        "status": { "type": "string", "enum": ["enabled", "disabled"] },
-        "imageUrl": { "type": "string" }
-      },
-      "required": ["id", "name", "category", "price", "status"]
-    },
-    "Region": {
-      "title": "Region",
-      "description": "Available gaming regions",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "flag": { "type": "string" },
-        "status": { "type": "string", "enum": ["enabled", "disabled"] }
-      },
-      "required": ["id", "name", "status"]
+        "botToken": { "type": "string" },
+        "adminChatId": { "type": "string" },
+        "notificationsEnabled": { "type": "boolean" },
+        "controlsEnabled": { "type": "boolean" },
+        "lastSync": { "type": "string", "format": "date-time" }
+      }
     }
   },
   "auth": {
@@ -163,13 +148,9 @@
       "schema": "Transaction",
       "description": "Wallet transactions"
     },
-    "/products/{productId}": {
-      "schema": "Product",
-      "description": "Available products"
-    },
-    "/regions/{regionId}": {
-      "schema": "Region",
-      "description": "Gaming regions"
+    "/settings/telegram": {
+      "schema": "TelegramSettings",
+      "description": "Global Telegram configuration"
     }
   }
 }

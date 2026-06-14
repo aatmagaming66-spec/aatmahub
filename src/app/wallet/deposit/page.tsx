@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,16 +9,16 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Loader2, ShieldCheck, CreditCard, Smartphone, CheckCircle2 } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { sendTelegramNotification } from '@/lib/telegram';
 
 export default function DepositPage() {
   const [amount, setAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [loading, setLoading] = useState(false);
-  const { user } = useUser();
+  const { user, profile } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
   const router = useRouter();
@@ -41,28 +42,31 @@ export default function DepositPage() {
         userId: user.uid,
         amount: numAmount,
         type: 'deposit',
-        status: 'success', // Auto-success for this MVP flow
+        status: 'pending', // Deposits require Admin manual approval via Telegram/Admin panel
         createdAt: new Date().toISOString(),
         serverTimestamp: serverTimestamp(),
       };
       await setDoc(doc(db, 'transactions', transactionId), txData);
 
-      // 2. Update Wallet Balance
-      const walletRef = doc(db, 'wallets', user.uid);
-      const walletSnap = await getDoc(walletRef);
-      
-      const currentBalance = walletSnap.exists() ? (walletSnap.data().balance || 0) : 0;
-      await setDoc(walletRef, {
-        userId: user.uid,
-        balance: currentBalance + numAmount,
-        updatedAt: new Date().toISOString(),
-        serverTimestamp: serverTimestamp(),
-      }, { merge: true });
+      // 2. Notify Telegram for Approval
+      const tgMsg = `💰 <b>DEPOSIT REQUESTED</b>\n\n` +
+        `👤 <b>User:</b> ${profile?.fullName}\n` +
+        `💵 <b>Amount:</b> ₹${numAmount}\n` +
+        `💳 <b>Method:</b> ${paymentMethod}\n` +
+        `🔑 <b>TXN ID:</b> <code>${transactionId}</code>\n` +
+        `🕒 <b>Time:</b> ${new Date().toLocaleString()}`;
 
-      toast({ title: 'Deposit Successful', description: `₹${numAmount} has been added to your wallet.` });
+      sendTelegramNotification(db, tgMsg, [
+        [
+          { text: '✅ Approve', callback_data: `approve_deposit:${transactionId}` },
+          { text: '❌ Reject', callback_data: `reject_deposit:${transactionId}` }
+        ]
+      ]);
+
+      toast({ title: 'Deposit Requested', description: `Request for ₹${numAmount} sent for admin approval.` });
       router.push('/wallet');
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Deposit Failed', description: error.message });
+      toast({ variant: 'destructive', title: 'Request Failed', description: error.message });
     } finally {
       setLoading(false);
     }
@@ -158,7 +162,7 @@ export default function DepositPage() {
           onClick={handleDeposit}
           disabled={loading}
         >
-          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : `Deposit ₹${amount || '0'} Now`}
+          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : `Request ₹${amount || '0'} Deposit`}
         </Button>
 
         <div className="flex items-center justify-center gap-3 py-6 opacity-40">

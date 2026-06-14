@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, limit } from 'firebase/firestore';
+import { collection, query, limit, doc, getDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
@@ -14,7 +14,9 @@ import {
   Clock, 
   CheckCircle2,
   AlertCircle,
-  Package
+  Package,
+  Bot,
+  Zap
 } from 'lucide-react';
 import { 
   ChartContainer, 
@@ -22,13 +24,23 @@ import {
   ChartTooltipContent 
 } from '@/components/ui/chart';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
   const db = useFirestore();
+  const [tgStatus, setTgStatus] = useState<any>(null);
 
   const { data: users } = useCollection(collection(db, 'users'));
   const { data: orders } = useCollection(collection(db, 'orders'));
   const { data: transactions } = useCollection(collection(db, 'transactions'));
+
+  useEffect(() => {
+    async function fetchTg() {
+      const snap = await getDoc(doc(db, 'settings', 'telegram'));
+      if (snap.exists()) setTgStatus(snap.data());
+    }
+    fetchTg();
+  }, [db]);
 
   const stats = useMemo(() => {
     const totalRevenue = orders?.reduce((acc, order) => order.status === 'completed' ? acc + order.totalAmount : acc, 0) || 0;
@@ -62,9 +74,21 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <header>
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Operations Dashboard</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Real-time System Intelligence</p>
+      <header className="flex justify-between items-end">
+        <div>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Operations Dashboard</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Real-time System Intelligence</p>
+        </div>
+        <Link href="/admin/settings/telegram">
+          <Card className={`p-3 border-border rounded-xl flex items-center gap-3 hover:border-primary transition-colors cursor-pointer ${tgStatus?.notificationsEnabled ? 'bg-primary/5' : 'bg-black/20 opacity-50'}`}>
+            <Bot className={`h-5 w-5 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+            <div className="text-left">
+              <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Bot Sync</p>
+              <p className="text-[10px] font-black uppercase text-white">{tgStatus?.notificationsEnabled ? 'Connected' : 'Offline'}</p>
+            </div>
+            <Zap className={`h-3 w-3 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-white/10'}`} />
+          </Card>
+        </Link>
       </header>
 
       {/* Main Stats Grid */}
