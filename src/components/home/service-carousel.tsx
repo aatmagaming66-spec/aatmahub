@@ -18,7 +18,7 @@ interface ServiceCarouselProps {
 export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
   return (
     <section className="py-4 overflow-hidden">
-      <h2 className="text-sm font-headline font-black uppercase tracking-tighter mb-3 px-4 flex items-center gap-2">
+      <h2 className="text-sm font-headline font-black uppercase tracking-tighter mb-4 px-4 flex items-center gap-2">
         <span className="w-1 h-4 bg-accent rounded-full shadow-[0_0_8px_#EC4899]" />
         {title}
       </h2>
@@ -29,19 +29,21 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
             <Link 
               key={item.id} 
               href={`/product/${item.id}`} 
-              className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-transform"
+              className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95"
             >
-              <div className="relative h-20 w-full rounded-xl overflow-hidden mb-1.5 border border-border shadow-lg bg-card group-hover:border-primary/50 transition-colors">
+              <div className="relative h-[165px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl shadow-accent/5 bg-card group-hover:border-accent/50 transition-all duration-500">
                 <Image
-                  src={img?.imageUrl || "https://picsum.photos/seed/service/300/180"}
+                  src={img?.imageUrl || "https://picsum.photos/seed/service/400/600"}
                   alt={item.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
-                <div className="absolute bottom-1.5 left-2 right-2">
-                  <span className="text-[8px] font-black text-white uppercase tracking-tight leading-none line-clamp-1">{item.name}</span>
-                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-transparent opacity-40" />
+              </div>
+              <div className="text-center px-1">
+                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-accent transition-colors line-clamp-1">
+                  {item.name}
+                </span>
               </div>
             </Link>
           );

@@ -18,7 +18,7 @@ const GAMES = [
 export function GameGrid() {
   return (
     <section className="py-4 overflow-hidden">
-      <div className="flex items-center justify-between mb-3 px-4">
+      <div className="flex items-center justify-between mb-4 px-4">
         <h2 className="text-sm font-headline font-black uppercase tracking-tighter flex items-center gap-2">
           <span className="w-1 h-4 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
           Mobile Games
@@ -32,21 +32,23 @@ export function GameGrid() {
             <Link 
               key={game.id} 
               href={`/product/${game.id}`} 
-              className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all"
+              className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95"
             >
-              <div className="relative h-20 w-full rounded-xl overflow-hidden mb-1.5 border border-border shadow-lg bg-card group-hover:border-accent/50 transition-colors">
+              <div className="relative h-[155px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl shadow-primary/5 bg-card group-hover:border-primary/50 transition-all duration-500">
                 <Image
-                  src={img?.imageUrl || "https://picsum.photos/seed/game/400/400"}
+                  src={img?.imageUrl || "https://picsum.photos/seed/game/400/600"}
                   alt={game.name}
                   fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  className="object-cover group-hover:scale-110 transition-transform duration-700"
                   data-ai-hint="mobile game poster"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
               </div>
-              <span className="text-[8px] font-black text-muted-foreground text-center line-clamp-1 uppercase tracking-tight group-hover:text-foreground transition-colors">
-                {game.name}
-              </span>
+              <div className="text-center px-1">
+                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
+                  {game.name}
+                </span>
+              </div>
             </Link>
           );
         })}
