@@ -1,11 +1,9 @@
-
 "use client"
 
 import { HeroBanner } from "@/components/home/hero-banner";
 import { QuickActions } from "@/components/home/quick-actions";
 import { GameGrid } from "@/components/home/game-grid";
 import { ServiceCarousel } from "@/components/home/service-carousel";
-import { AiGiftMatcher } from "@/components/home/ai-gift-matcher";
 import { ShieldCheck, Zap, Lock, Headphones } from "lucide-react";
 
 const OTT_SERVICES = [
@@ -28,8 +26,6 @@ export default function Home() {
       <HeroBanner />
       <QuickActions />
       
-      <AiGiftMatcher />
-
       <GameGrid />
       
       <ServiceCarousel title="OTT Services" items={OTT_SERVICES} />
