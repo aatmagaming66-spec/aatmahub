@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -45,7 +44,7 @@ export function useUser() {
       }
       setLoading(false);
     }, (error) => {
-      console.error("Error fetching user profile:", error);
+      // Internal listener error handled gracefully
       setLoading(false);
     });
 

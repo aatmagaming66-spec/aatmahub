@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -39,10 +38,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: 'Success', description: 'Logged in successfully!' });
       router.push('/');
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
+      toast({ 
+        variant: 'destructive', 
+        title: 'Login Failed', 
+        description: 'Invalid email or password. Please try again.' 
+      });
     } finally {
       setLoading(false);
     }

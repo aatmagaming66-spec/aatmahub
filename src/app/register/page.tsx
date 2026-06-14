@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,7 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      await updateProfile(user, { displayName: fullName });
+      await firebaseUpdateProfile(user, { displayName: fullName });
 
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
@@ -60,7 +59,6 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
       });
 
-      toast({ title: 'Success', description: 'Account created successfully!' });
       router.push('/');
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });

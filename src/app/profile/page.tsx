@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -43,7 +42,6 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      toast({ title: 'Logged Out', description: 'Session terminated successfully.' });
       router.push('/login');
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to logout.' });
@@ -59,7 +57,6 @@ export default function ProfilePage() {
         fullName,
         phoneNumber,
       });
-      toast({ title: 'Success', description: 'Profile updated successfully!' });
       setEditing(false);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error', description: 'Failed to update profile.' });
@@ -83,7 +80,7 @@ export default function ProfilePage() {
             <Avatar className="h-20 w-20 border-4 border-primary shadow-2xl relative z-10">
               <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100/100`} />
               <AvatarFallback className="bg-primary text-white font-black text-xl">
-                {profile?.fullName.charAt(0)}
+                {profile?.fullName.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-1 -right-1 z-20 bg-accent p-1.5 rounded-full border-2 border-background shadow-lg">
@@ -99,7 +96,7 @@ export default function ProfilePage() {
             </p>
             <div className="flex items-center gap-2 mt-3">
               <span className="bg-primary/20 text-primary text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-primary/20">
-                {profile?.role.replace('_', ' ')} Member
+                {profile?.role.replace('_', ' ') || 'User'} Member
               </span>
             </div>
           </div>
