@@ -21,8 +21,9 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Search, Filter, MoreVertical, CheckCircle2, Clock, Loader2, XCircle, Smartphone, User, Hash } from 'lucide-react';
+import { Search, Filter, MoreVertical, CheckCircle2, Clock, Loader2, XCircle, Smartphone, User, Hash, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { processSmileOneOrder } from '@/lib/smileone';
 
 export default function AdminOrdersPage() {
   const db = useFirestore();
@@ -49,6 +50,12 @@ export default function AdminOrdersPage() {
       const orderRef = doc(db, 'orders', orderId);
       await updateDoc(orderRef, { status: newStatus });
       toast({ title: "Status Updated", description: `Order ${orderId} is now ${newStatus}.` });
+
+      // Trigger Smile.one if status is set to 'processing'
+      if (newStatus === 'processing') {
+        toast({ title: "Fulfilment Triggered", description: "Attempting automated Smile.one distribution." });
+        processSmileOneOrder(db, orderId);
+      }
     } catch (error: any) {
       toast({ variant: 'destructive', title: "Update Failed", description: error.message });
     }
@@ -166,9 +173,16 @@ export default function AdminOrdersPage() {
                     <span className="text-sm font-black text-white tracking-tighter">₹{order.totalAmount}</span>
                   </TableCell>
                   <TableCell>
-                    <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${getStatusStyle(order.status)}`}>
-                      {order.status}
-                    </span>
+                    <div className="flex flex-col gap-1">
+                       <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border text-center ${getStatusStyle(order.status)}`}>
+                        {order.status}
+                      </span>
+                      {order.smileOneStatus && (
+                        <span className="text-[7px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                          <Zap size={8} className={order.smileOneStatus === 'success' ? 'text-green-400' : 'text-primary'} /> API: {order.smileOneStatus}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right px-6">
                     <DropdownMenu>
@@ -179,7 +193,7 @@ export default function AdminOrdersPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-card border-border min-w-[140px]">
                         <DropdownMenuItem onClick={() => updateStatus(order.orderId, 'processing')} className="text-[10px] font-black uppercase tracking-widest p-3">
-                          Processing
+                          Processing (API)
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => updateStatus(order.orderId, 'completed')} className="text-[10px] font-black uppercase tracking-widest p-3 text-green-400">
                           Complete

@@ -13,7 +13,8 @@ import {
   IndianRupee,
   ArrowLeft,
   Settings,
-  CreditCard
+  CreditCard,
+  Zap
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -23,6 +24,7 @@ const ADMIN_LINKS = [
   { href: '/admin/regions', label: 'Regions', icon: Globe },
   { href: '/admin/settings/telegram', label: 'Telegram', icon: Settings },
   { href: '/admin/settings/payments', label: 'Payments', icon: CreditCard },
+  { href: '/admin/settings/smileone', label: 'Smile.one', icon: Zap },
 ];
 
 export function AdminNav() {

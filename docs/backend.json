@@ -52,19 +52,17 @@
       "properties": {
         "orderId": {
           "type": "string",
-          "description": "Unique order identifier (e.g., AH-2026-000001)"
+          "description": "Unique order identifier"
         },
         "userId": {
           "type": "string",
           "description": "ID of the user who placed the order"
         },
         "items": {
-          "type": "array",
-          "description": "List of products purchased"
+          "type": "array"
         },
         "totalAmount": {
-          "type": "number",
-          "description": "Total cost of the order"
+          "type": "number"
         },
         "playerInfo": {
           "type": "object",
@@ -78,16 +76,14 @@
           "enum": ["wallet", "razorpay", "phonepe"]
         },
         "paymentStatus": {
-          "type": "string",
-          "enum": ["pending", "success", "failed"]
-        },
-        "transactionId": {
           "type": "string"
         },
         "status": {
           "type": "string",
           "enum": ["pending", "processing", "completed", "cancelled", "failed", "pending_payment"]
         },
+        "smileOneStatus": { "type": "string" },
+        "smileOneResponse": { "type": "object" },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -115,34 +111,30 @@
         "userId": { "type": "string" },
         "amount": { "type": "number" },
         "type": { "type": "string", "enum": ["deposit", "purchase", "refund"] },
-        "status": { "type": "string", "enum": ["pending", "success", "failed", "pending_payment"] },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "paymentMethod": { "type": "string" }
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["transactionId", "userId", "amount", "type", "status", "createdAt"]
     },
-    "TelegramSettings": {
-      "title": "Telegram Settings",
-      "description": "Settings for Telegram Bot integration",
+    "SmileOneSettings": {
+      "title": "SmileOne Settings",
+      "description": "API configuration for Smile.one provider",
       "type": "object",
       "properties": {
-        "botToken": { "type": "string" },
-        "adminChatId": { "type": "string" },
-        "notificationsEnabled": { "type": "boolean" },
-        "controlsEnabled": { "type": "boolean" },
+        "apiUid": { "type": "string" },
+        "apiKey": { "type": "string" },
+        "secretKey": { "type": "string" },
+        "isEnabled": { "type": "boolean" },
         "lastSync": { "type": "string", "format": "date-time" }
       }
     },
-    "PaymentSettings": {
-      "title": "Payment Settings",
-      "description": "Configuration for Payment Gateways like PhonePe",
+    "ProductMapping": {
+      "title": "Product Mapping",
+      "description": "Maps internal products to Smile.one IDs",
       "type": "object",
       "properties": {
-        "phonepeMerchantId": { "type": "string" },
-        "phonepeSaltKey": { "type": "string" },
-        "phonepeSaltIndex": { "type": "string" },
-        "phonepeEnv": { "type": "string", "enum": ["sandbox", "production"] },
-        "isPhonePeEnabled": { "type": "boolean" }
+        "internalId": { "type": "string" },
+        "smileOneId": { "type": "string" }
       }
     }
   },
@@ -168,13 +160,13 @@
       "schema": "Transaction",
       "description": "Wallet transactions"
     },
-    "/settings/telegram": {
-      "schema": "TelegramSettings",
-      "description": "Global Telegram configuration"
+    "/settings/smileone": {
+      "schema": "SmileOneSettings",
+      "description": "Global Smile.one configuration"
     },
-    "/settings/payments": {
-      "schema": "PaymentSettings",
-      "description": "Global Payment configuration"
+    "/productMappings/{internalId}": {
+      "schema": "ProductMapping",
+      "description": "Mapping for Smile.one products"
     }
   }
 }
