@@ -32,38 +32,41 @@ export default function Home() {
       
       <ServiceCarousel title="Social Services" items={SOCIAL_SERVICES} />
 
-      {/* Trust Section */}
-      <section className="px-6 py-10 bg-card mt-8 border-y border-border">
-        <div className="grid grid-cols-2 gap-8">
-          <div className="flex flex-col items-center text-center gap-3">
-            <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
-              <Lock className="h-6 w-6 text-primary" />
+      {/* Redesigned Compact Trust Section */}
+      <section className="px-4 py-2 mt-4">
+        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-4">
+          <div className="flex-shrink-0 w-32 h-[80px] bg-card/40 backdrop-blur-md border border-primary/20 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg shadow-primary/5 group active:scale-95 transition-all">
+            <div className="p-1.5 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform">
+              <Lock className="h-4 w-4 text-primary" />
             </div>
-            <h4 className="text-[9px] font-black uppercase tracking-widest text-foreground">Secure Payments</h4>
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground">Secure</span>
           </div>
-          <div className="flex flex-col items-center text-center gap-3">
-            <div className="p-3 bg-accent/10 rounded-2xl border border-accent/20">
-              <Zap className="h-6 w-6 text-accent" />
+          
+          <div className="flex-shrink-0 w-32 h-[80px] bg-card/40 backdrop-blur-md border border-accent/20 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg shadow-accent/5 group active:scale-95 transition-all">
+            <div className="p-1.5 bg-accent/10 rounded-lg group-hover:scale-110 transition-transform">
+              <Zap className="h-4 w-4 text-accent" />
             </div>
-            <h4 className="text-[9px] font-black uppercase tracking-widest text-foreground">Instant Delivery</h4>
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground">Instant</span>
           </div>
-          <div className="flex flex-col items-center text-center gap-3">
-            <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
-              <ShieldCheck className="h-6 w-6 text-white" />
+
+          <div className="flex-shrink-0 w-32 h-[80px] bg-card/40 backdrop-blur-md border border-white/5 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg group active:scale-95 transition-all">
+            <div className="p-1.5 bg-white/5 rounded-lg group-hover:scale-110 transition-transform">
+              <ShieldCheck className="h-4 w-4 text-white" />
             </div>
-            <h4 className="text-[9px] font-black uppercase tracking-widest text-foreground">Safe & Trusted</h4>
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground">Trusted</span>
           </div>
-          <div className="flex flex-col items-center text-center gap-3">
-            <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
-              <Headphones className="h-6 w-6 text-primary" />
+
+          <div className="flex-shrink-0 w-32 h-[80px] bg-card/40 backdrop-blur-md border border-primary/20 rounded-2xl flex flex-col items-center justify-center gap-2 shadow-lg shadow-primary/5 group active:scale-95 transition-all">
+            <div className="p-1.5 bg-primary/10 rounded-lg group-hover:scale-110 transition-transform">
+              <Headphones className="h-4 w-4 text-primary" />
             </div>
-            <h4 className="text-[9px] font-black uppercase tracking-widest text-foreground">24/7 Support</h4>
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-foreground">Support</span>
           </div>
         </div>
       </section>
 
       {/* Redesigned Minimal Footer */}
-      <footer className="px-6 py-16 border-t border-border bg-background flex flex-col items-center text-center">
+      <footer className="px-6 py-12 mt-6 border-t border-border bg-background flex flex-col items-center text-center">
         <div className="mb-2">
           <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             AATMA HUB
