@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -81,10 +82,10 @@
           "type": "string",
           "enum": ["pending", "processing", "completed", "cancelled", "failed", "pending_payment"]
         },
+        "retryCount": { "type": "number" },
+        "failoverTriggered": { "type": "boolean" },
         "smileOneStatus": { "type": "string" },
-        "smileOneResponse": { "type": "object" },
         "unipinStatus": { "type": "string" },
-        "unipinResponse": { "type": "object" },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -117,19 +118,17 @@
       },
       "required": ["transactionId", "userId", "amount", "type", "status", "createdAt"]
     },
-    "SiteSettings": {
-      "title": "Site Settings",
-      "description": "Global website configuration",
+    "AutomationLog": {
+      "title": "Automation Log",
+      "description": "History of retries, failovers, and recoveries",
       "type": "object",
       "properties": {
-        "maintenanceMode": { "type": "boolean" },
-        "maintenanceMessage": { "type": "string" },
-        "announcementEnabled": { "type": "boolean" },
-        "announcementText": { "type": "string" },
-        "contactWhatsApp": { "type": "string" },
-        "contactEmail": { "type": "string" },
-        "contactTelegram": { "type": "string" },
-        "siteBranding": { "type": "string" }
+        "logId": { "type": "string" },
+        "type": { "type": "string", "enum": ["retry", "failover", "recovery", "report"] },
+        "orderId": { "type": "string" },
+        "details": { "type": "string" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       }
     }
   },
@@ -154,6 +153,10 @@
     "/transactions/{transactionId}": {
       "schema": "Transaction",
       "description": "Wallet transactions"
+    },
+    "/automationLogs/{logId}": {
+      "schema": "AutomationLog",
+      "description": "Automation event logs"
     },
     "/settings/site": {
       "schema": "SiteSettings",

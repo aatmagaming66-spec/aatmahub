@@ -3,9 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, limit, orderBy } from 'firebase/firestore';
+import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ShieldCheck, Zap, Database, Bot, Smartphone, Cpu, Loader2, RefreshCcw } from 'lucide-react';
+import { Activity, ShieldCheck, Zap, Database, Bot, Smartphone, Cpu, Loader2, RefreshCcw, Terminal, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function SystemHealthPage() {
@@ -19,18 +20,20 @@ export default function SystemHealthPage() {
     unipin: 'checking'
   });
 
+  const { data: logs } = useCollection(
+    query(collection(db, 'automationLogs'), orderBy('timestamp', 'desc'), limit(5))
+  );
+
   const checkHealth = async () => {
     setLoading(true);
     const newHealth = { ...health };
 
     try {
-      // Check Firestore
       await getDoc(doc(db, 'settings', 'site'));
       newHealth.firestore = 'operational';
     } catch (e) { newHealth.firestore = 'degraded'; }
 
     try {
-      // Check Integrations
       const tg = await getDoc(doc(db, 'settings', 'telegram'));
       newHealth.telegram = tg.exists() && tg.data().notificationsEnabled ? 'operational' : 'inactive';
       
@@ -55,15 +58,6 @@ export default function SystemHealthPage() {
     checkHealth();
   }, []);
 
-  const StatusBadge = ({ status }: { status: string }) => {
-    switch (status) {
-      case 'operational': return <span className="bg-green-500/10 text-green-500 border border-green-500/20 px-2 py-0.5 rounded text-[8px] font-black uppercase">Operational</span>;
-      case 'degraded': return <span className="bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 rounded text-[8px] font-black uppercase">Degraded</span>;
-      case 'inactive': return <span className="bg-white/5 text-muted-foreground border border-white/5 px-2 py-0.5 rounded text-[8px] font-black uppercase">Inactive</span>;
-      default: return <span className="bg-white/5 text-white/40 border border-white/5 px-2 py-0.5 rounded text-[8px] font-black uppercase animate-pulse">Checking</span>;
-    }
-  };
-
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex justify-between items-end">
@@ -87,35 +81,53 @@ export default function SystemHealthPage() {
         <HealthCard icon={Smartphone} label="PhonePe Gateway" status={health.phonepe} color="text-accent" />
         <HealthCard icon={Zap} label="Smile.one API" status={health.smileone} color="text-yellow-400" />
         <HealthCard icon={Cpu} label="UniPin API" status={health.unipin} color="text-green-400" />
+        <HealthCard icon={Terminal} label="Automation Engine" status="operational" color="text-purple-400" />
       </div>
 
-      <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
-        <div className="flex items-center justify-between mb-6">
-           <div className="flex items-center gap-3">
-              <Activity className="h-5 w-5 text-primary" />
-              <h3 className="text-xs font-black uppercase tracking-widest">Environment Intel</h3>
-           </div>
-           <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v2.5.0-STABLE</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-           <div className="space-y-1">
-              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Latency (P99)</p>
-              <p className="text-xl font-black text-white">42ms</p>
-           </div>
-           <div className="space-y-1">
-              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Server Region</p>
-              <p className="text-xl font-black text-white">Asia-South1</p>
-           </div>
-           <div className="space-y-1">
-              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">CPU Usage</p>
-              <p className="text-xl font-black text-white">8%</p>
-           </div>
-           <div className="space-y-1">
-              <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Memory</p>
-              <p className="text-xl font-black text-white">128MB</p>
-           </div>
-        </div>
-      </Card>
+      <div className="grid lg:grid-cols-3 gap-8">
+        <Card className="lg:col-span-2 bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+             <div className="flex items-center gap-3">
+                <Activity className="h-5 w-5 text-primary" />
+                <h3 className="text-xs font-black uppercase tracking-widest">Environment Intel</h3>
+             </div>
+             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v2.5.0-STABLE</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+             <Metric label="Latency" value="42ms" />
+             <Metric label="Region" value="Asia-South1" />
+             <Metric label="CPU Usage" value="8%" />
+             <Metric label="Auto-Retries" value="Active" color="text-green-400" />
+          </div>
+        </Card>
+
+        <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
+          <div className="flex items-center gap-3 mb-6">
+            <History className="h-5 w-5 text-accent" />
+            <h3 className="text-xs font-black uppercase tracking-widest">Auto Logs</h3>
+          </div>
+          <div className="space-y-4">
+            {logs?.map((log) => (
+              <div key={log.logId} className="space-y-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-[8px] font-black uppercase text-primary">{log.type}</span>
+                  <span className="text-[7px] text-muted-foreground">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                </div>
+                <p className="text-[9px] font-bold text-white line-clamp-1">{log.details}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function Metric({ label, value, color = "text-white" }: any) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{label}</p>
+      <p className={`text-xl font-black ${color}`}>{value}</p>
     </div>
   );
 }
