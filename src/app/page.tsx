@@ -86,7 +86,7 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 mb-6 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
+        <div className="flex items-center gap-4 mb-8 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
           <button className="hover:text-primary transition-colors">Terms</button>
           <span className="text-border opacity-30">•</span>
           <button className="hover:text-primary transition-colors">Privacy</button>
@@ -94,9 +94,14 @@ export default function Home() {
           <button className="hover:text-primary transition-colors">Refund Policy</button>
         </div>
 
-        <p className="text-[10px] font-black text-primary/40 uppercase tracking-[0.4em]">
-          Developed by _ AATMA OFFICIAL
-        </p>
+        <div className="flex flex-col items-center">
+          <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.4em] mb-1">
+            Developed by
+          </p>
+          <p className="text-[14px] font-black text-primary/40 uppercase tracking-[0.5em] leading-none">
+            AATMA OFFICIAL
+          </p>
+        </div>
       </footer>
     </div>
   );
