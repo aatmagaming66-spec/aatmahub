@@ -1,0 +1,60 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Store user specific information",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Unique identifier for the user"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "User's full name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "User's email address"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "User's phone number"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "user",
+            "admin",
+            "super_admin"
+          ],
+          "description": "User's access role"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the account was created"
+        }
+      },
+      "required": [
+        "uid",
+        "email",
+        "fullName",
+        "role"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password"
+    ]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profiles"
+    }
+  }
+}

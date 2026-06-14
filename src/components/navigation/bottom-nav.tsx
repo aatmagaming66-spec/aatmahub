@@ -1,19 +1,26 @@
-"use client"
 
-import { Home, LayoutDashboard, ClipboardList, UserCircle } from "lucide-react";
+'use client';
+
+import { Home, LayoutDashboard, ClipboardList, UserCircle, LogIn } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-
-const NAV_ITEMS = [
-  { label: "Home", icon: Home, href: "/" },
-  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { label: "Orders", icon: ClipboardList, href: "/orders" },
-  { label: "Account", icon: UserCircle, href: "/account" },
-];
+import { useUser } from "@/firebase/auth/use-user";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const { user, loading } = useUser();
+
+  const NAV_ITEMS = [
+    { label: "Home", icon: Home, href: "/" },
+    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "Orders", icon: ClipboardList, href: "/orders" },
+    { 
+      label: user ? "Account" : "Login", 
+      icon: user ? UserCircle : LogIn, 
+      href: user ? "/profile" : "/login" 
+    },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border h-16 safe-area-bottom">
