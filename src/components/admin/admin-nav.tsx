@@ -17,11 +17,15 @@ import {
   Activity,
   Megaphone,
   Database,
-  ArrowLeft
+  ArrowLeft,
+  BarChart3,
+  FileText
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/admin/reports', label: 'Reports', icon: FileText },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/regions', label: 'Regions', icon: Globe },

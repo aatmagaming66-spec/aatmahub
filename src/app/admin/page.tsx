@@ -16,15 +16,13 @@ import {
   AlertCircle,
   Package,
   Bot,
-  Zap
+  Zap,
+  BarChart3,
+  ArrowUpRight
 } from 'lucide-react';
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
-} from '@/components/ui/chart';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import Link from 'next/link';
+import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 
 export default function AdminDashboard() {
   const db = useFirestore();
@@ -56,20 +54,24 @@ export default function AdminDashboard() {
     ];
   }, [users, orders, transactions]);
 
+  const chartData = useMemo(() => {
+    if (!orders) return [];
+    const now = new Date();
+    return Array.from({ length: 7 }).map((_, i) => {
+      const d = subDays(now, 6 - i);
+      const dayStart = startOfDay(d);
+      const dayEnd = endOfDay(d);
+      const revenue = orders
+        .filter(o => o.status === 'completed' && isWithinInterval(new Date(o.createdAt), { start: dayStart, end: dayEnd }))
+        .reduce((acc, o) => acc + o.totalAmount, 0);
+      return { name: format(d, 'EEE'), revenue };
+    });
+  }, [orders]);
+
   const orderStats = [
     { label: 'Pending', count: orders?.filter(o => o.status === 'pending').length || 0, icon: Clock, color: 'text-orange-400' },
     { label: 'Processing', count: orders?.filter(o => o.status === 'processing').length || 0, icon: TrendingUp, color: 'text-accent' },
     { label: 'Completed', count: orders?.filter(o => o.status === 'completed').length || 0, icon: CheckCircle2, color: 'text-green-400' },
-  ];
-
-  const chartData = [
-    { name: 'Mon', revenue: 4000 },
-    { name: 'Tue', revenue: 3000 },
-    { name: 'Wed', revenue: 2000 },
-    { name: 'Thu', revenue: 2780 },
-    { name: 'Fri', revenue: 1890 },
-    { name: 'Sat', revenue: 2390 },
-    { name: 'Sun', revenue: 3490 },
   ];
 
   return (
@@ -79,16 +81,28 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Operations Dashboard</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Real-time System Intelligence</p>
         </div>
-        <Link href="/admin/settings/telegram">
-          <Card className={`p-3 border-border rounded-xl flex items-center gap-3 hover:border-primary transition-colors cursor-pointer ${tgStatus?.notificationsEnabled ? 'bg-primary/5' : 'bg-black/20 opacity-50'}`}>
-            <Bot className={`h-5 w-5 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-            <div className="text-left">
-              <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Bot Sync</p>
-              <p className="text-[10px] font-black uppercase text-white">{tgStatus?.notificationsEnabled ? 'Connected' : 'Offline'}</p>
-            </div>
-            <Zap className={`h-3 w-3 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-white/10'}`} />
-          </Card>
-        </Link>
+        <div className="flex gap-4">
+          <Link href="/admin/analytics">
+             <Card className="p-3 border-border rounded-xl flex items-center gap-3 bg-white/5 hover:border-primary transition-all group">
+                <BarChart3 className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
+                <div className="text-left">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Analytics</p>
+                  <p className="text-[10px] font-black uppercase text-white">Full View</p>
+                </div>
+                <ArrowUpRight className="h-3 w-3 text-muted-foreground" />
+             </Card>
+          </Link>
+          <Link href="/admin/settings/telegram">
+            <Card className={`p-3 border-border rounded-xl flex items-center gap-3 hover:border-primary transition-colors cursor-pointer ${tgStatus?.notificationsEnabled ? 'bg-primary/5' : 'bg-black/20 opacity-50'}`}>
+              <Bot className={`h-5 w-5 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+              <div className="text-left">
+                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Bot Sync</p>
+                <p className="text-[10px] font-black uppercase text-white">{tgStatus?.notificationsEnabled ? 'Connected' : 'Offline'}</p>
+              </div>
+              <Zap className={`h-3 w-3 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-white/10'}`} />
+            </Card>
+          </Link>
+        </div>
       </header>
 
       {/* Main Stats Grid */}
