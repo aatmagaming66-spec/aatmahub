@@ -1,0 +1,71 @@
+
+{
+  "placeholderImages": [
+    {
+      "id": "hero-banner",
+      "description": "Premium dark purple gaming banner",
+      "imageUrl": "https://picsum.photos/seed/aatma-hero/1200/600",
+      "imageHint": "gaming background purple"
+    },
+    {
+      "id": "game-mlbb",
+      "description": "Mobile Legends Bang Bang",
+      "imageUrl": "https://picsum.photos/seed/mlbb/400/400",
+      "imageHint": "mobile legends"
+    },
+    {
+      "id": "game-hok",
+      "description": "Honor of Kings",
+      "imageUrl": "https://picsum.photos/seed/hok/400/400",
+      "imageHint": "honor kings"
+    },
+    {
+      "id": "game-genshin",
+      "description": "Genshin Impact",
+      "imageUrl": "https://picsum.photos/seed/genshin/400/400",
+      "imageHint": "genshin impact"
+    },
+    {
+      "id": "game-bgmi",
+      "description": "BGMI",
+      "imageUrl": "https://picsum.photos/seed/bgmi/400/400",
+      "imageHint": "battlegrounds mobile"
+    },
+    {
+      "id": "ott-netflix",
+      "description": "Netflix Premium",
+      "imageUrl": "https://picsum.photos/seed/netflix/300/180",
+      "imageHint": "netflix logo"
+    },
+    {
+      "id": "ott-prime",
+      "description": "Amazon Prime",
+      "imageUrl": "https://picsum.photos/seed/prime/300/180",
+      "imageHint": "amazon prime"
+    },
+    {
+      "id": "ott-yt",
+      "description": "YouTube Premium",
+      "imageUrl": "https://picsum.photos/seed/yt/300/180",
+      "imageHint": "youtube logo"
+    },
+    {
+      "id": "ott-spotify",
+      "description": "Spotify Premium",
+      "imageUrl": "https://picsum.photos/seed/spotify/300/180",
+      "imageHint": "spotify logo"
+    },
+    {
+      "id": "social-ig",
+      "description": "Instagram Services",
+      "imageUrl": "https://picsum.photos/seed/ig/300/180",
+      "imageHint": "instagram app"
+    },
+    {
+      "id": "social-fb",
+      "description": "Facebook Services",
+      "imageUrl": "https://picsum.photos/seed/fb/300/180",
+      "imageHint": "facebook app"
+    }
+  ]
+}
