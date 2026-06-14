@@ -84,6 +84,8 @@
         },
         "smileOneStatus": { "type": "string" },
         "smileOneResponse": { "type": "object" },
+        "unipinStatus": { "type": "string" },
+        "unipinResponse": { "type": "object" },
         "createdAt": {
           "type": "string",
           "format": "date-time"
@@ -128,13 +130,25 @@
         "lastSync": { "type": "string", "format": "date-time" }
       }
     },
+    "UniPinSettings": {
+      "title": "UniPin Settings",
+      "description": "API configuration for UniPin provider",
+      "type": "object",
+      "properties": {
+        "apiKey": { "type": "string" },
+        "secretKey": { "type": "string" },
+        "isEnabled": { "type": "boolean" },
+        "lastSync": { "type": "string", "format": "date-time" }
+      }
+    },
     "ProductMapping": {
       "title": "Product Mapping",
-      "description": "Maps internal products to Smile.one IDs",
+      "description": "Maps internal products to provider IDs",
       "type": "object",
       "properties": {
         "internalId": { "type": "string" },
-        "smileOneId": { "type": "string" }
+        "provider": { "type": "string", "enum": ["smileone", "unipin"] },
+        "providerId": { "type": "string" }
       }
     }
   },
@@ -164,9 +178,13 @@
       "schema": "SmileOneSettings",
       "description": "Global Smile.one configuration"
     },
+    "/settings/unipin": {
+      "schema": "UniPinSettings",
+      "description": "Global UniPin configuration"
+    },
     "/productMappings/{internalId}": {
       "schema": "ProductMapping",
-      "description": "Mapping for Smile.one products"
+      "description": "Mapping for third-party products"
     }
   }
 }

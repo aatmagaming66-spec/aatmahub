@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, updateDoc, doc, orderBy, query } from 'firebase/firestore';
+import { collection, updateDoc, doc, orderBy, query, getDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,9 +21,10 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Search, Filter, MoreVertical, CheckCircle2, Clock, Loader2, XCircle, Smartphone, User, Hash, Zap } from 'lucide-react';
+import { Search, Filter, MoreVertical, CheckCircle2, Clock, Loader2, XCircle, Smartphone, User, Hash, Zap, Cpu } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { processSmileOneOrder } from '@/lib/smileone';
+import { processUniPinOrder } from '@/lib/unipin';
 
 export default function AdminOrdersPage() {
   const db = useFirestore();
@@ -51,10 +52,30 @@ export default function AdminOrdersPage() {
       await updateDoc(orderRef, { status: newStatus });
       toast({ title: "Status Updated", description: `Order ${orderId} is now ${newStatus}.` });
 
-      // Trigger Smile.one if status is set to 'processing'
       if (newStatus === 'processing') {
-        toast({ title: "Fulfilment Triggered", description: "Attempting automated Smile.one distribution." });
-        processSmileOneOrder(db, orderId);
+        toast({ title: "Fulfilment Triggered", description: "Detecting provider..." });
+        
+        // Logic to detect which provider to use based on product mapping
+        const orderSnap = await getDoc(orderRef);
+        if (orderSnap.exists()) {
+          const orderData = orderSnap.data();
+          const internalId = orderData.items?.[0]?.id?.split('-')[0];
+          const mappingSnap = await getDoc(doc(db, 'productMappings', internalId));
+          
+          if (mappingSnap.exists()) {
+            const mapping = mappingSnap.data();
+            if (mapping.provider === 'smileone') {
+              processSmileOneOrder(db, orderId);
+            } else if (mapping.provider === 'unipin') {
+              processUniPinOrder(db, orderId);
+            } else {
+              toast({ variant: 'destructive', title: "Provider Error", description: "No valid provider mapping found." });
+            }
+          } else {
+            // Default to smileone for legacy support if needed
+            processSmileOneOrder(db, orderId);
+          }
+        }
       }
     } catch (error: any) {
       toast({ variant: 'destructive', title: "Update Failed", description: error.message });
@@ -177,11 +198,18 @@ export default function AdminOrdersPage() {
                        <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border text-center ${getStatusStyle(order.status)}`}>
                         {order.status}
                       </span>
-                      {order.smileOneStatus && (
-                        <span className="text-[7px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                          <Zap size={8} className={order.smileOneStatus === 'success' ? 'text-green-400' : 'text-primary'} /> API: {order.smileOneStatus}
-                        </span>
-                      )}
+                      <div className="flex flex-col gap-0.5">
+                        {order.smileOneStatus && (
+                          <span className="text-[7px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                            <Zap size={8} className={order.smileOneStatus === 'success' ? 'text-green-400' : 'text-primary'} /> SMILE: {order.smileOneStatus}
+                          </span>
+                        )}
+                        {order.unipinStatus && (
+                          <span className="text-[7px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                            <Cpu size={8} className={order.unipinStatus === 'success' ? 'text-green-400' : 'text-primary'} /> UNIPIN: {order.unipinStatus}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="text-right px-6">

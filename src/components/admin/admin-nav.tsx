@@ -14,7 +14,8 @@ import {
   ArrowLeft,
   Settings,
   CreditCard,
-  Zap
+  Zap,
+  Cpu
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -25,6 +26,7 @@ const ADMIN_LINKS = [
   { href: '/admin/settings/telegram', label: 'Telegram', icon: Settings },
   { href: '/admin/settings/payments', label: 'Payments', icon: CreditCard },
   { href: '/admin/settings/smileone', label: 'Smile.one', icon: Zap },
+  { href: '/admin/settings/unipin', label: 'UniPin', icon: Cpu },
 ];
 
 export function AdminNav() {
