@@ -17,20 +17,24 @@ const GAMES = [
 
 export function GameGrid() {
   return (
-    <section className="px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-headline font-black uppercase tracking-tighter flex items-center gap-2">
-          <span className="w-1.5 h-6 bg-primary rounded-full shadow-[0_0_10px_#DC2626]" />
+    <section className="py-4 overflow-hidden">
+      <div className="flex items-center justify-between mb-3 px-4">
+        <h2 className="text-sm font-headline font-black uppercase tracking-tighter flex items-center gap-2">
+          <span className="w-1 h-4 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
           Mobile Games
         </h2>
-        <Link href="#" className="text-[10px] font-black text-primary uppercase tracking-widest">View All</Link>
+        <Link href="#" className="text-[9px] font-black text-primary uppercase tracking-widest">View All</Link>
       </div>
-      <div className="grid grid-cols-4 gap-3">
+      <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {GAMES.map((game) => {
           const img = PlaceHolderImages.find(i => i.id === game.imgId);
           return (
-            <Link key={game.id} href={`/product/${game.id}`} className="flex flex-col items-center group">
-              <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-2 border border-border group-active:scale-95 transition-all shadow-lg group-hover:border-accent/50 group-hover:shadow-[0_0_15px_rgba(236,72,153,0.15)] bg-card">
+            <Link 
+              key={game.id} 
+              href={`/product/${game.id}`} 
+              className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all"
+            >
+              <div className="relative h-20 w-full rounded-xl overflow-hidden mb-1.5 border border-border shadow-lg bg-card group-hover:border-accent/50 transition-colors">
                 <Image
                   src={img?.imageUrl || "https://picsum.photos/seed/game/400/400"}
                   alt={game.name}
@@ -38,8 +42,9 @@ export function GameGrid() {
                   className="object-cover group-hover:scale-110 transition-transform duration-500"
                   data-ai-hint="mobile game poster"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               </div>
-              <span className="text-[9px] font-bold text-muted-foreground text-center line-clamp-1 uppercase tracking-tighter group-hover:text-foreground transition-colors">
+              <span className="text-[8px] font-black text-muted-foreground text-center line-clamp-1 uppercase tracking-tight group-hover:text-foreground transition-colors">
                 {game.name}
               </span>
             </Link>
