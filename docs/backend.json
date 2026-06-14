@@ -44,6 +44,49 @@
         "fullName",
         "role"
       ]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Stores transaction and purchase details",
+      "type": "object",
+      "properties": {
+        "orderId": {
+          "type": "string",
+          "description": "Unique order identifier (e.g., AH-2026-000001)"
+        },
+        "userId": {
+          "type": "string",
+          "description": "ID of the user who placed the order"
+        },
+        "items": {
+          "type": "array",
+          "description": "List of products purchased"
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total cost of the order"
+        },
+        "playerInfo": {
+          "type": "object",
+          "properties": {
+            "playerId": { "type": "string" },
+            "serverId": { "type": "string" }
+          }
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["wallet", "razorpay", "phonepe"]
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "processing", "completed", "cancelled", "failed"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["orderId", "userId", "items", "totalAmount", "status", "createdAt"]
     }
   },
   "auth": {
@@ -55,6 +98,10 @@
     "/users/{userId}": {
       "schema": "UserProfile",
       "description": "User profiles"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders"
     }
   }
 }

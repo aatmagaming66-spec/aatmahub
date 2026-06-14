@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useCart } from "@/context/cart-context";
@@ -6,9 +7,11 @@ import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, ArrowLeft } from "lucide-
 import Link from "next/link";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { items, removeItem, updateQuantity, totalAmount, totalCount, clearCart } = useCart();
+  const router = useRouter();
 
   if (items.length === 0) {
     return (
@@ -114,7 +117,10 @@ export default function CartPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <Button className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl transition-all group">
+          <Button 
+            onClick={() => router.push('/checkout')}
+            className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl transition-all group"
+          >
             Checkout Now
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
