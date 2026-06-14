@@ -32,61 +32,61 @@ export default function Home() {
       
       <ServiceCarousel title="Social Services" items={SOCIAL_SERVICES} />
 
-      {/* Rebuilt 4-Column Compact Trust Section */}
-      <section className="px-4 py-2 mt-2 mb-4">
+      {/* Trust Features Section - Now part of Home Content */}
+      <section className="px-4 py-2 mt-4">
         <div className="grid grid-cols-4 gap-2">
           {/* Card 1: Secure */}
-          <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-xl h-[76px] flex flex-col items-center justify-center gap-1.5 shadow-lg group active:scale-95 transition-all">
-            <div className="p-1.5 bg-primary/10 rounded-lg">
+          <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
+            <div className="p-1 bg-primary/10 rounded-lg">
               <Lock className="h-3.5 w-3.5 text-primary" />
             </div>
-            <span className="text-[7px] font-black uppercase tracking-widest text-foreground text-center">Secure</span>
+            <span className="text-[7px] font-black uppercase tracking-widest text-foreground">Secure</span>
           </div>
           
           {/* Card 2: Instant */}
-          <div className="bg-card/40 backdrop-blur-md border border-accent/20 rounded-xl h-[76px] flex flex-col items-center justify-center gap-1.5 shadow-lg group active:scale-95 transition-all">
-            <div className="p-1.5 bg-accent/10 rounded-lg">
+          <div className="bg-card/40 backdrop-blur-md border border-accent/20 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
+            <div className="p-1 bg-accent/10 rounded-lg">
               <Zap className="h-3.5 w-3.5 text-accent" />
             </div>
-            <span className="text-[7px] font-black uppercase tracking-widest text-foreground text-center">Instant</span>
+            <span className="text-[7px] font-black uppercase tracking-widest text-foreground">Instant</span>
           </div>
 
           {/* Card 3: Trusted */}
-          <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-xl h-[76px] flex flex-col items-center justify-center gap-1.5 shadow-lg group active:scale-95 transition-all">
-            <div className="p-1.5 bg-white/5 rounded-lg">
+          <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
+            <div className="p-1 bg-white/5 rounded-lg">
               <ShieldCheck className="h-3.5 w-3.5 text-white" />
             </div>
-            <span className="text-[7px] font-black uppercase tracking-widest text-foreground text-center">Trusted</span>
+            <span className="text-[7px] font-black uppercase tracking-widest text-foreground">Trusted</span>
           </div>
 
           {/* Card 4: Support */}
-          <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-xl h-[76px] flex flex-col items-center justify-center gap-1.5 shadow-lg group active:scale-95 transition-all">
-            <div className="p-1.5 bg-primary/10 rounded-lg">
+          <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-xl h-[70px] flex flex-col items-center justify-center gap-1 shadow-lg">
+            <div className="p-1 bg-primary/10 rounded-lg">
               <Headphones className="h-3.5 w-3.5 text-primary" />
             </div>
-            <span className="text-[7px] font-black uppercase tracking-widest text-foreground text-center">Support</span>
+            <span className="text-[7px] font-black uppercase tracking-widest text-foreground">Support</span>
           </div>
         </div>
       </section>
 
-      {/* Redesigned Minimal Footer */}
-      <footer className="px-6 py-12 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
-        <h2 className="text-5xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-1">
+      {/* Ultra Compact Premium Footer */}
+      <footer className="px-6 py-8 mt-8 border-t border-border bg-background flex flex-col items-center text-center">
+        <h2 className="text-3xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-1 leading-none">
           AATMA HUB
         </h2>
-        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-6 opacity-60">
+        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-4 opacity-60">
           Premium Digital Solutions
         </p>
 
-        <div className="flex items-center gap-3 mb-4 text-white/40 text-[9px] font-black uppercase tracking-widest">
+        <div className="flex items-center gap-3 mb-3 text-white/40 text-[8px] font-black uppercase tracking-widest">
           <button className="hover:text-primary transition-colors">Terms</button>
-          <span className="text-border opacity-50">•</span>
+          <span className="text-border opacity-30">•</span>
           <button className="hover:text-primary transition-colors">Privacy</button>
-          <span className="text-border opacity-50">•</span>
+          <span className="text-border opacity-30">•</span>
           <button className="hover:text-primary transition-colors">Refund Policy</button>
         </div>
 
-        <p className="text-[8px] font-black text-primary/40 uppercase tracking-[0.3em]">
+        <p className="text-[7px] font-black text-primary/30 uppercase tracking-[0.3em]">
           Developed by Aatma Official
         </p>
       </footer>
