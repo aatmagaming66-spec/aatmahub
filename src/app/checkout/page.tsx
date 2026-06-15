@@ -36,31 +36,13 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const db = useFirestore();
 
-  const [verificationData, setVerificationData] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
 
-  // Load identity from Cart Snapshot (Independent from Product Page state)
+  // REDIRECT GATING: Redirect to cart if empty
   useEffect(() => {
     if (!userLoading && (!items || items.length === 0)) {
       router.push('/cart');
-      return;
-    }
-
-    if (items.length > 0) {
-      const firstItem = items[0];
-      if (firstItem.playerId && firstItem.serverId) {
-        console.log(`[Wallet Audit] Identity retrieved from Cart Snapshot: ${firstItem.playerId}`);
-        setVerificationData({
-          playerId: firstItem.playerId,
-          serverId: firstItem.serverId,
-          verifiedName: firstItem.verifiedName || 'AATMA_USER',
-          isVerified: true
-        });
-      } else {
-        console.warn('[Wallet Audit] Missing identity in cart snapshot. Redirecting.');
-        router.push('/');
-      }
     }
   }, [items, userLoading, router]);
 
@@ -75,8 +57,20 @@ export default function CheckoutPage() {
     }
   }, [user, userLoading, router, toast]);
 
+  // DERIVED STATE: Use identity snapshot from the FIRST item in the cart
+  const verificationData = useMemo(() => {
+    if (!items || items.length === 0) return null;
+    const item = items[0];
+    return {
+      playerId: item.playerId,
+      serverId: item.serverId,
+      verifiedName: item.verifiedName,
+      isVerified: !!item.playerId
+    };
+  }, [items]);
+
   const handlePlaceOrder = async () => {
-    if (!verificationData || !user || !items || items.length === 0) return;
+    if (!verificationData?.isVerified || !user || !items || items.length === 0) return;
     
     if (paymentMethod === 'wallet' && walletBalance < totalAmount) {
       toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Please recharge your wallet to proceed.' });
@@ -87,7 +81,7 @@ export default function CheckoutPage() {
     const orderId = `AH-2026-${Date.now().toString().slice(-6)}${Math.floor(1000 + Math.random() * 9000)}`;
     const orderRef = doc(db, 'orders', orderId);
 
-    console.log(`[Wallet Audit] Purchase Protocol Initiated: orderId=${orderId}, user=${user.uid}, current_bal=₹${walletBalance}, deduction=₹${totalAmount}`);
+    console.log(`[Wallet Audit] Purchase Protocol Initiated: orderId=${orderId}, user=${user.uid}, deduction=₹${totalAmount}`);
 
     try {
       const baseOrderData = {
@@ -122,11 +116,9 @@ export default function CheckoutPage() {
 
         const orderData = { ...baseOrderData, status: 'pending' };
 
-        console.log(`[Wallet Audit] Executing atomic mutations for UID: ${user.uid}`);
-
+        // Atomic mutations
         updateDoc(walletDocRef, {
           balance: increment(-totalAmount),
-          userId: user.uid,
           updatedAt: new Date().toISOString()
         }).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -171,12 +163,8 @@ export default function CheckoutPage() {
         });
 
         const text = await res.text();
-        if (!res.ok) {
-          const errData = text ? JSON.parse(text) : { error: 'Unknown Error' };
-          throw new Error(errData.error || 'Payment gateway failed to initialize.');
-        }
-
         const data = text ? JSON.parse(text) : {};
+
         if (data.success && data.paymentUrl) {
           window.location.href = data.paymentUrl;
         } else {
@@ -190,7 +178,7 @@ export default function CheckoutPage() {
     }
   };
 
-  if (userLoading || walletLoading || !user || !verificationData || !items || items.length === 0) {
+  if (userLoading || walletLoading || !user || !items || items.length === 0) {
     return <div className="flex h-[80vh] items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
   }
 
@@ -235,7 +223,7 @@ export default function CheckoutPage() {
               </div>
               <div className="space-y-1.5">
                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
-                  <Smartphone size={10} className="text-primary" /> Server ID
+                  <Zap size={10} className="text-primary" /> Server ID
                 </span>
                 <p className="text-sm font-black text-white">{verificationData?.serverId || '-'}</p>
               </div>

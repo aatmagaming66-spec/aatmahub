@@ -38,23 +38,6 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  // Load existing session verification on mount (for browsing convenience)
-  useEffect(() => {
-    const saved = localStorage.getItem('aatma_verification');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        if (data.isVerified) {
-          setPlayerId(data.playerId);
-          setServerId(data.serverId);
-          setIsVerified(true);
-        }
-      } catch (e) {
-        console.error("Failed to load verification", e);
-      }
-    }
-  }, []);
-
   const productName = id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
   const imgId = id?.toString().startsWith('mlbb') ? 'game-mlbb' : 
                 id === 'hok' ? 'game-hok' : 
@@ -67,19 +50,10 @@ export default function ProductPage() {
       return;
     }
     setVerifying(true);
+    // Identity verification protocol simulator
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      
-      // Save session verification state
-      localStorage.setItem('aatma_verification', JSON.stringify({
-        playerId,
-        serverId,
-        isVerified: true,
-        verifiedName: "AATMA_USER",
-        verifiedAt: new Date().toISOString()
-      }));
-
       toast({ title: "Identity Confirmed", description: "Profile authenticated successfully." });
     }, 1200);
   };
@@ -88,10 +62,9 @@ export default function ProductPage() {
     if (type === 'player') setPlayerId(val);
     else setServerId(val);
     
-    // Reset local verification if IDs are modified
+    // Reset verification if user modifies the validated input
     if (isVerified) {
       setIsVerified(false);
-      localStorage.removeItem('aatma_verification');
     }
   };
 
@@ -107,7 +80,7 @@ export default function ProductPage() {
       return;
     }
 
-    // Snapshot identity into the cart item
+    // Capture point-in-time identity snapshot
     const cartId = `${id}-${selectedPack.id}-${playerId}`;
     addItem({
       id: cartId,
@@ -126,6 +99,11 @@ export default function ProductPage() {
       title: "Added to Hub",
       description: `${selectedPack.name} (ID: ${playerId}) is ready.`,
     });
+
+    // IMMEDIATE RESET: Purge form state so page is fresh for next entry
+    setPlayerId("");
+    setServerId("");
+    setIsVerified(false);
   };
 
   const handleBuyNow = () => {
@@ -140,9 +118,12 @@ export default function ProductPage() {
       return;
     }
 
-    // Clear cart for direct purchase, but keep the snapshot
-    clearCart();
+    // Snapshot identity and transition to checkout immediately
     const cartId = `${id}-${selectedPack.id}-${playerId}`;
+    
+    // Note: For 'Buy Now' we clear the cart to focus on this single verified transaction
+    clearCart();
+    
     addItem({
       id: cartId,
       name: `${productName} - ${selectedPack.name}`,
@@ -155,6 +136,11 @@ export default function ProductPage() {
       serverId,
       verifiedName: "AATMA_USER"
     });
+
+    // Reset local state before navigating
+    setPlayerId("");
+    setServerId("");
+    setIsVerified(false);
 
     router.push('/checkout');
   };
