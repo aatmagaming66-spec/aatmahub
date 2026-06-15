@@ -7,13 +7,15 @@ import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { CheckCircle2, Package, Calendar, Tag, ShieldCheck, ArrowRight, Loader2 } from 'lucide-react';
+import { CheckCircle2, Package, Calendar, Tag, ShieldCheck, ArrowRight, Loader2, Info } from 'lucide-react';
 import Link from 'next/link';
+import { useCart } from '@/context/cart-context';
 
 export default function OrderSuccessPage() {
   const { orderId } = useParams();
   const db = useFirestore();
   const router = useRouter();
+  const { clearCart } = useCart();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -23,12 +25,19 @@ export default function OrderSuccessPage() {
       const docRef = doc(db, 'orders', orderId as string);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setOrder(docSnap.data());
+        const orderData = docSnap.data();
+        setOrder(orderData);
+
+        // REQUIREMENT: Clear identity and package state only on verified success
+        // This ensures the next purchase starts fresh and prevents orphaned data
+        localStorage.removeItem('aatma_verification');
+        clearCart();
+        console.log(`[Wallet Audit] Protocol Fulfilled: Order ${orderId} confirmed. Identity and Cart purged.`);
       }
       setLoading(false);
     }
     fetchOrder();
-  }, [orderId, db]);
+  }, [orderId, db, clearCart]);
 
   if (loading) {
     return (

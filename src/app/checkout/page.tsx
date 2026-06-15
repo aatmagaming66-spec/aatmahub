@@ -30,7 +30,7 @@ import {
 import { sendTelegramNotification } from '@/lib/telegram';
 
 export default function CheckoutPage() {
-  const { items, totalAmount, clearCart } = useCart();
+  const { items, totalAmount } = useCart(); // Removed unused clearCart from here to centralize in Success page
   const { user, profile, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
@@ -141,7 +141,7 @@ export default function CheckoutPage() {
           } satisfies SecurityRuleContext));
         });
 
-        setDoc(orderRef, orderData).catch(async (error) => {
+        await setDoc(orderRef, orderData).catch(async (error) => {
           console.error('[Wallet Audit] Order document creation failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
@@ -150,7 +150,7 @@ export default function CheckoutPage() {
         
         sendTelegramNotification(db, `🚀 <b>NEW ORDER (WALLET)</b>\n\n📦 ID: ${orderId}\n👤 User: ${profile?.fullName || user.email}\n💰 Amount: ₹${totalAmount}`);
         
-        clearCart();
+        // Data clearing moved to success page for "Success Confirmation" gating
         router.push(`/checkout/success/${orderId}`);
       } else if (paymentMethod === 'phonepe') {
         const orderData = { ...baseOrderData, status: 'pending_payment' };
@@ -183,7 +183,7 @@ export default function CheckoutPage() {
 
         const data = text ? JSON.parse(text) : {};
         if (data.success && data.paymentUrl) {
-          clearCart();
+          // Data clearing moved to success page for "Success Confirmation" gating
           window.location.href = data.paymentUrl;
         } else {
           throw new Error(data.error || 'Gateway response invalid.');
