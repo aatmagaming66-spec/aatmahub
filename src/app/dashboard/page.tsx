@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useMemo, useEffect, useRef } from "react";
+import { useMemo, useEffect } from "react";
 import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,51 +9,22 @@ import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import { useCollection } from "@/firebase/firestore/use-collection";
-import { doc, collection, query, where, orderBy, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, collection, query, where, orderBy } from "firebase/firestore";
 import Link from "next/link";
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
   const db = useFirestore();
-  const initializationTriggered = useRef(false);
 
-  // LOGGING: Audit UID and Wallet Path
-  useEffect(() => {
-    if (user) {
-      console.log('[Wallet Audit] Current UID:', user.uid);
-      console.log('[Wallet Audit] Target Wallet Path:', `wallets/${user.uid}`);
-    }
-  }, [user]);
-
+  // AUDIT: Unified Wallet Source
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
 
-  // Auto-initialize wallet if it doesn't exist
   useEffect(() => {
-    if (!userLoading && !walletLoading && user && !wallet && !initializationTriggered.current) {
-      initializationTriggered.current = true;
-      console.log('[Wallet Audit] No wallet detected. Initializing with test balance...');
-      
-      const walletData = {
-        userId: user.uid,
-        balance: 1000,
-        updatedAt: new Date().toISOString(),
-        serverTimestamp: serverTimestamp(),
-      };
-
-      setDoc(doc(db, 'wallets', user.uid), walletData)
-        .then(() => console.log('[Wallet Audit] Wallet initialized successfully.'))
-        .catch(async (error) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: `wallets/${user.uid}`,
-            operation: 'create',
-            requestResourceData: walletData
-          }));
-        });
+    if (user && wallet) {
+      console.log(`[Wallet Audit] Dashboard View: uid=${user.uid}, balance=₹${wallet.balance}, path=wallets/${user.uid}`);
     }
-  }, [user, userLoading, wallet, walletLoading, db]);
+  }, [user, wallet]);
 
   const ordersQuery = useMemo(() => {
     if (!user) return null;
@@ -78,7 +49,7 @@ export default function DashboardPage() {
     ];
   }, [orders]);
 
-  const balance = wallet?.balance || 0;
+  const balance = wallet?.balance ?? 0;
 
   if (userLoading) {
     return (

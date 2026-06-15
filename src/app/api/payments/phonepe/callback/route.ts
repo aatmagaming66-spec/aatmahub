@@ -1,6 +1,7 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/init';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { sendTelegramNotification } from '@/lib/telegram';
 
 export async function POST(req: NextRequest) {
@@ -14,6 +15,8 @@ export async function POST(req: NextRequest) {
     const response = formData.get('response') as string;
     const decodedResponse = JSON.parse(Buffer.from(response, 'base64').toString());
     const isSuccess = decodedResponse.code === 'PAYMENT_SUCCESS';
+
+    console.log(`[Wallet Audit] PhonePe Callback: type=${type}, id=${id}, status=${decodedResponse.code}`);
 
     if (type === 'order') {
       const orderRef = doc(db, 'orders', id!);
@@ -48,12 +51,14 @@ export async function POST(req: NextRequest) {
         if (isSuccess) {
           await updateDoc(txRef, { status: 'success' });
           const walletRef = doc(db, 'wallets', tx.userId);
-          const walletSnap = await getDoc(walletRef);
-          const currentBal = walletSnap.exists() ? walletSnap.data().balance : 0;
-          await setDoc(walletRef, { 
-            balance: currentBal + tx.amount, 
+          
+          // AUDIT: Use increment() for server-side balance accuracy
+          await updateDoc(walletRef, { 
+            balance: increment(tx.amount), 
             updatedAt: new Date().toISOString() 
-          }, { merge: true });
+          });
+
+          console.log(`[Wallet Audit] Deposit Credit applied: user=${tx.userId}, amount=+₹${tx.amount}`);
           sendTelegramNotification(db, `💰 <b>WALLET RECHARGE SUCCESS</b>\n\n👤 User ID: ${tx.userId}\n💵 Amount: ₹${tx.amount}\n💳 Method: PhonePe`);
           return NextResponse.redirect(new URL(`/wallet`, req.url), 303);
         } else {
@@ -64,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.redirect(new URL(`/`, req.url), 303);
   } catch (error: any) {
-    console.error('PhonePe Callback Error:', error);
+    console.error('[Wallet Audit] PhonePe Callback Exception:', error);
     return NextResponse.redirect(new URL(`/`, req.url), 303);
   }
 }

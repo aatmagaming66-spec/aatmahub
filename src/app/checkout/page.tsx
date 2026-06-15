@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from '@/context/cart-context';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,8 +25,7 @@ import {
   Loader2,
   User,
   Package,
-  Zap,
-  Tag
+  Zap
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
 
@@ -62,7 +61,7 @@ export default function CheckoutPage() {
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
-  const walletBalance = wallet?.balance || 0;
+  const walletBalance = wallet?.balance ?? 0;
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -84,6 +83,8 @@ export default function CheckoutPage() {
     setSubmitting(true);
     const orderId = `AH-2026-${Date.now().toString().slice(-6)}${Math.floor(1000 + Math.random() * 9000)}`;
     const orderRef = doc(db, 'orders', orderId);
+
+    console.log(`[Wallet Audit] Purchase Protocol Initiated: orderId=${orderId}, user=${user.uid}, current_bal=₹${walletBalance}, deduction=₹${totalAmount}`);
 
     try {
       const baseOrderData = {
@@ -116,25 +117,22 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
-        const walletData = {
-          userId: user.uid,
-          balance: walletBalance - totalAmount,
-          updatedAt: new Date().toISOString(),
-          serverTimestamp: serverTimestamp(),
-        };
-
         const orderData = { ...baseOrderData, status: 'pending' };
 
-        // Atomic multi-write simulation (Non-blocking)
-        setDoc(txRef, txData).catch(async (error) => {
+        // AUDIT: Use increment() to prevent stale state overwrites
+        updateDoc(walletDocRef, {
+          balance: increment(-totalAmount),
+          updatedAt: new Date().toISOString()
+        }).catch(async (error) => {
+          console.error('[Wallet Audit] Balance deduction failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: txRef.path, operation: 'create', requestResourceData: txData
+            path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `increment(${-totalAmount})` }
           } satisfies SecurityRuleContext));
         });
 
-        setDoc(walletDocRef, walletData, { merge: true }).catch(async (error) => {
+        setDoc(txRef, txData).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: walletDocRef.path, operation: 'update', requestResourceData: walletData
+            path: txRef.path, operation: 'create', requestResourceData: txData
           } satisfies SecurityRuleContext));
         });
 
