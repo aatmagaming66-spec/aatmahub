@@ -41,7 +41,6 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
 
-  // Initialize from localStorage after mount to avoid hydration mismatch
   useEffect(() => {
     const savedPlayerId = localStorage.getItem('aatma_last_player_id');
     const savedServerId = localStorage.getItem('aatma_last_server_id');
@@ -49,7 +48,6 @@ export default function CheckoutPage() {
     if (savedServerId) setServerId(savedServerId);
   }, []);
 
-  // Sync back to localStorage for persistence
   useEffect(() => {
     if (playerId) localStorage.setItem('aatma_last_player_id', playerId);
     if (serverId) localStorage.setItem('aatma_last_server_id', serverId);
@@ -61,11 +59,9 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!userLoading && !user) {
-      console.warn('[Checkout] No session detected. Redirecting to login.');
       toast({ variant: 'destructive', title: 'Session Required', description: 'Please login to complete your order.' });
       router.push('/login');
     } else if (!userLoading && items.length === 0) {
-      console.warn('[Checkout] Cart is empty. Redirecting to cart page.');
       router.push('/cart');
     }
   }, [user, userLoading, items, router, toast]);
@@ -77,9 +73,6 @@ export default function CheckoutPage() {
     }
     setVerifying(true);
     setIsVerified(false); 
-    console.log('[Checkout] Verifying identity:', { playerId, serverId });
-    
-    // Simulate identity synchronization with game servers
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
@@ -88,7 +81,7 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
-    console.log('[Checkout] Initiating order process...', { paymentMethod, totalAmount });
+    console.log('[Checkout Audit] Initiating Order Cycle...');
     
     if (!isVerified) {
       toast({ variant: 'destructive', title: 'Action Required', description: 'Please verify your identity first.' });
@@ -104,13 +97,13 @@ export default function CheckoutPage() {
 
     setSubmitting(true);
     const orderId = `AH-2026-${Date.now().toString().slice(-6)}${Math.floor(1000 + Math.random() * 9000)}`;
-    
+    const orderRef = doc(db, 'orders', orderId);
+
     try {
       if (paymentMethod === 'wallet') {
         const txId = `PUR-${Date.now()}`;
         const txRef = doc(db, 'transactions', txId);
         const walletDocRef = doc(db, 'wallets', user.uid);
-        const orderRef = doc(db, 'orders', orderId);
 
         const txData = {
           transactionId: txId,
@@ -141,7 +134,7 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
-        console.log('[Checkout] Writing Wallet-based transaction records...');
+        console.log('[Checkout Audit] Writing Wallet transactions...');
 
         setDoc(txRef, txData).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -177,15 +170,17 @@ export default function CheckoutPage() {
           createdAt: new Date().toISOString(),
           serverTimestamp: serverTimestamp(),
         };
-        const orderRef = doc(db, 'orders', orderId);
 
-        console.log('[Checkout] Persisting pending order for PhonePe gateway...');
+        console.log('[Checkout Audit] Step 1: Creating Order record for PhonePe flow...');
 
-        setDoc(orderRef, orderData).catch(async (error) => {
+        // Important: Ensure the record is persisted before redirection
+        await setDoc(orderRef, orderData).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
         });
+
+        console.log('[Checkout Audit] Step 2: Requesting Gateway Initiation...');
 
         const res = await fetch('/api/payments/phonepe/initiate', {
           method: 'POST',
@@ -200,14 +195,17 @@ export default function CheckoutPage() {
         });
 
         const text = await res.text();
+        console.log('[Checkout Audit] Gateway Raw Response:', text);
         
         if (!res.ok) {
-          throw new Error(text || 'Payment gateway failed to initialize.');
+          const errData = text ? JSON.parse(text) : { error: 'Unknown Error' };
+          throw new Error(errData.error || 'Payment gateway failed to initialize.');
         }
 
         const data = text ? JSON.parse(text) : {};
         
         if (data.success && data.paymentUrl) {
+          console.log('[Checkout Audit] Step 3: Success. Redirecting user.');
           clearCart();
           window.location.href = data.paymentUrl;
         } else {
@@ -215,7 +213,7 @@ export default function CheckoutPage() {
         }
       }
     } catch (error: any) {
-      console.error('[Checkout] Fatal creation error:', error);
+      console.error('[Checkout Audit] Fatal creation error:', error);
       toast({ variant: 'destructive', title: 'Order Failed', description: error.message });
     } finally {
       setSubmitting(false);
@@ -306,14 +304,6 @@ export default function CheckoutPage() {
         </RadioGroup>
       </section>
 
-      <section className="space-y-6">
-        <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl">
-          <CardContent className="p-6 space-y-4">
-            <div className="pt-4 border-t border-border flex justify-between items-end"><span className="text-sm font-black uppercase tracking-widest">Grand Total</span><span className="text-3xl font-black text-primary tracking-tighter leading-none">₹{totalAmount}</span></div>
-          </CardContent>
-        </Card>
-      </section>
-
       <div className="flex flex-col gap-4 pt-4">
         <Button 
           className={cn(
@@ -325,9 +315,6 @@ export default function CheckoutPage() {
         >
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Confirm & Pay <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" /></>}
         </Button>
-        {!isVerified && (
-           <p className="text-[9px] text-center font-black text-primary uppercase tracking-widest animate-pulse">Verify identity to enable payment</p>
-        )}
         <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white"><ArrowLeft className="mr-2 h-4 w-4" /> Return to Cart</Button>
       </div>
 

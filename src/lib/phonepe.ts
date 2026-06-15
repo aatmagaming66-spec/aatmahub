@@ -1,4 +1,3 @@
-
 import crypto from 'crypto';
 
 /**
@@ -21,6 +20,7 @@ export function verifyPhonePeCallback(payload: string, saltKey: string, saltInde
 }
 
 export const PHONEPE_ENDPOINTS = {
+  // Correct pre-prod URL for standard Hermes integration
   sandbox: 'https://api-preprod.phonepe.com/apis/hermes/pg/v1/pay',
   production: 'https://api.phonepe.com/apis/hermes/pg/v1/pay',
 };
