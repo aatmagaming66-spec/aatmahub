@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -14,8 +13,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
-      router.push('/');
+    if (!loading) {
+      console.log(`[Admin Audit] Layout Gating: User=${!!user} Role=${profile?.role} Access=${isAdmin}`);
+      if (!user || !isAdmin) {
+        router.push('/');
+      }
     }
   }, [user, profile, loading, isAdmin, router]);
 

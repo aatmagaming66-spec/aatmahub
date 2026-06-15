@@ -15,6 +15,7 @@ export interface UserProfile {
   createdAt: string;
   active?: boolean;
   permissions?: string[];
+  banned?: boolean;
 }
 
 const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
@@ -30,7 +31,9 @@ export function useUser() {
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      if (!firebaseUser) {
+      if (firebaseUser) {
+        console.log(`[Admin Audit] Auth Detected: UID=${firebaseUser.uid} Email=${firebaseUser.email}`);
+      } else {
         setProfile(null);
         setLoading(false);
       }
@@ -47,10 +50,11 @@ export function useUser() {
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         
-        // Auto-elevate to super_admin if UID or Email matches and role is different
-        const isSuperAdmin = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+        // Auto-elevate to super_admin if UID or Email matches
+        const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         
-        if (isSuperAdmin && data.role !== 'super_admin') {
+        if (isSuperAdminTarget && data.role !== 'super_admin') {
+           console.warn(`[Admin Audit] Target UID detected. Elevating to super_admin role.`);
            setDoc(userDocRef, { 
              role: 'super_admin',
              active: true,
@@ -58,12 +62,13 @@ export function useUser() {
            }, { merge: true });
         }
         
+        console.log(`[Admin Audit] Profile Loaded: ROLE=${data.role}`);
         setProfile(data);
       } else {
-        // If document doesn't exist but it's the super admin UID or email, create it
-        const isSuperAdmin = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+        const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         
-        if (isSuperAdmin) {
+        if (isSuperAdminTarget) {
+          console.warn(`[Admin Audit] Super Admin document missing. Initializing registry...`);
           const newProfile: UserProfile = {
             uid: user.uid,
             fullName: user.displayName || 'Super Admin',
@@ -78,6 +83,7 @@ export function useUser() {
       }
       setLoading(false);
     }, (error) => {
+      console.error(`[Admin Audit] Firestore Read Failure:`, error);
       setLoading(false);
     });
 

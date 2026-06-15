@@ -1,6 +1,6 @@
-
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,6 @@ import {
   ShoppingCart, 
   Users, 
   Globe, 
-  Settings,
   CreditCard,
   Zap,
   Cpu,
@@ -27,9 +26,9 @@ import {
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, superOnly: false },
-  { href: '/admin/orders', label: 'Orders', icon: ShoppingCart, superOnly: false },
-  { href: '/admin/reports', label: 'Reports', icon: FileText, superOnly: false },
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
+  { href: '/admin/reports', label: 'Reports', icon: FileText },
 ];
 
 const SUPER_ADMIN_LINKS = [
@@ -51,6 +50,12 @@ export function AdminNav() {
   const pathname = usePathname();
   const { profile } = useUser();
   const isSuper = profile?.role === 'super_admin';
+
+  useEffect(() => {
+    if (profile) {
+      console.log(`[Admin Audit] Nav Component Role Sync: ${profile.role} isSuper=${isSuper}`);
+    }
+  }, [profile, isSuper]);
 
   return (
     <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10">
@@ -81,7 +86,7 @@ export function AdminNav() {
       </div>
 
       {isSuper && (
-        <div className="mt-8 space-y-1">
+        <div className="mt-8 space-y-1 animate-in slide-in-from-left-4 duration-500">
           <div className="flex items-center gap-2 px-4 mb-2">
             <ShieldCheck className="h-3 w-3 text-primary" />
             <p className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Super Admin Sector</p>
