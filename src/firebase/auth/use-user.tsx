@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,9 +13,12 @@ export interface UserProfile {
   phoneNumber?: string;
   role: 'user' | 'admin' | 'super_admin';
   createdAt: string;
+  active?: boolean;
+  permissions?: string[];
 }
 
 const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
+const SUPER_ADMIN_UID = 'iDeDaksq2hUmkyyIxvlNHgvb2y43';
 
 export function useUser() {
   const auth = useAuth();
@@ -45,20 +47,30 @@ export function useUser() {
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         
-        // Auto-elevate to super_admin if email matches and role is different
-        if (user.email === SUPER_ADMIN_EMAIL && data.role !== 'super_admin') {
-           setDoc(userDocRef, { role: 'super_admin' }, { merge: true });
+        // Auto-elevate to super_admin if UID or Email matches and role is different
+        const isSuperAdmin = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+        
+        if (isSuperAdmin && data.role !== 'super_admin') {
+           setDoc(userDocRef, { 
+             role: 'super_admin',
+             active: true,
+             permissions: ['all']
+           }, { merge: true });
         }
         
         setProfile(data);
       } else {
-        // If document doesn't exist but it's the super admin email, create it
-        if (user.email === SUPER_ADMIN_EMAIL) {
+        // If document doesn't exist but it's the super admin UID or email, create it
+        const isSuperAdmin = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+        
+        if (isSuperAdmin) {
           const newProfile: UserProfile = {
             uid: user.uid,
             fullName: user.displayName || 'Super Admin',
             email: user.email!,
             role: 'super_admin',
+            active: true,
+            permissions: ['all'],
             createdAt: new Date().toISOString(),
           };
           setDoc(userDocRef, newProfile);

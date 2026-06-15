@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -14,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, User, Phone, Mail, Calendar, Crown, Shield, Loader2, Wallet, ArrowRight, ShieldCheck } from 'lucide-react';
+import { LogOut, User, Phone, Mail, Calendar, Crown, Shield, Loader2, Wallet, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -113,22 +112,23 @@ export default function ProfilePage() {
     </div>
   );
 
-  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
+  const isSuperAdmin = profile?.role === 'super_admin';
+  const isAdmin = profile?.role === 'admin' || isSuperAdmin;
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <div className="p-8 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent border-b border-border">
         <div className="flex items-center gap-6">
           <div className="relative group">
-            <div className={`absolute inset-0 ${isAdmin ? 'bg-accent/40' : 'bg-primary/30'} rounded-full blur-xl transition-colors`} />
-            <Avatar className={`h-20 w-20 border-4 ${isAdmin ? 'border-accent' : 'border-primary'} shadow-2xl relative z-10`}>
+            <div className={`absolute inset-0 ${isSuperAdmin ? 'bg-primary/50' : (isAdmin ? 'bg-accent/40' : 'bg-primary/30')} rounded-full blur-xl transition-colors`} />
+            <Avatar className={`h-20 w-20 border-4 ${isSuperAdmin ? 'border-primary' : (isAdmin ? 'border-accent' : 'border-primary')} shadow-2xl relative z-10`}>
               <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100/100`} />
-              <AvatarFallback className={`${isAdmin ? 'bg-accent' : 'bg-primary'} text-white font-black text-xl`}>
+              <AvatarFallback className={`${isSuperAdmin ? 'bg-primary' : (isAdmin ? 'bg-accent' : 'bg-primary')} text-white font-black text-xl`}>
                 {fullName.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
-            <div className={`absolute -bottom-1 -right-1 z-20 ${isAdmin ? 'bg-accent' : 'bg-primary'} p-1.5 rounded-full border-2 border-background shadow-lg`}>
-              {isAdmin ? <ShieldCheck className="h-3 w-3 text-white" /> : <Crown className="h-3 w-3 text-white" />}
+            <div className={`absolute -bottom-1 -right-1 z-20 ${isSuperAdmin ? 'bg-primary' : (isAdmin ? 'bg-accent' : 'bg-primary')} p-1.5 rounded-full border-2 border-background shadow-lg`}>
+              {isSuperAdmin ? <Zap className="h-3 w-3 text-white" /> : (isAdmin ? <ShieldCheck className="h-3 w-3 text-white" /> : <Crown className="h-3 w-3 text-white" />)}
             </div>
           </div>
           <div>
@@ -139,12 +139,12 @@ export default function ProfilePage() {
               HUB ID: {user.uid.substring(0, 10).toUpperCase()}
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <span className={`${isAdmin ? 'bg-accent/20 text-accent border-accent/20' : 'bg-primary/20 text-primary border-primary/20'} text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border`}>
+              <span className={`${isSuperAdmin ? 'bg-primary text-white border-primary' : (isAdmin ? 'bg-accent/20 text-accent border-accent/20' : 'bg-primary/20 text-primary border-primary/20')} text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border`}>
                 {profile?.role?.replace('_', ' ') || 'User'} Member
               </span>
               {isAdmin && (
                  <Link href="/admin">
-                   <Button variant="outline" className="h-6 px-3 text-[8px] font-black uppercase tracking-tighter border-accent/40 text-accent hover:bg-accent/10">
+                   <Button variant="outline" className={`h-6 px-3 text-[8px] font-black uppercase tracking-tighter hover:bg-white/5 transition-all ${isSuperAdmin ? 'border-primary/40 text-primary' : 'border-accent/40 text-accent'}`}>
                      Access Admin Panel
                    </Button>
                  </Link>
