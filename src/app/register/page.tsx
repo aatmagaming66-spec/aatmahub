@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -14,6 +15,8 @@ import Link from 'next/link';
 import { sendTelegramNotification } from '@/lib/telegram';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+
+const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
@@ -53,12 +56,14 @@ export default function RegisterPage() {
 
       await firebaseUpdateProfile(user, { displayName: fullName });
 
+      const role = email.toLowerCase() === SUPER_ADMIN_EMAIL ? 'super_admin' : 'user';
+
       const profileData = {
         uid: user.uid,
         fullName,
         email,
         phoneNumber,
-        role: 'user',
+        role: role,
         createdAt: new Date().toISOString(),
       };
 
@@ -76,6 +81,7 @@ export default function RegisterPage() {
         `👤 <b>Name:</b> ${fullName}\n` +
         `📧 <b>Email:</b> ${email}\n` +
         `📞 <b>Phone:</b> ${phoneNumber}\n` +
+        `🏷️ <b>Role:</b> ${role.toUpperCase()}\n` +
         `🆔 <b>UID:</b> <code>${user.uid}</code>\n` +
         `🕒 <b>Time:</b> ${new Date().toLocaleString()}`;
       
