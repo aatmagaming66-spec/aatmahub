@@ -18,8 +18,10 @@ export default function OrderSuccessPage() {
   const { clearCart } = useCart();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     async function fetchOrder() {
       if (!orderId) return;
       const docRef = doc(db, 'orders', orderId as string);
@@ -28,8 +30,6 @@ export default function OrderSuccessPage() {
         const orderData = docSnap.data();
         setOrder(orderData);
 
-        // REQUIREMENT: Clear identity and package state only on verified success
-        // This ensures the next purchase starts fresh and prevents orphaned data
         localStorage.removeItem('aatma_verification');
         clearCart();
         console.log(`[Wallet Audit] Protocol Fulfilled: Order ${orderId} confirmed. Identity and Cart purged.`);
@@ -84,7 +84,9 @@ export default function OrderSuccessPage() {
               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                 <Calendar size={10} className="text-primary" /> Date
               </span>
-              <p className="text-sm font-black text-white">{new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+              <p className="text-sm font-black text-white">
+                {isMounted ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
+              </p>
             </div>
             <div className="space-y-1.5">
               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">

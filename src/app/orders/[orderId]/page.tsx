@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -31,8 +32,10 @@ export default function OrderDetailsPage() {
   const { toast } = useToast();
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     async function fetchOrder() {
       if (!orderId) return;
       try {
@@ -110,7 +113,6 @@ export default function OrderDetailsPage() {
         </div>
       </header>
 
-      {/* Progress Tracker */}
       <section className="px-2">
         <div className="relative flex justify-between items-start">
           <div className="absolute top-5 left-0 right-0 h-0.5 bg-white/5 z-0" />
@@ -135,7 +137,6 @@ export default function OrderDetailsPage() {
         </div>
       </section>
 
-      {/* Main Order Card */}
       <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
         <CardContent className="p-8 space-y-8">
           <div className="flex justify-between items-start">
@@ -162,7 +163,7 @@ export default function OrderDetailsPage() {
             <div className="space-y-1.5">
               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Transaction Date</span>
               <p className="text-xs font-black text-white uppercase">
-                {new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                {isMounted ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
               </p>
             </div>
             <div className="space-y-1.5">
@@ -181,7 +182,6 @@ export default function OrderDetailsPage() {
         </CardContent>
       </Card>
 
-      {/* Items List */}
       <div className="space-y-4">
         <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50 px-2">Digital Products</h3>
         <div className="space-y-3">
@@ -206,7 +206,6 @@ export default function OrderDetailsPage() {
         </div>
       </div>
 
-      {/* Game Profile Info */}
       {order.playerInfo && (
         <div className="space-y-4">
           <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50 px-2">Distribution Target</h3>
@@ -229,7 +228,6 @@ export default function OrderDetailsPage() {
         </div>
       )}
 
-      {/* Support Info */}
       <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
           <Info className="h-4 w-4 text-primary" />
