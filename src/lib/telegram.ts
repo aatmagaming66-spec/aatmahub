@@ -1,11 +1,9 @@
 
-'use client';
-
 import { doc, getDoc, Firestore } from 'firebase/firestore';
 
 /**
  * Sends a notification to the configured Telegram Admin chat.
- * This is designed to be called from client-side actions after Firestore operations.
+ * Compatible with both Client and Server environments.
  */
 export async function sendTelegramNotification(db: Firestore, message: string, inlineButtons?: any[]) {
   try {

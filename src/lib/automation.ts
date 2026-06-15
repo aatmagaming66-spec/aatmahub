@@ -1,22 +1,20 @@
+
 import { 
   Firestore, 
   collection, 
   query, 
   where, 
   getDocs, 
-  updateDoc, 
   doc, 
   setDoc,
   serverTimestamp,
   getDoc
 } from 'firebase/firestore';
-import { processSmileOneOrder } from './smileone';
-import { processUniPinOrder } from './unipin';
+import { processSmileOneOrder, processUniPinOrder } from './fulfillment';
 import { sendTelegramNotification } from './telegram';
 
 /**
  * Detects orders stuck in 'processing' for more than 10 minutes and attempts recovery.
- * (Server-side Only)
  */
 export async function detectStuckOrders(db: Firestore) {
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -49,28 +47,6 @@ export async function detectStuckOrders(db: Firestore) {
       }
     }
   }
-}
-
-/**
- * Automates failover logic (Server-side Only)
- */
-export async function triggerFailover(db: Firestore, orderId: string) {
-  const orderRef = doc(db, 'orders', orderId);
-  await updateDoc(orderRef, { 
-    failoverTriggered: true,
-    updatedAt: new Date().toISOString()
-  });
-
-  await logAutomationEvent(db, {
-    type: 'failover',
-    orderId,
-    details: 'Smile.one retry limit reached. Switching to UniPin failover protocol.',
-    status: 'success'
-  });
-
-  await sendTelegramNotification(db, `⚠️ <b>AUTOMATION: FAILOVER ENGAGED</b>\n\n📦 Order: ${orderId}\n🔄 Reason: Smile.one critical failure.\n🚀 Action: Re-routing to UniPin API.`);
-  
-  await processUniPinOrder(db, orderId);
 }
 
 /**

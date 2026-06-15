@@ -1,12 +1,11 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/init';
-import { processSmileOneOrder } from '@/lib/smileone';
-import { processUniPinOrder } from '@/lib/unipin';
+import { processSmileOneOrder, processUniPinOrder } from '@/lib/fulfillment';
 import { doc, getDoc } from 'firebase/firestore';
 
 /**
  * Secure API route for Admins to trigger fulfillment.
- * Returns valid JSON for all execution paths.
  */
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
@@ -40,7 +39,6 @@ export async function POST(req: NextRequest) {
         await processSmileOneOrder(db, orderId);
       }
     } else {
-      // Default to Smile.one if no mapping exists
       await processSmileOneOrder(db, orderId);
     }
 
