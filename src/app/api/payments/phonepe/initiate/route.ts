@@ -5,17 +5,18 @@ import { generatePhonePeHeader, PHONEPE_ENDPOINTS } from '@/lib/phonepe';
 
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
-  const body = await req.json();
-  const { amount, transactionId, userId, type, orderId } = body;
-
+  
   try {
+    const body = await req.json();
+    const { amount, transactionId, userId, type, orderId } = body;
+
     const settingsSnap = await getDoc(doc(db, 'settings', 'payments'));
     if (!settingsSnap.exists()) {
-      return NextResponse.json({ error: 'Payment gateway not configured' }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'Payment gateway not configured' }, { status: 500 });
     }
     const settings = settingsSnap.data();
     if (!settings.isPhonePeEnabled) {
-      return NextResponse.json({ error: 'PhonePe is currently disabled' }, { status: 500 });
+      return NextResponse.json({ success: false, error: 'PhonePe is currently disabled' }, { status: 500 });
     }
 
     const host = req.headers.get('host');
@@ -47,14 +48,20 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({ request: base64Payload }),
     });
 
-    const data = await response.json();
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+
     if (data.success && data.data.instrumentResponse.redirectInfo.url) {
-      return NextResponse.json({ url: data.data.instrumentResponse.redirectInfo.url });
+      return NextResponse.json({ 
+        success: true, 
+        paymentUrl: data.data.instrumentResponse.redirectInfo.url,
+        orderId: orderId || transactionId
+      });
     } else {
-      return NextResponse.json({ error: data.message || 'Payment initiation failed' }, { status: 400 });
+      return NextResponse.json({ success: false, error: data.message || 'Payment initiation failed' }, { status: 400 });
     }
   } catch (error: any) {
-    console.error('Initiation error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('PhonePe Initiation API Error:', error);
+    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

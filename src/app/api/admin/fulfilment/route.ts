@@ -10,18 +10,19 @@ import { doc, getDoc } from 'firebase/firestore';
  */
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
-  const { orderId } = await req.json();
-
-  if (!orderId) {
-    return NextResponse.json({ error: 'Order ID is required' }, { status: 400 });
-  }
-
+  
   try {
+    const { orderId } = await req.json();
+
+    if (!orderId) {
+      return NextResponse.json({ success: false, error: 'Order ID is required' }, { status: 400 });
+    }
+
     const orderRef = doc(db, 'orders', orderId);
     const orderSnap = await getDoc(orderRef);
     
     if (!orderSnap.exists()) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
     }
 
     const orderData = orderSnap.data();
@@ -41,9 +42,9 @@ export async function POST(req: NextRequest) {
       await processSmileOneOrder(db, orderId);
     }
 
-    return NextResponse.json({ ok: true, message: 'Fulfillment process initialized' });
+    return NextResponse.json({ success: true, message: 'Fulfillment process initialized' });
   } catch (error: any) {
     console.error('Fulfillment trigger error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -195,12 +195,20 @@ export default function CheckoutPage() {
           }),
         });
 
-        const data = await res.json();
+        const text = await res.text();
+        console.log('[Checkout] PhonePe API Raw Response:', text);
         
-        if (data.url) {
-          console.log('[Checkout] Gateway initiated. Redirecting to:', data.url);
+        if (!res.ok) {
+          throw new Error(text || 'Payment failed to initiate');
+        }
+
+        const data = text ? JSON.parse(text) : {};
+        console.log('[Checkout] PhonePe API Parsed Data:', data);
+        
+        if (data.success && data.paymentUrl) {
+          console.log('[Checkout] Gateway initiated. Redirecting to:', data.paymentUrl);
           clearCart();
-          window.location.href = data.url;
+          window.location.href = data.paymentUrl;
         } else {
           console.error('[Checkout] PhonePe initiation failed:', data.error);
           throw new Error(data.error || 'Payment failed to initiate');

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -60,11 +59,17 @@ export default function DepositPage() {
             type: 'deposit',
           }),
         });
-        const data = await res.json();
-        if (data.url) {
-          window.location.href = data.url;
+
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error(text || 'Payment initiation failed');
+        }
+
+        const data = text ? JSON.parse(text) : {};
+        if (data.success && data.paymentUrl) {
+          window.location.href = data.paymentUrl;
         } else {
-          throw new Error(data.error || 'Payment initiation failed');
+          throw new Error(data.error || 'Payment failed to initiate');
         }
       } else {
         // Default manual approval logic (Razorpay/Manual)
