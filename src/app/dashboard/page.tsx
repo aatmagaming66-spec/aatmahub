@@ -20,12 +20,6 @@ export default function DashboardPage() {
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
 
-  useEffect(() => {
-    if (user && wallet) {
-      console.log(`[Wallet Audit] Dashboard View: uid=${user.uid}, balance=₹${wallet.balance}, path=wallets/${user.uid}`);
-    }
-  }, [user, wallet]);
-
   const ordersQuery = useMemo(() => {
     if (!user) return null;
     return query(
@@ -35,7 +29,27 @@ export default function DashboardPage() {
     );
   }, [user, db]);
 
-  const { data: orders, loading: ordersLoading } = useCollection(ordersQuery);
+  const { data: orders, loading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
+
+  const transactionsQuery = useMemo(() => {
+    if (!user) return null;
+    return query(
+      collection(db, 'transactions'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+  }, [user, db]);
+
+  const { data: transactions, loading: txLoading } = useCollection(transactionsQuery);
+
+  useEffect(() => {
+    if (user) {
+      console.log(`[Wallet Audit] Dashboard UID: ${user.uid}`);
+      console.log(`[Wallet Audit] Wallet Path: wallets/${user.uid} | Balance: ₹${wallet?.balance ?? 0}`);
+      console.log(`[Wallet Audit] Order Count: ${orders?.length ?? 0} | Transaction Count: ${transactions?.length ?? 0}`);
+      if (ordersError) console.error(`[Wallet Audit] Orders Query Error:`, ordersError);
+    }
+  }, [user, wallet, orders, transactions, ordersError]);
 
   const stats = useMemo(() => {
     const total = orders?.length || 0;
@@ -128,6 +142,7 @@ export default function DashboardPage() {
           ) : orders?.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-10 rounded-3xl text-center">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No recent transactions detected</p>
+              {ordersError && <p className="text-[8px] text-primary/50 mt-2">Query Error: {ordersError.code}</p>}
             </div>
           ) : (
             orders?.slice(0, 3).map((order) => (

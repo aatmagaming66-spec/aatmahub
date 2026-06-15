@@ -49,6 +49,7 @@ export default function CheckoutPage() {
         if (data?.isVerified && data?.playerId && data?.serverId) {
           setVerificationData(data);
         } else {
+          console.warn('[Wallet Audit] Missing verification data in storage.');
           router.push('/');
         }
       } catch (e) {
@@ -119,9 +120,12 @@ export default function CheckoutPage() {
 
         const orderData = { ...baseOrderData, status: 'pending' };
 
+        console.log(`[Wallet Audit] Executing atomic mutations for UID: ${user.uid}`);
+
         // AUDIT: Use increment() to prevent stale state overwrites
         updateDoc(walletDocRef, {
           balance: increment(-totalAmount),
+          userId: user.uid,
           updatedAt: new Date().toISOString()
         }).catch(async (error) => {
           console.error('[Wallet Audit] Balance deduction failed:', error);
@@ -131,12 +135,14 @@ export default function CheckoutPage() {
         });
 
         setDoc(txRef, txData).catch(async (error) => {
+          console.error('[Wallet Audit] Transaction log creation failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: txRef.path, operation: 'create', requestResourceData: txData
           } satisfies SecurityRuleContext));
         });
 
         setDoc(orderRef, orderData).catch(async (error) => {
+          console.error('[Wallet Audit] Order document creation failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
@@ -151,6 +157,7 @@ export default function CheckoutPage() {
 
         // Standard requirement: Order must exist before gateway handoff
         await setDoc(orderRef, orderData).catch(async (error) => {
+          console.error('[Wallet Audit] PhonePe Order creation failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
@@ -183,6 +190,7 @@ export default function CheckoutPage() {
         }
       }
     } catch (error: any) {
+      console.error('[Wallet Audit] Fatal process error:', error);
       toast({ variant: 'destructive', title: 'Order Failed', description: error.message });
     } finally {
       setSubmitting(false);
