@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -30,9 +29,13 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { data: users, loading } = useCollection(
-    query(collection(db, 'users'), orderBy('createdAt', 'desc'))
-  );
+  // Stabilize the query reference
+  const usersQuery = useMemo(() => query(
+    collection(db, 'users'), 
+    orderBy('createdAt', 'desc')
+  ), [db]);
+
+  const { data: users, loading } = useCollection(usersQuery);
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];

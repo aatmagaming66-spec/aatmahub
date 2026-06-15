@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, updateDoc, doc, setDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -25,7 +24,10 @@ const DEFAULT_REGIONS = [
 export default function AdminRegionsPage() {
   const db = useFirestore();
   const { toast } = useToast();
-  const { data: regions, loading } = useCollection(collection(db, 'regions'));
+  
+  // Stabilize the collection reference
+  const regionsRef = useMemo(() => collection(db, 'regions'), [db]);
+  const { data: regions, loading } = useCollection(regionsRef);
 
   const toggleRegion = async (id: string, currentStatus: string) => {
     try {

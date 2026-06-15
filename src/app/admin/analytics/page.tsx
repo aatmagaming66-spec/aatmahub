@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -33,12 +32,17 @@ const COLORS = ['#DC2626', '#EC4899', '#9333EA', '#2563EB', '#10B981'];
 
 export default function AnalyticsPage() {
   const db = useFirestore();
-  const { data: orders, loading: ordersLoading } = useCollection(collection(db, 'orders'));
-  const { data: users, loading: usersLoading } = useCollection(collection(db, 'users'));
-  const { data: transactions, loading: txLoading } = useCollection(collection(db, 'transactions'));
-  
   const [isMounted, setIsMounted] = useState(false);
 
+  // Stabilize collection references
+  const ordersRef = useMemo(() => collection(db, 'orders'), [db]);
+  const usersRef = useMemo(() => collection(db, 'users'), [db]);
+  const transactionsRef = useMemo(() => collection(db, 'transactions'), [db]);
+
+  const { data: orders, loading: ordersLoading } = useCollection(ordersRef);
+  const { data: users, loading: usersLoading } = useCollection(usersRef);
+  const { data: transactions, loading: txLoading } = useCollection(transactionsRef);
+  
   useEffect(() => {
     setIsMounted(true);
   }, []);

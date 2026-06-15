@@ -29,14 +29,18 @@ export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const { data: orders, loading } = useCollection(
-    query(collection(db, 'orders'), orderBy('createdAt', 'desc'))
-  );
+  // Stabilize the query reference to prevent infinite render loops
+  const ordersQuery = useMemo(() => query(
+    collection(db, 'orders'), 
+    orderBy('createdAt', 'desc')
+  ), [db]);
+
+  const { data: orders, loading } = useCollection(ordersQuery);
 
   const filteredOrders = useMemo(() => {
     if (!orders) return [];
     return orders.filter(order => {
-      const matchesSearch = order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch = order.orderId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            order.playerInfo?.playerId?.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
       return matchesSearch && matchesStatus;
@@ -52,7 +56,6 @@ export default function AdminOrdersPage() {
       if (newStatus === 'processing') {
         toast({ title: "Triggering API", description: "Requesting secure fulfilment..." });
         
-        // Securely call fulfillment via API route to keep credentials on server
         const res = await fetch('/api/admin/fulfilment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -151,12 +154,12 @@ export default function AdminOrdersPage() {
               </TableRow>
             ) : (
               filteredOrders.map((order) => (
-                <TableRow key={order.orderId} className="border-border hover:bg-white/5 transition-colors">
+                <TableRow key={order.id} className="border-border hover:bg-white/5 transition-colors">
                   <TableCell className="py-6 px-6">
                     <div className="space-y-1">
                       <div className="flex items-center gap-1.5 text-primary">
                         <Hash size={10} className="stroke-[3]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{order.orderId.replace('AH-2026-', '')}</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">{order.orderId?.replace('AH-2026-', '') || order.id}</span>
                       </div>
                       <p className="text-xs font-black uppercase text-white/90">{order.items?.[0]?.name}</p>
                       <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">{new Date(order.createdAt).toLocaleDateString()} • {new Date(order.createdAt).toLocaleTimeString()}</p>
@@ -182,18 +185,6 @@ export default function AdminOrdersPage() {
                        <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border text-center ${getStatusStyle(order.status)}`}>
                         {order.status}
                       </span>
-                      <div className="flex flex-col gap-0.5">
-                        {order.smileOneStatus && (
-                          <span className="text-[7px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                            <Zap size={8} className={order.smileOneStatus === 'success' ? 'text-green-400' : 'text-primary'} /> SMILE: {order.smileOneStatus}
-                          </span>
-                        )}
-                        {order.unipinStatus && (
-                          <span className="text-[7px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                            <Cpu size={8} className={order.unipinStatus === 'success' ? 'text-green-400' : 'text-primary'} /> UNIPIN: {order.unipinStatus}
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </TableCell>
                   <TableCell className="text-right px-6">
@@ -204,13 +195,13 @@ export default function AdminOrdersPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-card border-border min-w-[140px]">
-                        <DropdownMenuItem onClick={() => updateStatus(order.orderId, 'processing')} className="text-[10px] font-black uppercase tracking-widest p-3">
+                        <DropdownMenuItem onClick={() => updateStatus(order.id, 'processing')} className="text-[10px] font-black uppercase tracking-widest p-3">
                           Processing (API)
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateStatus(order.orderId, 'completed')} className="text-[10px] font-black uppercase tracking-widest p-3 text-green-400">
+                        <DropdownMenuItem onClick={() => updateStatus(order.id, 'completed')} className="text-[10px] font-black uppercase tracking-widest p-3 text-green-400">
                           Complete
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateStatus(order.orderId, 'failed')} className="text-[10px] font-black uppercase tracking-widest p-3 text-primary">
+                        <DropdownMenuItem onClick={() => updateStatus(order.id, 'failed')} className="text-[10px] font-black uppercase tracking-widest p-3 text-primary">
                           Mark Failed
                         </DropdownMenuItem>
                       </DropdownMenuContent>

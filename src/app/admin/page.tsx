@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
@@ -28,9 +27,14 @@ export default function AdminDashboard() {
   const [tgStatus, setTgStatus] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  const { data: users } = useCollection(collection(db, 'users'));
-  const { data: orders } = useCollection(collection(db, 'orders'));
-  const { data: transactions } = useCollection(collection(db, 'transactions'));
+  // Stabilize collection references to prevent infinite render loops
+  const usersRef = useMemo(() => collection(db, 'users'), [db]);
+  const ordersRef = useMemo(() => collection(db, 'orders'), [db]);
+  const transactionsRef = useMemo(() => collection(db, 'transactions'), [db]);
+
+  const { data: users } = useCollection(usersRef);
+  const { data: orders } = useCollection(ordersRef);
+  const { data: transactions } = useCollection(transactionsRef);
 
   useEffect(() => {
     setIsMounted(true);
@@ -44,7 +48,6 @@ export default function AdminDashboard() {
   const stats = useMemo(() => {
     if (!isMounted) return [];
     const totalRevenue = orders?.reduce((acc, order) => order.status === 'completed' ? acc + order.totalAmount : acc, 0) || 0;
-    const pendingOrders = orders?.filter(o => o.status === 'pending').length || 0;
     const totalDeposits = transactions?.filter(t => t.type === 'deposit' && t.status === 'success').reduce((acc, t) => acc + t.amount, 0) || 0;
 
     return [
@@ -69,11 +72,11 @@ export default function AdminDashboard() {
     });
   }, [orders, isMounted]);
 
-  const orderStats = [
+  const orderStats = useMemo(() => [
     { label: 'Pending', count: orders?.filter(o => o.status === 'pending').length || 0, icon: Clock, color: 'text-orange-400' },
     { label: 'Processing', count: orders?.filter(o => o.status === 'processing').length || 0, icon: TrendingUp, color: 'text-accent' },
     { label: 'Completed', count: orders?.filter(o => o.status === 'completed').length || 0, icon: CheckCircle2, color: 'text-green-400' },
-  ];
+  ], [orders]);
 
   if (!isMounted) return null;
 
