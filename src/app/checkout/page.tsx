@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { cn } from '@/lib/utils';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -40,6 +41,20 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
 
+  // Initialize from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    const savedPlayerId = localStorage.getItem('aatma_last_player_id');
+    const savedServerId = localStorage.getItem('aatma_last_server_id');
+    if (savedPlayerId) setPlayerId(savedPlayerId);
+    if (savedServerId) setServerId(savedServerId);
+  }, []);
+
+  // Sync back to localStorage for persistence
+  useEffect(() => {
+    if (playerId) localStorage.setItem('aatma_last_player_id', playerId);
+    if (serverId) localStorage.setItem('aatma_last_server_id', serverId);
+  }, [playerId, serverId]);
+
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
   const walletBalance = wallet?.balance || 0;
@@ -61,7 +76,10 @@ export default function CheckoutPage() {
       return;
     }
     setVerifying(true);
+    setIsVerified(false); 
     console.log('[Checkout] Verifying identity:', { playerId, serverId });
+    
+    // Simulate identity synchronization with game servers
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
@@ -163,7 +181,6 @@ export default function CheckoutPage() {
 
         console.log('[Checkout] Persisting pending order for PhonePe gateway...');
 
-        // Important: Create order record BEFORE redirecting
         setDoc(orderRef, orderData).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
@@ -183,14 +200,12 @@ export default function CheckoutPage() {
         });
 
         const text = await res.text();
-        console.log('[Checkout] API Raw Response:', text);
         
         if (!res.ok) {
           throw new Error(text || 'Payment gateway failed to initialize.');
         }
 
         const data = text ? JSON.parse(text) : {};
-        console.log('[Checkout] API Parsed Data:', data);
         
         if (data.success && data.paymentUrl) {
           clearCart();
@@ -222,11 +237,57 @@ export default function CheckoutPage() {
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl">
           <CardContent className="p-6 space-y-5">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Player ID</Label><Input placeholder="12345678" value={playerId} onChange={(e) => setPlayerId(e.target.value)} className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold" /></div>
-              <div className="space-y-2"><Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Server ID</Label><Input placeholder="1234" value={serverId} onChange={(e) => setServerId(e.target.value)} className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold" /></div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Player ID</Label>
+                <Input 
+                  placeholder="12345678" 
+                  value={playerId} 
+                  onChange={(e) => {
+                    setPlayerId(e.target.value);
+                    setIsVerified(false);
+                  }} 
+                  className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold" 
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Server ID</Label>
+                <Input 
+                  placeholder="1234" 
+                  value={serverId} 
+                  onChange={(e) => {
+                    setServerId(e.target.value);
+                    setIsVerified(false);
+                  }} 
+                  className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold" 
+                />
+              </div>
             </div>
-            <Button className="w-full h-12 bg-secondary hover:bg-white/5 border border-border text-[11px] font-black uppercase tracking-widest" onClick={handleVerify} disabled={verifying}>{verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify Identity"}</Button>
-            {isVerified && <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in-95"><CheckCircle2 className="h-5 w-5 text-green-500" /><span className="text-[9px] font-black text-green-500 uppercase tracking-widest leading-none">Status: Verified & Secured</span></div>}
+            
+            <Button 
+              className={cn(
+                "w-full h-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-xl",
+                isVerified 
+                  ? "bg-green-500 hover:bg-green-600 shadow-green-500/20" 
+                  : "bg-primary hover:bg-secondary shadow-primary/20"
+              )} 
+              onClick={handleVerify} 
+              disabled={verifying}
+            >
+              {verifying ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : isVerified ? (
+                <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> VERIFIED</span>
+              ) : (
+                "Verify Identity"
+              )}
+            </Button>
+
+            {isVerified && (
+              <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in-95">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <span className="text-[9px] font-black text-green-500 uppercase tracking-widest leading-none">Status: Identity Secured</span>
+              </div>
+            )}
           </CardContent>
         </Card>
       </section>
@@ -254,7 +315,19 @@ export default function CheckoutPage() {
       </section>
 
       <div className="flex flex-col gap-4 pt-4">
-        <Button className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl group transition-all" onClick={handlePlaceOrder} disabled={submitting}>{submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Confirm & Pay <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" /></>}</Button>
+        <Button 
+          className={cn(
+            "w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl group transition-all",
+            !isVerified && "opacity-50 grayscale cursor-not-allowed"
+          )} 
+          onClick={handlePlaceOrder} 
+          disabled={submitting || !isVerified}
+        >
+          {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Confirm & Pay <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" /></>}
+        </Button>
+        {!isVerified && (
+           <p className="text-[9px] text-center font-black text-primary uppercase tracking-widest animate-pulse">Verify identity to enable payment</p>
+        )}
         <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-12 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white"><ArrowLeft className="mr-2 h-4 w-4" /> Return to Cart</Button>
       </div>
 
