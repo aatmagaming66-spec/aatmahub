@@ -71,8 +71,8 @@ export default function ContactPage() {
                 <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest mb-1">Corporate HQ</p>
                 <p className="text-xs font-bold text-white uppercase leading-relaxed">
                   AATMA HUB DIGITAL SERVICES<br/>
-                  Industrial Area Phase VII<br/>
-                  Punjab, India
+                  Lambhua, Sultanpur<br/>
+                  Uttar Pradesh, India – 222302
                 </p>
              </div>
           </div>
