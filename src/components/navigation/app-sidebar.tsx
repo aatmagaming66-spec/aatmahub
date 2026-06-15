@@ -55,17 +55,17 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild onClick={handleLinkClick}>
-                  <Link href="/"><Gamepad2 /><span>Games</span></Link>
+                  <Link href="/games"><Gamepad2 /><span>Games</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild onClick={handleLinkClick}>
-                  <Link href="/"><Tv /><span>OTT Services</span></Link>
+                  <Link href="/ott-services"><Tv /><span>OTT Services</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild onClick={handleLinkClick}>
-                  <Link href="/"><Share2 /><span>Social Services</span></Link>
+                  <Link href="/social-services"><Share2 /><span>Social Services</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
