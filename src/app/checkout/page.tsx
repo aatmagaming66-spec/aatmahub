@@ -204,70 +204,70 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
-      <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Checkout Hub</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">MASTER TRANSACTION PROTOCOL</p>
+    <div className="flex flex-col w-full p-4 space-y-6 animate-in fade-in duration-700">
+      <header className="py-2">
+        <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Checkout Hub</h1>
+        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">MASTER TRANSACTION PROTOCOL</p>
       </header>
 
-      {/* COMPACT UNIFIED SUMMARY CARD */}
-      <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl relative">
-        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none -rotate-12">
-          <Layers size={140} />
+      {/* OPTIMIZED COMPACT UNIFIED SUMMARY CARD */}
+      <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl relative">
+        <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none -rotate-12">
+          <Layers size={100} />
         </div>
         
         <CardContent className="p-0">
-          {/* Header Stats */}
+          {/* Header Stats - Compact */}
           <div className="grid grid-cols-2 border-b border-border">
-            <div className="p-6 border-r border-border text-center space-y-1">
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Accounts</span>
-              <p className="text-2xl font-black text-white">{totalAccounts}</p>
+            <div className="p-4 border-r border-border text-center space-y-0.5">
+              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Accounts</span>
+              <p className="text-xl font-black text-white">{totalAccounts}</p>
             </div>
-            <div className="p-6 text-center space-y-1">
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Items</span>
-              <p className="text-2xl font-black text-white">{totalProducts}</p>
+            <div className="p-4 text-center space-y-0.5">
+              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Products</span>
+              <p className="text-xl font-black text-white">{totalProducts}</p>
             </div>
           </div>
 
-          {/* Collapsible Identity Snapshots */}
-          <div className="p-4 border-b border-border bg-black/20">
-            <div className="flex items-center gap-2 mb-3 px-2">
-               <ShieldCheck className="h-3 w-3 text-green-500" />
-               <span className="text-[9px] font-black uppercase tracking-widest text-white/50">Verified Targets</span>
+          {/* Collapsible Identity Snapshots - Compact */}
+          <div className="p-3 border-b border-border bg-black/20">
+            <div className="flex items-center gap-2 mb-2 px-1">
+               <ShieldCheck className="h-2.5 w-2.5 text-green-500" />
+               <span className="text-[8px] font-black uppercase tracking-widest text-white/50">Verified Targets</span>
             </div>
             
-            <Accordion type="single" collapsible className="space-y-2">
+            <Accordion type="single" collapsible className="space-y-1.5">
               {groupedIdentities.map((group, idx) => (
                 <AccordionItem 
                   key={idx} 
                   value={`account-${idx}`}
-                  className="border border-white/5 rounded-2xl overflow-hidden bg-white/5"
+                  className="border border-white/5 rounded-xl overflow-hidden bg-white/5"
                 >
-                  <AccordionTrigger className="px-4 py-3 hover:no-underline group">
-                    <div className="flex items-center justify-between w-full pr-4">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <User size={14} className="text-primary" />
+                  <AccordionTrigger className="px-3 py-2 hover:no-underline group text-left">
+                    <div className="flex items-center justify-between w-full pr-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <User size={12} className="text-primary" />
                         </div>
                         <div className="text-left">
-                          <p className="text-[10px] font-black uppercase text-white truncate max-w-[120px]">{group.verifiedName}</p>
-                          <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-tighter">ID: {group.playerId}</p>
+                          <p className="text-[9px] font-black uppercase text-white truncate max-w-[100px]">{group.verifiedName}</p>
+                          <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-tighter">ID: {group.playerId}</p>
                         </div>
                       </div>
-                      <span className="text-xs font-black text-primary">₹{group.total}</span>
+                      <span className="text-[10px] font-black text-primary">₹{group.total}</span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-4 pb-4 pt-1">
-                    <div className="space-y-3 pt-3 border-t border-white/5">
-                      <div className="flex justify-between items-center text-[9px] font-black uppercase">
-                        <span className="text-muted-foreground">Server ID:</span>
+                  <AccordionContent className="px-3 pb-3 pt-0">
+                    <div className="space-y-2 pt-2 border-t border-white/5">
+                      <div className="flex justify-between items-center text-[8px] font-black uppercase">
+                        <span className="text-muted-foreground">Server:</span>
                         <span className="text-white">{group.serverId}</span>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         {group.items.map((item, i) => (
-                          <div key={i} className="flex justify-between items-center bg-black/40 p-2 rounded-lg">
-                            <span className="text-[8px] font-bold text-white/70 uppercase truncate max-w-[150px]">{item.name}</span>
-                            <span className="text-[8px] font-black text-primary">₹{item.price * item.quantity}</span>
+                          <div key={i} className="flex justify-between items-center bg-black/40 p-1.5 rounded-lg">
+                            <span className="text-[7px] font-bold text-white/70 uppercase truncate max-w-[140px]">{item.name}</span>
+                            <span className="text-[7px] font-black text-primary">₹{item.price * item.quantity}</span>
                           </div>
                         ))}
                       </div>
@@ -278,84 +278,80 @@ export default function CheckoutPage() {
             </Accordion>
           </div>
 
-          {/* Financial Summary Footer */}
-          <div className="p-8 space-y-4">
-            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+          {/* Financial Summary Footer - Compact */}
+          <div className="p-5 space-y-2">
+            <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
               <span>Grand Total</span>
               <span className="text-white">₹{totalAmount}</span>
             </div>
-            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              <span>Wallet Balance</span>
+            <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+              <span>Wallet Credit</span>
               <span className={walletBalance < totalAmount && paymentMethod === 'wallet' ? 'text-primary' : 'text-green-500'}>
                 ₹{walletBalance.toLocaleString()}
               </span>
             </div>
             
-            <div className="pt-6 border-t border-border flex justify-between items-end">
-              <div className="space-y-1">
-                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Payable Amount</span>
-                <p className="text-4xl font-black text-white tracking-tighter leading-none">₹{payableAmount}</p>
+            <div className="pt-3 border-t border-border flex justify-between items-end">
+              <div className="space-y-0.5">
+                <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Payable Amount</span>
+                <p className="text-3xl font-black text-white tracking-tighter leading-none">₹{payableAmount}</p>
               </div>
-              <div className="bg-primary/10 border border-primary/20 px-3 py-1.5 rounded-xl">
-                 <Receipt size={16} className="text-primary" />
+              <div className="bg-primary/10 border border-primary/20 px-2.5 py-1.5 rounded-lg">
+                 <Receipt size={14} className="text-primary" />
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Payment Selection */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-3 px-1">
-          <div className="h-6 w-1 bg-accent rounded-full" />
-          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Select Gateway</h3>
+      {/* Payment Selection - Optimized Horizontal Grid */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 px-1">
+          <div className="h-4 w-1 bg-accent rounded-full" />
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-white/80">Select Gateway</h3>
         </div>
-        <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid gap-3">
-          <Label htmlFor="wallet" className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer bg-card ${paymentMethod === 'wallet' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className="flex items-center gap-4">
-              <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-primary/20' : 'bg-white/5'}`}>
-                <Wallet size={18} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
-              </div>
-              <div>
-                <span className="text-xs font-black uppercase block leading-none mb-1">Hub Wallet</span>
-                <span className={`text-[8px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>₹{walletBalance.toLocaleString()} Available</span>
-              </div>
+        <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-2.5">
+          <Label htmlFor="wallet" className={`flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer bg-card min-h-[100px] ${paymentMethod === 'wallet' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
+            <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-primary/20' : 'bg-white/5'}`}>
+              <Wallet size={16} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
+            </div>
+            <div className="text-center">
+              <span className="text-[10px] font-black uppercase block leading-none mb-1">Hub Wallet</span>
+              <span className={`text-[7px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>₹{walletBalance.toLocaleString()}</span>
             </div>
             <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
-            {paymentMethod === 'wallet' && <CheckCircle2 className="h-4 w-4 text-primary" />}
+            {paymentMethod === 'wallet' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-3 w-3 text-primary" /></div>}
           </Label>
           
-          <Label htmlFor="phonepe" className={`flex items-center justify-between p-5 rounded-3xl border transition-all cursor-pointer bg-card ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className="flex items-center gap-4">
-              <div className={`h-10 w-10 rounded-2xl flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
-                <Smartphone size={18} className={paymentMethod === 'phonepe' ? 'text-primary' : 'text-muted-foreground'} />
-              </div>
-              <div>
-                <span className="text-xs font-black uppercase block leading-none mb-1">PhonePe UPI</span>
-                <span className="text-[8px] font-bold text-muted-foreground uppercase">Instant Activation</span>
-              </div>
+          <Label htmlFor="phonepe" className={`flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer bg-card min-h-[100px] ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
+            <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
+              <Smartphone size={16} className={paymentMethod === 'phonepe' ? 'text-primary' : 'text-muted-foreground'} />
+            </div>
+            <div className="text-center">
+              <span className="text-[10px] font-black uppercase block leading-none mb-1">PhonePe UPI</span>
+              <span className="text-[7px] font-bold text-muted-foreground uppercase">Instant Activation</span>
             </div>
             <RadioGroupItem value="phonepe" id="phonepe" className="sr-only" />
-            {paymentMethod === 'phonepe' && <CheckCircle2 className="h-4 w-4 text-primary" />}
+            {paymentMethod === 'phonepe' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-3 w-3 text-primary" /></div>}
           </Label>
         </RadioGroup>
       </section>
 
       {/* Action Area */}
-      <div className="flex flex-col gap-4 pt-2">
+      <div className="flex flex-col gap-3 pt-1">
         <Button 
-          className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl group transition-all"
+          className="w-full h-14 bg-primary hover:bg-secondary text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl group transition-all"
           onClick={handlePlaceOrder} 
           disabled={submitting || totalAccounts === 0}
         >
-          {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Execute Order <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" /></>}
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Execute Order <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /></>}
         </Button>
-        <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-12 text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-white"><ArrowLeft className="mr-2 h-3 w-3" /> Return to Cart</Button>
+        <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-10 text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-white"><ArrowLeft className="mr-2 h-2.5 w-2.5" /> Return to Cart</Button>
       </div>
 
-      <div className="flex items-center justify-center gap-3 py-6 opacity-20">
-        <ShieldCheck className="h-4 w-4" />
-        <span className="text-[7px] font-black uppercase tracking-[0.4em]">Hub-to-Server 256-bit AES Encryption</span>
+      <div className="flex items-center justify-center gap-2 py-4 opacity-20">
+        <ShieldCheck className="h-3 w-3" />
+        <span className="text-[6px] font-black uppercase tracking-[0.4em]">Hub-to-Server 256-bit AES Encryption</span>
       </div>
     </div>
   );
