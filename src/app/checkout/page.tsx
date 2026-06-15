@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -40,6 +41,14 @@ export default function CheckoutPage() {
   const [verifying, setVerifying] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
+
+  // LOGGING: Audit UID and Wallet Path
+  useEffect(() => {
+    if (user) {
+      console.log('[Checkout Audit] Current UID:', user.uid);
+      console.log('[Checkout Audit] Target Wallet Path:', `wallets/${user.uid}`);
+    }
+  }, [user]);
 
   useEffect(() => {
     const savedPlayerId = localStorage.getItem('aatma_last_player_id');

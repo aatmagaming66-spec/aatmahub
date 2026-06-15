@@ -31,9 +31,16 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Fetch Wallet Balance
+  // Fetch Wallet Balance - Audit Path wallets/{userId}
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet } = useDoc(walletRef);
+
+  useEffect(() => {
+    if (user) {
+      console.log('[Profile Audit] UID:', user.uid);
+      console.log('[Profile Audit] Wallet Source:', `wallets/${user.uid}`);
+    }
+  }, [user]);
 
   // Route Protection: Redirect to login if not authenticated
   useEffect(() => {
@@ -106,22 +113,22 @@ export default function ProfilePage() {
     </div>
   );
 
-  const isSuperAdmin = profile?.role === 'super_admin';
+  const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <div className="p-8 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent border-b border-border">
         <div className="flex items-center gap-6">
           <div className="relative group">
-            <div className={`absolute inset-0 ${isSuperAdmin ? 'bg-accent/40' : 'bg-primary/30'} rounded-full blur-xl transition-colors`} />
-            <Avatar className={`h-20 w-20 border-4 ${isSuperAdmin ? 'border-accent' : 'border-primary'} shadow-2xl relative z-10`}>
+            <div className={`absolute inset-0 ${isAdmin ? 'bg-accent/40' : 'bg-primary/30'} rounded-full blur-xl transition-colors`} />
+            <Avatar className={`h-20 w-20 border-4 ${isAdmin ? 'border-accent' : 'border-primary'} shadow-2xl relative z-10`}>
               <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100/100`} />
-              <AvatarFallback className={`${isSuperAdmin ? 'bg-accent' : 'bg-primary'} text-white font-black text-xl`}>
+              <AvatarFallback className={`${isAdmin ? 'bg-accent' : 'bg-primary'} text-white font-black text-xl`}>
                 {fullName.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
-            <div className={`absolute -bottom-1 -right-1 z-20 ${isSuperAdmin ? 'bg-accent' : 'bg-primary'} p-1.5 rounded-full border-2 border-background shadow-lg`}>
-              {isSuperAdmin ? <ShieldCheck className="h-3 w-3 text-white" /> : <Crown className="h-3 w-3 text-white" />}
+            <div className={`absolute -bottom-1 -right-1 z-20 ${isAdmin ? 'bg-accent' : 'bg-primary'} p-1.5 rounded-full border-2 border-background shadow-lg`}>
+              {isAdmin ? <ShieldCheck className="h-3 w-3 text-white" /> : <Crown className="h-3 w-3 text-white" />}
             </div>
           </div>
           <div>
@@ -132,10 +139,10 @@ export default function ProfilePage() {
               HUB ID: {user.uid.substring(0, 10).toUpperCase()}
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <span className={`${isSuperAdmin ? 'bg-accent/20 text-accent border-accent/20' : 'bg-primary/20 text-primary border-primary/20'} text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border`}>
+              <span className={`${isAdmin ? 'bg-accent/20 text-accent border-accent/20' : 'bg-primary/20 text-primary border-primary/20'} text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border`}>
                 {profile?.role?.replace('_', ' ') || 'User'} Member
               </span>
-              {isSuperAdmin && (
+              {isAdmin && (
                  <Link href="/admin">
                    <Button variant="outline" className="h-6 px-3 text-[8px] font-black uppercase tracking-tighter border-accent/40 text-accent hover:bg-accent/10">
                      Access Admin Panel

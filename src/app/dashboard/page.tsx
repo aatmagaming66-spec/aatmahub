@@ -1,6 +1,7 @@
+
 "use client"
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,15 +9,51 @@ import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import { useCollection } from "@/firebase/firestore/use-collection";
-import { doc, collection, query, where, limit, orderBy } from "firebase/firestore";
+import { doc, collection, query, where, orderBy, setDoc, serverTimestamp } from "firebase/firestore";
 import Link from "next/link";
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
   const db = useFirestore();
+  const initializationTriggered = useRef(false);
+
+  // LOGGING: Audit UID and Wallet Path
+  useEffect(() => {
+    if (user) {
+      console.log('[Wallet Audit] Current UID:', user.uid);
+      console.log('[Wallet Audit] Target Wallet Path:', `wallets/${user.uid}`);
+    }
+  }, [user]);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
+
+  // Auto-initialize wallet if it doesn't exist
+  useEffect(() => {
+    if (!userLoading && !walletLoading && user && !wallet && !initializationTriggered.current) {
+      initializationTriggered.current = true;
+      console.log('[Wallet Audit] No wallet detected. Initializing with test balance...');
+      
+      const walletData = {
+        userId: user.uid,
+        balance: 1000,
+        updatedAt: new Date().toISOString(),
+        serverTimestamp: serverTimestamp(),
+      };
+
+      setDoc(doc(db, 'wallets', user.uid), walletData)
+        .then(() => console.log('[Wallet Audit] Wallet initialized successfully.'))
+        .catch(async (error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: `wallets/${user.uid}`,
+            operation: 'create',
+            requestResourceData: walletData
+          }));
+        });
+    }
+  }, [user, userLoading, wallet, walletLoading, db]);
 
   const ordersQuery = useMemo(() => {
     if (!user) return null;
