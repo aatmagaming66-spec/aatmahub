@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, updateDoc, doc, orderBy, query, increment } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -34,6 +34,7 @@ import { Search, Shield, User, Mail, MoreVertical, Crown, Loader2, Calendar, Wal
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 export default function AdminUsersPage() {
   const db = useFirestore();

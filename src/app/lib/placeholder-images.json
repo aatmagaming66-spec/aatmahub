@@ -1,3 +1,4 @@
+
 {
   "placeholderImages": [
     {
@@ -10,7 +11,7 @@
       "id": "game-mlbb",
       "description": "Mobile Legends Bang Bang India",
       "imageUrl": "https://picsum.photos/seed/mlbb_character_99/600/800",
-      "imageHint": "game character"
+      "imageHint": "mlbb character"
     },
     {
       "id": "game-hok",

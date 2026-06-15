@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,11 @@ import Link from "next/link";
 export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
   const db = useFirestore();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // AUDIT: Unified Wallet Source
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
@@ -180,7 +185,7 @@ export default function DashboardPage() {
                         {order.items?.[0]?.name || 'Digital Item'}
                       </h4>
                       <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">
-                        {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {order.status}
+                        {isMounted ? `${new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • ${order.status}` : '...'}
                       </p>
                     </div>
                   </div>

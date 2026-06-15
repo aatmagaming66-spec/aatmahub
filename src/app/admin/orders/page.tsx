@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, updateDoc, doc, orderBy, query } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -28,6 +29,11 @@ export default function AdminOrdersPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Stabilize the query reference to prevent infinite render loops
   const ordersQuery = useMemo(() => query(
@@ -162,7 +168,9 @@ export default function AdminOrdersPage() {
                         <span className="text-[10px] font-black uppercase tracking-widest">{order.orderId?.replace('AH-2026-', '') || order.id}</span>
                       </div>
                       <p className="text-xs font-black uppercase text-white/90">{order.items?.[0]?.name}</p>
-                      <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">{new Date(order.createdAt).toLocaleDateString()} • {new Date(order.createdAt).toLocaleTimeString()}</p>
+                      <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">
+                        {isMounted ? `${new Date(order.createdAt).toLocaleDateString()} • ${new Date(order.createdAt).toLocaleTimeString()}` : '...'}
+                      </p>
                     </div>
                   </TableCell>
                   <TableCell>

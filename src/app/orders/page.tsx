@@ -17,6 +17,11 @@ export default function OrdersPage() {
   const db = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // FIX: Removed server-side orderBy to prevent Index failure
   const ordersQuery = useMemo(() => {
@@ -171,7 +176,7 @@ export default function OrdersPage() {
                     
                     <div className="flex items-center justify-between opacity-50">
                       <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em]">
-                        {new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {isMounted ? `${new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • ${new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '...'}
                       </p>
                       <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest group-hover:text-primary transition-colors">
                         Details <ArrowRight size={10} />
