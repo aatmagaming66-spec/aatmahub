@@ -5,31 +5,31 @@
       "id": "hero-main",
       "description": "Premium dark purple gaming banner",
       "imageUrl": "https://picsum.photos/seed/aatma-main/1200/600",
-      "imageHint": "gaming background red"
+      "imageHint": "gaming background"
     },
     {
       "id": "hero-mlbb",
       "description": "Mobile Legends Banner",
       "imageUrl": "https://picsum.photos/seed/aatma-mlbb/1200/600",
-      "imageHint": "mobile legends action"
+      "imageHint": "mobile legends"
     },
     {
       "id": "hero-ott",
       "description": "OTT Services Banner",
       "imageUrl": "https://picsum.photos/seed/aatma-ott/1200/600",
-      "imageHint": "streaming movies background"
+      "imageHint": "streaming movies"
     },
     {
       "id": "hero-social",
       "description": "Social Media Banner",
       "imageUrl": "https://picsum.photos/seed/aatma-social/1200/600",
-      "imageHint": "social media marketing"
+      "imageHint": "social media"
     },
     {
       "id": "hero-trust",
       "description": "Trust & Safety Banner",
       "imageUrl": "https://picsum.photos/seed/aatma-trust/1200/600",
-      "imageHint": "cyber security abstract"
+      "imageHint": "cyber security"
     },
     {
       "id": "game-mlbb",
@@ -59,7 +59,7 @@
       "id": "ott-netflix",
       "description": "Netflix Premium",
       "imageUrl": "https://picsum.photos/seed/netflix/300/180",
-      "imageHint": "netflix logo"
+      "imageHint": "netflix"
     },
     {
       "id": "ott-prime",
@@ -71,25 +71,25 @@
       "id": "ott-yt",
       "description": "YouTube Premium",
       "imageUrl": "https://picsum.photos/seed/yt/300/180",
-      "imageHint": "youtube logo"
+      "imageHint": "youtube"
     },
     {
       "id": "ott-spotify",
       "description": "Spotify Premium",
       "imageUrl": "https://picsum.photos/seed/spotify/300/180",
-      "imageHint": "spotify logo"
+      "imageHint": "spotify"
     },
     {
       "id": "social-ig",
       "description": "Instagram Services",
       "imageUrl": "https://picsum.photos/seed/ig/300/180",
-      "imageHint": "instagram app"
+      "imageHint": "instagram"
     },
     {
       "id": "social-fb",
       "description": "Facebook Services",
       "imageUrl": "https://picsum.photos/seed/fb/300/180",
-      "imageHint": "facebook app"
+      "imageHint": "facebook"
     }
   ]
 }

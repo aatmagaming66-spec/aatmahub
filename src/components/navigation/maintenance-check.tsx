@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
 import { doc, onSnapshot } from 'firebase/firestore';
@@ -12,8 +12,15 @@ export function MaintenanceCheck() {
   const { profile } = useUser();
   const router = useRouter();
   const pathname = usePathname();
+  const [isReady, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isReady) return;
+
     const unsub = onSnapshot(doc(db, 'settings', 'site'), (snap) => {
       if (snap.exists()) {
         const data = snap.data();
@@ -29,7 +36,7 @@ export function MaintenanceCheck() {
     });
 
     return () => unsub();
-  }, [db, profile, router, pathname]);
+  }, [db, profile, router, pathname, isReady]);
 
   return null;
 }

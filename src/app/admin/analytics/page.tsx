@@ -1,14 +1,12 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
-  Bar, 
-  BarChart, 
   ResponsiveContainer, 
   XAxis, 
   YAxis, 
@@ -22,13 +20,10 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, 
-  ShoppingCart, 
   Users, 
   IndianRupee, 
   Globe2, 
   Zap, 
-  ArrowUpRight, 
-  ArrowDownRight,
   Package,
   Activity
 } from 'lucide-react';
@@ -41,9 +36,15 @@ export default function AnalyticsPage() {
   const { data: orders, loading: ordersLoading } = useCollection(collection(db, 'orders'));
   const { data: users, loading: usersLoading } = useCollection(collection(db, 'users'));
   const { data: transactions, loading: txLoading } = useCollection(collection(db, 'transactions'));
+  
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const stats = useMemo(() => {
-    if (!orders || !users || !transactions) return null;
+    if (!orders || !users || !transactions || !isMounted) return null;
 
     const now = new Date();
     const today = { start: startOfDay(now), end: endOfDay(now) };
@@ -94,9 +95,9 @@ export default function AnalyticsPage() {
       regionChartData,
       historyData
     };
-  }, [orders, users, transactions]);
+  }, [orders, users, transactions, isMounted]);
 
-  if (ordersLoading || usersLoading || txLoading) {
+  if (ordersLoading || usersLoading || txLoading || !isMounted) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Activity className="h-10 w-10 text-primary animate-spin" />

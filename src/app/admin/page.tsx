@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
@@ -13,26 +13,27 @@ import {
   TrendingUp, 
   Clock, 
   CheckCircle2,
-  AlertCircle,
   Package,
   Bot,
   Zap,
   BarChart3,
   ArrowUpRight
 } from 'lucide-react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 
 export default function AdminDashboard() {
   const db = useFirestore();
   const [tgStatus, setTgStatus] = useState<any>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   const { data: users } = useCollection(collection(db, 'users'));
   const { data: orders } = useCollection(collection(db, 'orders'));
   const { data: transactions } = useCollection(collection(db, 'transactions'));
 
   useEffect(() => {
+    setIsMounted(true);
     async function fetchTg() {
       const snap = await getDoc(doc(db, 'settings', 'telegram'));
       if (snap.exists()) setTgStatus(snap.data());
@@ -41,9 +42,9 @@ export default function AdminDashboard() {
   }, [db]);
 
   const stats = useMemo(() => {
+    if (!isMounted) return [];
     const totalRevenue = orders?.reduce((acc, order) => order.status === 'completed' ? acc + order.totalAmount : acc, 0) || 0;
     const pendingOrders = orders?.filter(o => o.status === 'pending').length || 0;
-    const completedOrders = orders?.filter(o => o.status === 'completed').length || 0;
     const totalDeposits = transactions?.filter(t => t.type === 'deposit' && t.status === 'success').reduce((acc, t) => acc + t.amount, 0) || 0;
 
     return [
@@ -52,10 +53,10 @@ export default function AdminDashboard() {
       { label: 'Total Orders', value: orders?.length || 0, icon: ShoppingCart, color: 'text-white' },
       { label: 'Wallet Deposits', value: `₹${totalDeposits.toLocaleString()}`, icon: TrendingUp, color: 'text-green-400' },
     ];
-  }, [users, orders, transactions]);
+  }, [users, orders, transactions, isMounted]);
 
   const chartData = useMemo(() => {
-    if (!orders) return [];
+    if (!orders || !isMounted) return [];
     const now = new Date();
     return Array.from({ length: 7 }).map((_, i) => {
       const d = subDays(now, 6 - i);
@@ -66,13 +67,15 @@ export default function AdminDashboard() {
         .reduce((acc, o) => acc + o.totalAmount, 0);
       return { name: format(d, 'EEE'), revenue };
     });
-  }, [orders]);
+  }, [orders, isMounted]);
 
   const orderStats = [
     { label: 'Pending', count: orders?.filter(o => o.status === 'pending').length || 0, icon: Clock, color: 'text-orange-400' },
     { label: 'Processing', count: orders?.filter(o => o.status === 'processing').length || 0, icon: TrendingUp, color: 'text-accent' },
     { label: 'Completed', count: orders?.filter(o => o.status === 'completed').length || 0, icon: CheckCircle2, color: 'text-green-400' },
   ];
+
+  if (!isMounted) return null;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
