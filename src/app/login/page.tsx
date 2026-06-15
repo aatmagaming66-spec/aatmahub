@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -46,10 +47,11 @@ export default function LoginPage() {
       });
       router.push('/');
     } catch (error: any) {
+      console.error('Login Error:', error.message);
       toast({ 
         variant: 'destructive', 
         title: 'Login Failed', 
-        description: 'The credentials provided do not match our records.' 
+        description: error.message || 'The credentials provided do not match our records.' 
       });
     } finally {
       setLoading(false);
