@@ -8,6 +8,8 @@ import { ServiceCarousel } from "@/components/home/service-carousel";
 import { LiveActivity } from "@/components/home/live-activity";
 import { ShieldCheck, Zap, Lock, Headphones } from "lucide-react";
 import Link from 'next/link';
+import Image from 'next/image';
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const OTT_SERVICES = [
   { id: "netflix", name: "Netflix Premium", imgId: "ott-netflix" },
@@ -24,6 +26,8 @@ const SOCIAL_SERVICES = [
 ];
 
 export default function Home() {
+  const logo = PlaceHolderImages.find(img => img.id === 'app-logo');
+
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <HeroBanner />
@@ -74,6 +78,15 @@ export default function Home() {
 
       {/* Ultra Compact Premium Footer */}
       <footer className="px-6 py-10 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
+        {logo && (
+          <Image 
+            src={logo.imageUrl} 
+            alt="AATMA Logo" 
+            width={64} 
+            height={64} 
+            className="mb-4 opacity-80 h-16 w-16 object-contain"
+          />
+        )}
         <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 leading-none">
           AATMA HUB
         </h2>

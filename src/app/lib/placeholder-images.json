@@ -2,6 +2,12 @@
 {
   "placeholderImages": [
     {
+      "id": "app-logo",
+      "description": "AATMA HUB Premium Logo",
+      "imageUrl": "https://picsum.photos/seed/aatma-logo/512/512",
+      "imageHint": "abstract logo"
+    },
+    {
       "id": "hero-main",
       "description": "Premium dark purple gaming banner",
       "imageUrl": "https://picsum.photos/seed/aatma-main/1200/600",

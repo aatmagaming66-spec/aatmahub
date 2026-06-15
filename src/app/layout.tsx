@@ -10,12 +10,17 @@ import { Toaster } from '@/components/ui/toaster';
 import { CartProvider } from '@/context/cart-context';
 import { AnnouncementBar } from '@/components/navigation/announcement-bar';
 import { MaintenanceCheck } from '@/components/navigation/maintenance-check';
+import { SplashScreen } from '@/components/ui/splash-screen';
 
 export const metadata: Metadata = {
   title: 'AATMA HUB - Premium Digital Solutions',
   description: 'Premium Digital Solutions for Gaming and Social Needs. Instant top-ups, OTT access, and social media growth.',
   keywords: ['MLBB Top up', 'Free Fire Diamonds', 'OTT Premium', 'Gaming India', 'Social Media Services'],
   authors: [{ name: 'AATMA OFFICIAL' }],
+  icons: {
+    icon: '/logo.png', // Reference to the app-logo asset
+    apple: '/logo.png',
+  },
   openGraph: {
     title: 'AATMA HUB - Premium Digital Marketplace',
     description: 'Instant Game Top-Ups, OTT Services, and Social Growth.',
@@ -52,6 +57,7 @@ export default function RootLayout({
               <div className="flex w-full min-h-screen">
                 <AppSidebar />
                 <div className="flex-1 flex flex-col w-full relative">
+                  <SplashScreen />
                   <MaintenanceCheck />
                   <AnnouncementBar />
                   <TopHeader />
