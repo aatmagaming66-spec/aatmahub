@@ -1,3 +1,4 @@
+
 "use client"
 
 import Image from "next/image";
@@ -25,7 +26,7 @@ export function GameGrid() {
           <span className="w-1 h-4 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
           Mobile Games
         </h2>
-        <Link href="#" className="text-[9px] font-black text-primary uppercase tracking-widest">View All</Link>
+        <Link href="/games" className="text-[9px] font-black text-primary uppercase tracking-widest">View All</Link>
       </div>
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {GAMES.map((game) => {
@@ -42,7 +43,7 @@ export function GameGrid() {
                   alt={game.name}
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  data-ai-hint="mobile game poster"
+                  data-ai-hint={img?.imageHint || "mobile game poster"}
                 />
                 
                 {/* Badges Layer */}

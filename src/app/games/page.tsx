@@ -42,6 +42,7 @@ export default function GamesPage() {
                   alt={game.name}
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  data-ai-hint={img?.imageHint || "game poster"}
                 />
                 
                 <div className="absolute inset-0 z-10 p-3 flex flex-col justify-between pointer-events-none">
