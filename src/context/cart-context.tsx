@@ -11,6 +11,9 @@ export interface CartItem {
   image: string;
   region?: string;
   tabName?: string;
+  playerId?: string;
+  serverId?: string;
+  verifiedName?: string;
 }
 
 interface CartContextType {
@@ -51,6 +54,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (newItem: CartItem) => {
     setItems((prev) => {
+      // Identity check: items are unique by ID AND PlayerID snapshot
       const existingItem = prev.find((item) => item.id === newItem.id);
       if (existingItem) {
         return prev.map((item) =>

@@ -38,7 +38,7 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  // Load existing verification on mount
+  // Load existing session verification on mount (for browsing convenience)
   useEffect(() => {
     const saved = localStorage.getItem('aatma_verification');
     if (saved) {
@@ -71,7 +71,7 @@ export default function ProductPage() {
       setVerifying(false);
       setIsVerified(true);
       
-      // Save verification state for checkout reuse
+      // Save session verification state
       localStorage.setItem('aatma_verification', JSON.stringify({
         playerId,
         serverId,
@@ -88,7 +88,7 @@ export default function ProductPage() {
     if (type === 'player') setPlayerId(val);
     else setServerId(val);
     
-    // Reset verification if IDs are modified
+    // Reset local verification if IDs are modified
     if (isVerified) {
       setIsVerified(false);
       localStorage.removeItem('aatma_verification');
@@ -102,7 +102,13 @@ export default function ProductPage() {
       return;
     }
 
-    const cartId = `${id}-${selectedPack.id}`;
+    if (!isVerified) {
+      toast({ variant: "destructive", title: "Verification Required", description: "Please verify your Player ID before adding to cart." });
+      return;
+    }
+
+    // Snapshot identity into the cart item
+    const cartId = `${id}-${selectedPack.id}-${playerId}`;
     addItem({
       id: cartId,
       name: `${productName} - ${selectedPack.name}`,
@@ -110,12 +116,15 @@ export default function ProductPage() {
       quantity: 1,
       image: img?.imageUrl || "https://picsum.photos/seed/game/400/400",
       region: id?.toString().split('-')[1]?.toUpperCase() || "GLOBAL",
-      tabName: selectedPack.tab.toUpperCase()
+      tabName: selectedPack.tab.toUpperCase(),
+      playerId,
+      serverId,
+      verifiedName: "AATMA_USER"
     });
 
     toast({
       title: "Added to Hub",
-      description: `${selectedPack.name} is ready for checkout.`,
+      description: `${selectedPack.name} (ID: ${playerId}) is ready.`,
     });
   };
 
@@ -126,9 +135,14 @@ export default function ProductPage() {
       return;
     }
 
-    // Clear cart and add only this item for "Direct Checkout"
+    if (!isVerified) {
+      toast({ variant: "destructive", title: "Verification Required", description: "Please verify your Player ID before purchase." });
+      return;
+    }
+
+    // Clear cart for direct purchase, but keep the snapshot
     clearCart();
-    const cartId = `${id}-${selectedPack.id}`;
+    const cartId = `${id}-${selectedPack.id}-${playerId}`;
     addItem({
       id: cartId,
       name: `${productName} - ${selectedPack.name}`,
@@ -136,7 +150,10 @@ export default function ProductPage() {
       quantity: 1,
       image: img?.imageUrl || "https://picsum.photos/seed/game/400/400",
       region: id?.toString().split('-')[1]?.toUpperCase() || "GLOBAL",
-      tabName: selectedPack.tab.toUpperCase()
+      tabName: selectedPack.tab.toUpperCase(),
+      playerId,
+      serverId,
+      verifiedName: "AATMA_USER"
     });
 
     router.push('/checkout');
@@ -197,7 +214,7 @@ export default function ProductPage() {
             </div>
           </div>
           
-          {!isVerified && (
+          {!isVerified ? (
             <Button 
               className="w-full h-12 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20"
               onClick={handleVerify}
@@ -205,9 +222,7 @@ export default function ProductPage() {
             >
               {verifying ? "Searching Data..." : "Verify Identity"}
             </Button>
-          )}
-
-          {isVerified && (
+          ) : (
             <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center justify-between animate-in zoom-in-95">
               <div className="flex items-center gap-3">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
@@ -262,28 +277,6 @@ export default function ProductPage() {
           </Tabs>
         </div>
 
-        {/* Final Summary Card */}
-        <div className="bg-card border border-border rounded-3xl p-6 space-y-5 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-5 rotate-12">
-            <ShoppingBag size={80} />
-          </div>
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Selection Preview</h3>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-muted-foreground font-bold">Item:</span>
-              <span className="text-white font-black">{selectedPack.name}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs">
-              <span className="text-muted-foreground font-bold">Region:</span>
-              <span className="text-white font-black uppercase">{id?.toString().split('-')[1] || "Global"}</span>
-            </div>
-            <div className="pt-5 border-t border-border flex justify-between items-end">
-              <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Total:</span>
-              <span className="text-3xl font-black text-primary tracking-tighter">₹{selectedPack.price}</span>
-            </div>
-          </div>
-        </div>
-
         {/* Action Buttons */}
         <div className="flex flex-col gap-4">
           <Button 
@@ -300,16 +293,6 @@ export default function ProductPage() {
           >
             <ShoppingBag className="h-4 w-4" /> Add to Hub
           </Button>
-        </div>
-
-        {/* Security / Notice */}
-        <div className="space-y-5 py-6 opacity-60">
-          <div className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
-            <div className="mt-0.5"><Info className="h-4 w-4 text-primary" /></div>
-            <p className="text-[10px] text-muted-foreground font-bold leading-relaxed uppercase tracking-wider">
-              Verification ensures your assets reach the correct game profile. Double check IDs before proceeding.
-            </p>
-          </div>
         </div>
       </div>
     </div>

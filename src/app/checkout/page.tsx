@@ -30,7 +30,7 @@ import {
 import { sendTelegramNotification } from '@/lib/telegram';
 
 export default function CheckoutPage() {
-  const { items, totalAmount } = useCart(); // Removed unused clearCart from here to centralize in Success page
+  const { items, totalAmount } = useCart();
   const { user, profile, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
@@ -40,25 +40,29 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
 
-  // Load identity from Product Page verification
+  // Load identity from Cart Snapshot (Independent from Product Page state)
   useEffect(() => {
-    const savedVerification = localStorage.getItem('aatma_verification');
-    if (savedVerification) {
-      try {
-        const data = JSON.parse(savedVerification);
-        if (data?.isVerified && data?.playerId && data?.serverId) {
-          setVerificationData(data);
-        } else {
-          console.warn('[Wallet Audit] Missing verification data in storage.');
-          router.push('/');
-        }
-      } catch (e) {
+    if (!userLoading && (!items || items.length === 0)) {
+      router.push('/cart');
+      return;
+    }
+
+    if (items.length > 0) {
+      const firstItem = items[0];
+      if (firstItem.playerId && firstItem.serverId) {
+        console.log(`[Wallet Audit] Identity retrieved from Cart Snapshot: ${firstItem.playerId}`);
+        setVerificationData({
+          playerId: firstItem.playerId,
+          serverId: firstItem.serverId,
+          verifiedName: firstItem.verifiedName || 'AATMA_USER',
+          isVerified: true
+        });
+      } else {
+        console.warn('[Wallet Audit] Missing identity in cart snapshot. Redirecting.');
         router.push('/');
       }
-    } else {
-      router.push('/');
     }
-  }, [router]);
+  }, [items, userLoading, router]);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
@@ -68,10 +72,8 @@ export default function CheckoutPage() {
     if (!userLoading && !user) {
       toast({ variant: 'destructive', title: 'Session Required', description: 'Please login to complete your order.' });
       router.push('/login');
-    } else if (!userLoading && (!items || items.length === 0)) {
-      router.push('/cart');
     }
-  }, [user, userLoading, items, router, toast]);
+  }, [user, userLoading, router, toast]);
 
   const handlePlaceOrder = async () => {
     if (!verificationData || !user || !items || items.length === 0) return;
@@ -122,27 +124,23 @@ export default function CheckoutPage() {
 
         console.log(`[Wallet Audit] Executing atomic mutations for UID: ${user.uid}`);
 
-        // AUDIT: Use increment() to prevent stale state overwrites
         updateDoc(walletDocRef, {
           balance: increment(-totalAmount),
           userId: user.uid,
           updatedAt: new Date().toISOString()
         }).catch(async (error) => {
-          console.error('[Wallet Audit] Balance deduction failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `increment(${-totalAmount})` }
           } satisfies SecurityRuleContext));
         });
 
         setDoc(txRef, txData).catch(async (error) => {
-          console.error('[Wallet Audit] Transaction log creation failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: txRef.path, operation: 'create', requestResourceData: txData
           } satisfies SecurityRuleContext));
         });
 
         await setDoc(orderRef, orderData).catch(async (error) => {
-          console.error('[Wallet Audit] Order document creation failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
@@ -150,14 +148,11 @@ export default function CheckoutPage() {
         
         sendTelegramNotification(db, `🚀 <b>NEW ORDER (WALLET)</b>\n\n📦 ID: ${orderId}\n👤 User: ${profile?.fullName || user.email}\n💰 Amount: ₹${totalAmount}`);
         
-        // Data clearing moved to success page for "Success Confirmation" gating
         router.push(`/checkout/success/${orderId}`);
       } else if (paymentMethod === 'phonepe') {
         const orderData = { ...baseOrderData, status: 'pending_payment' };
 
-        // Standard requirement: Order must exist before gateway handoff
         await setDoc(orderRef, orderData).catch(async (error) => {
-          console.error('[Wallet Audit] PhonePe Order creation failed:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
@@ -183,14 +178,12 @@ export default function CheckoutPage() {
 
         const data = text ? JSON.parse(text) : {};
         if (data.success && data.paymentUrl) {
-          // Data clearing moved to success page for "Success Confirmation" gating
           window.location.href = data.paymentUrl;
         } else {
           throw new Error(data.error || 'Gateway response invalid.');
         }
       }
     } catch (error: any) {
-      console.error('[Wallet Audit] Fatal process error:', error);
       toast({ variant: 'destructive', title: 'Order Failed', description: error.message });
     } finally {
       setSubmitting(false);
@@ -210,11 +203,11 @@ export default function CheckoutPage() {
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">SECURED TRANSACTION</p>
       </header>
 
-      {/* Compact Order Summary Section */}
+      {/* Order Summary Snapshot Section */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="h-6 w-1 bg-green-500 rounded-full" />
-          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Order Summary</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Snapshot Summary</h3>
         </div>
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl relative">
           <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
@@ -224,7 +217,7 @@ export default function CheckoutPage() {
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <span className="text-[9px] font-black text-green-500 uppercase tracking-widest leading-none flex items-center gap-1.5">
-                  <CheckCircle2 size={10} /> Verified Identity
+                  <CheckCircle2 size={10} /> Identity Snapshot Secure
                 </span>
                 <p className="text-xl font-black text-white uppercase tracking-tight">{verificationData?.verifiedName || 'AATMA_USER'}</p>
               </div>
