@@ -1,29 +1,38 @@
+
 'use client';
 
 import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Loader2, ArrowUpRight, ArrowDownLeft, Hash, Filter } from 'lucide-react';
+import { ArrowLeft, Loader2, ArrowUpRight, ArrowDownLeft, Hash } from 'lucide-react';
 
 export default function WalletHistoryPage() {
   const { user } = useUser();
   const db = useFirestore();
   const router = useRouter();
 
+  // FIX: Removed orderBy for index performance. Local sort applied below.
   const txQuery = useMemo(() => {
     if (!user) return null;
     return query(
       collection(db, 'transactions'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
   }, [user, db]);
 
-  const { data: transactions, loading } = useCollection(txQuery);
+  const { data: rawTransactions, loading } = useCollection(txQuery);
+
+  // FIX: Client-side memoized sorting
+  const transactions = useMemo(() => {
+    if (!rawTransactions) return [];
+    return [...rawTransactions].sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [rawTransactions]);
 
   if (!user && !loading) {
     router.push('/login');

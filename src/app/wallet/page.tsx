@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { doc, query, collection, where, limit, orderBy } from 'firebase/firestore';
+import { doc, query, collection, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Wallet, TrendingUp, History, PlusCircle, ArrowUpRight, ArrowDownLeft, Loader2, ArrowLeft } from 'lucide-react';
@@ -20,17 +21,24 @@ export default function WalletDashboard() {
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
 
+  // FIX: Removed orderBy and limit to satisfy missing composite index.
   const transactionsQuery = useMemo(() => {
     if (!user) return null;
     return query(
       collection(db, 'transactions'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc'),
-      limit(5)
+      where('userId', '==', user.uid)
     );
   }, [user, db]);
 
-  const { data: recentTransactions, loading: transactionsLoading } = useCollection(transactionsQuery);
+  const { data: rawTransactions, loading: transactionsLoading } = useCollection(transactionsQuery);
+
+  // FIX: Client-side sorting and limiting
+  const recentTransactions = useMemo(() => {
+    if (!rawTransactions) return [];
+    return [...rawTransactions]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 5);
+  }, [rawTransactions]);
 
   if (userLoading || walletLoading) {
     return (

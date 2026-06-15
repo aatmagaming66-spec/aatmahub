@@ -1,12 +1,13 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Clock, CheckCircle2, XCircle, Search, Hash, AlertCircle, Loader2, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, orderBy } from 'firebase/firestore';
+import { collection, query, where } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -17,28 +18,43 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
+  // FIX: Removed server-side orderBy to prevent Index failure
   const ordersQuery = useMemo(() => {
     if (!user) return null;
     return query(
       collection(db, 'orders'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
   }, [user, db]);
 
-  const { data: orders, loading: ordersLoading } = useCollection(ordersQuery);
+  const { data: rawOrders, loading: ordersLoading, error } = useCollection(ordersQuery);
 
+  // FIX: Explicitly sort locally and filter
   const filteredOrders = useMemo(() => {
-    if (!orders) return [];
-    return orders.filter(order => {
+    if (!rawOrders) return [];
+    
+    // 1. Sort latest first
+    const sorted = [...rawOrders].sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    // 2. Filter by search and tab
+    return sorted.filter(order => {
+      const productName = order.items?.[0]?.name || '';
       const matchesSearch = order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           order.items?.[0]?.name.toLowerCase().includes(searchQuery.toLowerCase());
+                           productName.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesTab = activeTab === 'all' || order.status.toLowerCase() === activeTab.toLowerCase();
       
       return matchesSearch && matchesTab;
     });
-  }, [orders, searchQuery, activeTab]);
+  }, [rawOrders, searchQuery, activeTab]);
+
+  useEffect(() => {
+    if (error) {
+      console.error('[Orders Audit] Query Failed:', error.message);
+    }
+  }, [error]);
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -106,7 +122,10 @@ export default function OrdersPage() {
         <TabsContent value={activeTab} className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
           {filteredOrders.length === 0 ? (
             <div className="py-20 text-center space-y-4 bg-card/20 rounded-[2.5rem] border border-dashed border-border">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">No orders matching your criteria</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
+                {error ? 'Firestore Protocol Violation Detected' : 'No orders matching your criteria'}
+              </p>
+              {error && <p className="text-[8px] text-primary/60 font-mono mt-2 uppercase">{error.message}</p>}
               <Link href="/" className="inline-block">
                 <Button variant="link" className="text-primary font-black uppercase text-[10px] tracking-widest">Start Shopping</Button>
               </Link>

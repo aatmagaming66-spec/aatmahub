@@ -9,7 +9,7 @@ import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import { useCollection } from "@/firebase/firestore/use-collection";
-import { doc, collection, query, where, orderBy } from "firebase/firestore";
+import { doc, collection, query, where } from "firebase/firestore";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -20,36 +20,57 @@ export default function DashboardPage() {
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
 
+  // FIX: Removed server-side orderBy to prevent "Failed Precondition" (Missing Index) error
   const ordersQuery = useMemo(() => {
     if (!user) return null;
     return query(
       collection(db, 'orders'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
   }, [user, db]);
 
-  const { data: orders, loading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
+  const { data: rawOrders, loading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
+
+  // FIX: Perform sorting locally to avoid complex index requirements
+  const orders = useMemo(() => {
+    if (!rawOrders) return [];
+    return [...rawOrders].sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [rawOrders]);
 
   const transactionsQuery = useMemo(() => {
     if (!user) return null;
     return query(
       collection(db, 'transactions'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('userId', '==', user.uid)
     );
   }, [user, db]);
 
-  const { data: transactions, loading: txLoading } = useCollection(transactionsQuery);
+  const { data: rawTransactions, loading: txLoading, error: txError } = useCollection(transactionsQuery);
+
+  const transactions = useMemo(() => {
+    if (!rawTransactions) return [];
+    return [...rawTransactions].sort((a, b) => {
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [rawTransactions]);
 
   useEffect(() => {
     if (user) {
       console.log(`[Wallet Audit] Dashboard UID: ${user.uid}`);
-      console.log(`[Wallet Audit] Wallet Path: wallets/${user.uid} | Balance: ₹${wallet?.balance ?? 0}`);
-      console.log(`[Wallet Audit] Order Count: ${orders?.length ?? 0} | Transaction Count: ${transactions?.length ?? 0}`);
-      if (ordersError) console.error(`[Wallet Audit] Orders Query Error:`, ordersError);
+      console.log(`[Wallet Audit] Wallet Balance: ₹${wallet?.balance ?? 0}`);
+      console.log(`[Wallet Audit] Items Retrieved: Orders=${orders?.length}, TXs=${transactions?.length}`);
+      
+      if (ordersError) {
+        console.error(`[Wallet Audit] Orders Query Error:`, ordersError.message);
+        if (ordersError.message.includes('FAILED_PRECONDITION')) {
+          console.warn('[Wallet Audit] Root Cause: Missing Composite Index. Applied client-side sort fallback.');
+        }
+      }
+      if (txError) console.error(`[Wallet Audit] TX Query Error:`, txError.message);
     }
-  }, [user, wallet, orders, transactions, ordersError]);
+  }, [user, wallet, orders, transactions, ordersError, txError]);
 
   const stats = useMemo(() => {
     const total = orders?.length || 0;
@@ -141,8 +162,10 @@ export default function DashboardPage() {
             </div>
           ) : orders?.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-10 rounded-3xl text-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No recent transactions detected</p>
-              {ordersError && <p className="text-[8px] text-primary/50 mt-2">Query Error: {ordersError.code}</p>}
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                {ordersError ? 'Security Protocol Restriction' : 'No recent transactions detected'}
+              </p>
+              {ordersError && <p className="text-[8px] text-primary/50 mt-2 font-mono uppercase tracking-tighter">{ordersError.message}</p>}
             </div>
           ) : (
             orders?.slice(0, 3).map((order) => (
