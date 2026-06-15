@@ -73,6 +73,7 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
       sendTelegramNotification(db, `✅ <b>SMILE.ONE SUCCESS</b>\n\n📦 Order: ${orderId}\n🎮 Product: ${order.items[0].name}\n👤 Player: ${order.playerInfo.playerId}`);
     } else {
       // Increment retry count on failure
+      const currentRetry = (order.retryCount || 0) + 1;
       await updateDoc(orderRef, {
         smileOneStatus: 'failed',
         smileOneResponse: result,
@@ -80,7 +81,7 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
         updatedAt: new Date().toISOString(),
       });
       
-      if ((order.retryCount || 0) + 1 >= 3) {
+      if (currentRetry >= 3) {
         await triggerFailover(db, orderId);
       }
     }

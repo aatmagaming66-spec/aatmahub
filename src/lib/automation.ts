@@ -12,7 +12,8 @@ import {
   setDoc,
   serverTimestamp,
   orderBy,
-  limit
+  limit,
+  getDoc
 } from 'firebase/firestore';
 import { processSmileOneOrder } from './smileone';
 import { processUniPinOrder } from './unipin';
@@ -32,7 +33,6 @@ export async function detectStuckOrders(db: Firestore) {
   const snap = await getDocs(q);
   for (const orderDoc of snap.docs) {
     const order = orderDoc.data();
-    console.log(`[Automation] Stuck order detected: ${order.orderId}`);
     
     // Log recovery attempt
     await logAutomationEvent(db, {
@@ -43,12 +43,11 @@ export async function detectStuckOrders(db: Firestore) {
     });
 
     // Strategy: Re-trigger provider logic
-    // Usually, the provider script handles if it was already successful
     const internalId = order.items?.[0]?.id?.split('-')[0];
-    const mappingSnap = await getDocs(query(collection(db, 'productMappings'), where('__name__', '==', internalId)));
+    const mappingSnap = await getDoc(doc(db, 'productMappings', internalId));
     
-    if (!mappingSnap.empty) {
-      const mapping = mappingSnap.docs[0].data();
+    if (mappingSnap.exists()) {
+      const mapping = mappingSnap.data();
       if (mapping.provider === 'smileone') {
         await processSmileOneOrder(db, order.orderId);
       } else if (mapping.provider === 'unipin') {
@@ -63,16 +62,19 @@ export async function detectStuckOrders(db: Firestore) {
  */
 export async function triggerFailover(db: Firestore, orderId: string) {
   const orderRef = doc(db, 'orders', orderId);
-  await updateDoc(orderRef, { failoverTriggered: true });
+  await updateDoc(orderRef, { 
+    failoverTriggered: true,
+    updatedAt: new Date().toISOString()
+  });
 
   await logAutomationEvent(db, {
     type: 'failover',
     orderId,
-    details: 'Smile.one failed. Switching to UniPin failover.',
+    details: 'Smile.one retry limit reached. Switching to UniPin failover protocol.',
     status: 'success'
   });
 
-  await sendTelegramNotification(db, `⚠️ <b>AUTOMATION: FAILOVER</b>\n\n📦 Order: ${orderId}\n🔄 Reason: Smile.one critical failure.\n🚀 Action: Routing to UniPin.`);
+  await sendTelegramNotification(db, `⚠️ <b>AUTOMATION: FAILOVER ENGAGED</b>\n\n📦 Order: ${orderId}\n🔄 Reason: Smile.one critical failure.\n🚀 Action: Re-routing to UniPin API.`);
   
   // Attempt UniPin fulfillment
   await processUniPinOrder(db, orderId);
@@ -82,12 +84,12 @@ export async function triggerFailover(db: Firestore, orderId: string) {
  * Sends a daily revenue and order summary to Telegram.
  */
 export async function sendDailyOperationalReport(db: Firestore) {
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
   
   const q = query(
     collection(db, 'orders'),
-    where('createdAt', '>=', startOfToday.toISOString())
+    where('createdAt', '>=', startOfToday)
   );
 
   const snap = await getDocs(q);

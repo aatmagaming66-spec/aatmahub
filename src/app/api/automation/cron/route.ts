@@ -13,25 +13,23 @@ export async function GET(req: NextRequest) {
   const task = searchParams.get('task'); // 'recovery', 'report', 'all'
 
   try {
-    if (task === 'recovery' || task === 'all') {
+    if (task === 'recovery' || task === 'all' || !task) {
       await detectStuckOrders(db);
     }
 
     if (task === 'report' || task === 'all') {
-      // Logic: Only send report if it's after 11:30 PM
-      const now = new Date();
-      if (now.getHours() === 23 && now.getMinutes() >= 30) {
-        await sendDailyOperationalReport(db);
-      }
+      // Logic: Send report if requested explicitly or at the end of the day
+      await sendDailyOperationalReport(db);
     }
 
     return NextResponse.json({ 
       ok: true, 
-      message: `Automation cycle executed for task: ${task || 'all'}`,
+      message: `Automation cycle executed successfully`,
       timestamp: new Date().toISOString()
     });
 
   } catch (error: any) {
+    console.error('Automation Cron Error:', error);
     return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   }
 }

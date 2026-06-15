@@ -21,7 +21,7 @@ export default function SystemHealthPage() {
   });
 
   const { data: logs } = useCollection(
-    query(collection(db, 'automationLogs'), orderBy('timestamp', 'desc'), limit(5))
+    query(collection(db, 'automationLogs'), orderBy('timestamp', 'desc'), limit(10))
   );
 
   const checkHealth = async () => {
@@ -85,7 +85,7 @@ export default function SystemHealthPage() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
+        <Card className="lg:col-span-2 bg-card border-border rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between mb-6">
              <div className="flex items-center gap-3">
                 <Activity className="h-5 w-5 text-primary" />
@@ -101,19 +101,27 @@ export default function SystemHealthPage() {
           </div>
         </Card>
 
-        <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
-          <div className="flex items-center gap-3 mb-6">
+        <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl max-h-[400px] flex flex-col">
+          <div className="flex items-center gap-3 mb-6 shrink-0">
             <History className="h-5 w-5 text-accent" />
-            <h3 className="text-xs font-black uppercase tracking-widest">Auto Logs</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest">Automation Logs</h3>
           </div>
-          <div className="space-y-4">
-            {logs?.map((log) => (
-              <div key={log.logId} className="space-y-1">
+          <div className="space-y-4 overflow-y-auto no-scrollbar flex-1">
+            {logs?.length === 0 ? (
+              <p className="text-[10px] text-muted-foreground uppercase text-center py-10 font-bold">No automation events recorded.</p>
+            ) : logs?.map((log) => (
+              <div key={log.logId} className="space-y-1 p-3 bg-white/5 rounded-xl border border-white/5">
                 <div className="flex justify-between items-center">
-                  <span className="text-[8px] font-black uppercase text-primary">{log.type}</span>
-                  <span className="text-[7px] text-muted-foreground">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
+                    log.type === 'failover' ? 'bg-primary/20 text-primary' : 'bg-accent/20 text-accent'
+                  }`}>{log.type}</span>
+                  <span className="text-[7px] text-muted-foreground font-bold">{new Date(log.timestamp).toLocaleTimeString()}</span>
                 </div>
-                <p className="text-[9px] font-bold text-white line-clamp-1">{log.details}</p>
+                <p className="text-[9px] font-bold text-white/90 leading-tight mt-1">{log.details}</p>
+                <div className="flex items-center gap-1.5 mt-2">
+                  <span className="text-[7px] font-black text-muted-foreground uppercase">ORDER:</span>
+                  <span className="text-[7px] font-black text-primary">{log.orderId || 'SYSTEM'}</span>
+                </div>
               </div>
             ))}
           </div>
