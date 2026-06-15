@@ -49,7 +49,9 @@ export default function DepositPage() {
           serverTimestamp: serverTimestamp(),
         };
 
-        // 1. Create Pending Transaction
+        console.log('[Deposit] Creating pending transaction record...');
+
+        // 1. Create Pending Transaction (Non-blocking)
         setDoc(doc(db, 'transactions', transactionId), txData).catch(async (err) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: `/transactions/${transactionId}`, operation: 'create', requestResourceData: txData
@@ -82,7 +84,7 @@ export default function DepositPage() {
           throw new Error(data.error || 'Invalid gateway response.');
         }
       } else {
-        // Manual approval logic
+        // Manual approval logic (for Razorpay or others)
         const txData = {
           transactionId,
           userId: user.uid,

@@ -3,6 +3,10 @@ import { initializeFirebase } from '@/firebase/init';
 import { doc, getDoc } from 'firebase/firestore';
 import { generatePhonePeHeader, PHONEPE_ENDPOINTS } from '@/lib/phonepe';
 
+/**
+ * Secure API route to initiate PhonePe payments.
+ * Ensures valid JSON responses for all success and error paths.
+ */
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
   
@@ -11,17 +15,26 @@ export async function POST(req: NextRequest) {
     const { amount, transactionId, userId, type, orderId } = body;
 
     if (!amount || !transactionId || !userId) {
-      return NextResponse.json({ success: false, error: 'Missing mandatory payment details' }, { status: 400 });
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Missing mandatory payment details' 
+      }, { status: 400 });
     }
 
     const settingsSnap = await getDoc(doc(db, 'settings', 'payments'));
     if (!settingsSnap.exists()) {
-      return NextResponse.json({ success: false, error: 'Payment gateway configuration not found' }, { status: 500 });
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Payment gateway configuration not found' 
+      }, { status: 500 });
     }
     
     const settings = settingsSnap.data();
     if (!settings.isPhonePeEnabled) {
-      return NextResponse.json({ success: false, error: 'PhonePe gateway is temporarily offline' }, { status: 503 });
+      return NextResponse.json({ 
+        success: false, 
+        error: 'PhonePe gateway is temporarily offline' 
+      }, { status: 503 });
     }
 
     const host = req.headers.get('host');
@@ -32,7 +45,7 @@ export async function POST(req: NextRequest) {
       merchantId: settings.phonepeMerchantId,
       merchantTransactionId: transactionId,
       merchantUserId: userId,
-      amount: Math.round(amount * 100),
+      amount: Math.round(amount * 100), // convert to paise
       redirectUrl: `${baseUrl}/api/payments/phonepe/callback?type=${type}&id=${orderId || transactionId}`,
       redirectMode: 'POST',
       callbackUrl: `${baseUrl}/api/payments/phonepe/callback?type=${type}&id=${orderId || transactionId}`,

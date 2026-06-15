@@ -6,13 +6,14 @@ import { doc, getDoc } from 'firebase/firestore';
 
 /**
  * Secure API route for Admins to trigger fulfillment.
- * Keeps API keys and secrets on the server.
+ * Returns valid JSON for all execution paths.
  */
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
   
   try {
-    const { orderId } = await req.json();
+    const body = await req.json();
+    const { orderId } = body;
 
     if (!orderId) {
       return NextResponse.json({ success: false, error: 'Order ID is required' }, { status: 400 });
@@ -43,9 +44,16 @@ export async function POST(req: NextRequest) {
       await processSmileOneOrder(db, orderId);
     }
 
-    return NextResponse.json({ success: true, message: 'Fulfillment sequence dispatched successfully' });
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Fulfillment sequence dispatched successfully',
+      orderId 
+    });
   } catch (error: any) {
     console.error('[API] Fulfillment dispatcher error:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal failure during fulfillment dispatch.' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false, 
+      error: error.message || 'Internal failure during fulfillment dispatch.' 
+    }, { status: 500 });
   }
 }
