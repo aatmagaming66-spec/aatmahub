@@ -26,7 +26,8 @@ import {
   User,
   Package,
   Zap,
-  Layers
+  Layers,
+  Receipt
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
 
@@ -59,7 +60,6 @@ export default function CheckoutPage() {
   }, [user, userLoading, router, toast]);
 
   // IDENTITY GROUPING LOGIC
-  // Instead of one identity, we group all items by their verified identity snapshot
   const groupedIdentities = useMemo(() => {
     if (!items || items.length === 0) return [];
     
@@ -89,9 +89,21 @@ export default function CheckoutPage() {
     return Object.values(groups);
   }, [items]);
 
+  // SUMMARY CALCULATIONS
+  const totalAccounts = groupedIdentities.length;
+  const totalProducts = items.length;
+  
+  const payableAmount = useMemo(() => {
+    if (paymentMethod === 'wallet') {
+      return Math.max(0, totalAmount - walletBalance);
+    }
+    return totalAmount;
+  }, [paymentMethod, totalAmount, walletBalance]);
+
   const handlePlaceOrder = async () => {
     if (groupedIdentities.length === 0 || !user || !items || items.length === 0) return;
     
+    // If paying ONLY with wallet, balance must be sufficient
     if (paymentMethod === 'wallet' && walletBalance < totalAmount) {
       toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Please recharge your wallet to proceed.' });
       return;
@@ -104,14 +116,25 @@ export default function CheckoutPage() {
     console.log(`[Wallet Audit] Multi-Identity Purchase Initiated: orderId=${orderId}, user=${user.uid}, total=₹${totalAmount}`);
 
     try {
-      // Use the first identity group for the top-level playerInfo record
       const primaryIdentity = groupedIdentities[0];
 
       const baseOrderData = {
         orderId,
         userId: user.uid,
-        items: items, // Contains per-item identity snapshots
+        items: items, 
         totalAmount,
+        totalAccounts,
+        totalProducts,
+        grandTotal: totalAmount,
+        walletUsed: paymentMethod === 'wallet' ? Math.min(totalAmount, walletBalance) : 0,
+        payableAmount,
+        groupedSnapshots: groupedIdentities.map(g => ({
+          playerId: g.playerId,
+          serverId: g.serverId,
+          verifiedName: g.verifiedName,
+          itemCount: g.items.length,
+          subtotal: g.total
+        })),
         playerInfo: { 
           playerId: primaryIdentity.playerId, 
           serverId: primaryIdentity.serverId,
@@ -283,12 +306,55 @@ export default function CheckoutPage() {
             </Card>
           ))}
         </div>
+      </section>
 
-        {/* Global Total */}
-        <div className="bg-primary/10 border border-primary/20 p-6 rounded-3xl flex justify-between items-end shadow-xl">
-           <span className="text-sm font-black text-white uppercase tracking-[0.2em] leading-none">Order Grand Total</span>
-           <p className="text-4xl font-black text-primary tracking-tighter leading-none">₹{totalAmount}</p>
+      {/* FINAL CHECKOUT SUMMARY CARD */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3 px-1">
+          <div className="h-6 w-1 bg-primary rounded-full" />
+          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Checkout Summary</h3>
         </div>
+        
+        <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+          <div className="absolute top-0 right-0 p-8 opacity-5 -rotate-12">
+            <Receipt size={100} />
+          </div>
+          <CardContent className="p-8 space-y-6">
+            <div className="grid grid-cols-2 gap-4 border-b border-border pb-6">
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Accounts</span>
+                <p className="text-sm font-black text-white">{totalAccounts}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Products</span>
+                <p className="text-sm font-black text-white">{totalProducts}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <span>Grand Total</span>
+                <span className="text-white">₹{totalAmount}</span>
+              </div>
+              <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                <span>Wallet Balance</span>
+                <span className={walletBalance < totalAmount && paymentMethod === 'wallet' ? 'text-primary' : 'text-green-500'}>
+                  ₹{walletBalance.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-border flex justify-between items-end">
+              <div className="space-y-1">
+                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Payable Amount</span>
+                <p className="text-4xl font-black text-white tracking-tighter leading-none">₹{payableAmount}</p>
+              </div>
+              {paymentMethod === 'wallet' && walletBalance < totalAmount && (
+                 <span className="text-[8px] font-black text-primary uppercase animate-pulse">Deficit Detected</span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </section>
 
       <section className="space-y-6">
