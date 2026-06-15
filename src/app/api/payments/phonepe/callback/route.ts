@@ -1,8 +1,6 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase';
-import { doc, getDoc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { verifyPhonePeCallback } from '@/lib/phonepe';
+import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { sendTelegramNotification } from '@/lib/telegram';
 
 export async function POST(req: NextRequest) {
@@ -14,15 +12,6 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const response = formData.get('response') as string;
-    const xVerify = req.headers.get('x-verify') as string;
-
-    // 1. Fetch Settings to Verify
-    const settingsSnap = await getDoc(doc(db, 'settings', 'payments'));
-    if (!settingsSnap.exists()) throw new Error('Settings not found');
-    const settings = settingsSnap.data();
-
-    // Verification (Optional depending on trust level of redirect vs callback)
-    // For production, always verify x-verify header
 
     const decodedResponse = JSON.parse(Buffer.from(response, 'base64').toString());
     const isSuccess = decodedResponse.code === 'PAYMENT_SUCCESS';
@@ -33,6 +22,12 @@ export async function POST(req: NextRequest) {
       
       if (orderSnap.exists()) {
         const order = orderSnap.data();
+        
+        // Idempotency check: Don't update if already success
+        if (order.paymentStatus === 'success') {
+          return NextResponse.json({ ok: true, message: 'Already processed' });
+        }
+
         if (isSuccess) {
           await updateDoc(orderRef, {
             status: 'processing',
@@ -41,7 +36,6 @@ export async function POST(req: NextRequest) {
             updatedAt: new Date().toISOString(),
           });
 
-          // Telegram Alert
           sendTelegramNotification(db, `✅ <b>PAYMENT SUCCESS</b>\n\n📦 Order: ${id}\n💰 Amount: ₹${order.totalAmount}\n💳 Gateway: PhonePe`);
           return NextResponse.redirect(new URL(`/checkout/success/${id}`, req.url), 303);
         } else {
@@ -58,6 +52,12 @@ export async function POST(req: NextRequest) {
 
       if (txSnap.exists()) {
         const tx = txSnap.data();
+        
+        // Idempotency check
+        if (tx.status === 'success') {
+          return NextResponse.json({ ok: true, message: 'Already processed' });
+        }
+
         if (isSuccess) {
           await updateDoc(txRef, { status: 'success' });
           

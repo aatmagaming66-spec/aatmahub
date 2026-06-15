@@ -1,4 +1,3 @@
-
 import crypto from 'crypto';
 import { Firestore, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { sendTelegramNotification } from './telegram';
@@ -20,7 +19,7 @@ function generateUniPinSignature(payload: string, secretKey: string) {
 }
 
 /**
- * Executes a fulfilment request to UniPin
+ * Executes a fulfilment request to UniPin (Server-side Only)
  */
 export async function processUniPinOrder(db: Firestore, orderId: string) {
   try {
@@ -63,7 +62,6 @@ export async function processUniPinOrder(db: Firestore, orderId: string) {
     const payloadString = JSON.stringify(payload);
     const signature = generateUniPinSignature(payloadString, settings.secretKey);
 
-    // Call UniPin API (Mocked for demonstration, would be a server-side fetch)
     const response = await fetch('https://api.unipin.com/v1/direct/topup', {
       method: 'POST',
       headers: { 

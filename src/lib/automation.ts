@@ -1,6 +1,3 @@
-
-'use client';
-
 import { 
   Firestore, 
   collection, 
@@ -11,8 +8,6 @@ import {
   doc, 
   setDoc,
   serverTimestamp,
-  orderBy,
-  limit,
   getDoc
 } from 'firebase/firestore';
 import { processSmileOneOrder } from './smileone';
@@ -21,6 +16,7 @@ import { sendTelegramNotification } from './telegram';
 
 /**
  * Detects orders stuck in 'processing' for more than 10 minutes and attempts recovery.
+ * (Server-side Only)
  */
 export async function detectStuckOrders(db: Firestore) {
   const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
@@ -34,7 +30,6 @@ export async function detectStuckOrders(db: Firestore) {
   for (const orderDoc of snap.docs) {
     const order = orderDoc.data();
     
-    // Log recovery attempt
     await logAutomationEvent(db, {
       type: 'recovery',
       orderId: order.orderId,
@@ -42,7 +37,6 @@ export async function detectStuckOrders(db: Firestore) {
       status: 'triggered'
     });
 
-    // Strategy: Re-trigger provider logic
     const internalId = order.items?.[0]?.id?.split('-')[0];
     const mappingSnap = await getDoc(doc(db, 'productMappings', internalId));
     
@@ -58,7 +52,7 @@ export async function detectStuckOrders(db: Firestore) {
 }
 
 /**
- * Automates failover from Smile.one to UniPin if Smile.one is failing consistently for an order.
+ * Automates failover logic (Server-side Only)
  */
 export async function triggerFailover(db: Firestore, orderId: string) {
   const orderRef = doc(db, 'orders', orderId);
@@ -76,12 +70,11 @@ export async function triggerFailover(db: Firestore, orderId: string) {
 
   await sendTelegramNotification(db, `⚠️ <b>AUTOMATION: FAILOVER ENGAGED</b>\n\n📦 Order: ${orderId}\n🔄 Reason: Smile.one critical failure.\n🚀 Action: Re-routing to UniPin API.`);
   
-  // Attempt UniPin fulfillment
   await processUniPinOrder(db, orderId);
 }
 
 /**
- * Sends a daily revenue and order summary to Telegram.
+ * Sends revenue summary (Server-side Only)
  */
 export async function sendDailyOperationalReport(db: Firestore) {
   const now = new Date();
@@ -115,9 +108,6 @@ export async function sendDailyOperationalReport(db: Firestore) {
   });
 }
 
-/**
- * Generic automation logger.
- */
 async function logAutomationEvent(db: Firestore, data: any) {
   const logId = `AUTO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
   await setDoc(doc(db, 'automationLogs', logId), {

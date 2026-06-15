@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, updateDoc, doc, orderBy, query, getDoc } from 'firebase/firestore';
+import { collection, updateDoc, doc, orderBy, query } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,10 +20,8 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { Search, Filter, MoreVertical, CheckCircle2, Clock, Loader2, XCircle, Smartphone, User, Hash, Zap, Cpu } from 'lucide-react';
+import { Search, Filter, MoreVertical, Loader2, Smartphone, User, Hash, Zap, Cpu } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { processSmileOneOrder } from '@/lib/smileone';
-import { processUniPinOrder } from '@/lib/unipin';
 
 export default function AdminOrdersPage() {
   const db = useFirestore();
@@ -53,29 +50,16 @@ export default function AdminOrdersPage() {
       toast({ title: "Status Updated", description: `Order ${orderId} is now ${newStatus}.` });
 
       if (newStatus === 'processing') {
-        toast({ title: "Fulfilment Triggered", description: "Detecting provider..." });
+        toast({ title: "Triggering API", description: "Requesting secure fulfilment..." });
         
-        // Logic to detect which provider to use based on product mapping
-        const orderSnap = await getDoc(orderRef);
-        if (orderSnap.exists()) {
-          const orderData = orderSnap.data();
-          const internalId = orderData.items?.[0]?.id?.split('-')[0];
-          const mappingSnap = await getDoc(doc(db, 'productMappings', internalId));
-          
-          if (mappingSnap.exists()) {
-            const mapping = mappingSnap.data();
-            if (mapping.provider === 'smileone') {
-              processSmileOneOrder(db, orderId);
-            } else if (mapping.provider === 'unipin') {
-              processUniPinOrder(db, orderId);
-            } else {
-              toast({ variant: 'destructive', title: "Provider Error", description: "No valid provider mapping found." });
-            }
-          } else {
-            // Default to smileone for legacy support if needed
-            processSmileOneOrder(db, orderId);
-          }
-        }
+        // Securely call fulfillment via API route to keep credentials on server
+        const res = await fetch('/api/admin/fulfilment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId }),
+        });
+
+        if (!res.ok) throw new Error('API trigger failed');
       }
     } catch (error: any) {
       toast({ variant: 'destructive', title: "Update Failed", description: error.message });

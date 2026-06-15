@@ -1,6 +1,3 @@
-
-'use client';
-
 import crypto from 'crypto';
 import { Firestore, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { sendTelegramNotification } from './telegram';
@@ -20,6 +17,9 @@ function generateSmileOneSign(payload: SmileOneOrderRequest, secretKey: string) 
   return crypto.createHash('md5').update(stringToSign).digest('hex');
 }
 
+/**
+ * Executes a fulfilment request to Smile.one (Server-side Only)
+ */
 export async function processSmileOneOrder(db: Firestore, orderId: string) {
   try {
     const orderRef = doc(db, 'orders', orderId);
