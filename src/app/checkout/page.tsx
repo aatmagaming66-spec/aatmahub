@@ -46,32 +46,50 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!userLoading && !user) {
+      console.warn('[Checkout] No session detected. Redirecting to login.');
       toast({ variant: 'destructive', title: 'Session Required', description: 'Please login to complete your order.' });
       router.push('/login');
     } else if (!userLoading && items.length === 0) {
+      console.warn('[Checkout] Cart is empty. Redirecting to cart page.');
       router.push('/cart');
     }
   }, [user, userLoading, items, router, toast]);
 
   const handleVerify = () => {
-    if (!playerId || !serverId) return;
+    if (!playerId || !serverId) {
+      console.error('[Checkout] Verification failed: Player ID or Server ID missing.');
+      return;
+    }
     setVerifying(true);
+    console.log('[Checkout] Initiating identity verification for:', { playerId, serverId });
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
+      console.log('[Checkout] Identity verified successfully.');
       toast({ title: "Verified", description: "Identity found in regional database." });
     }, 1500);
   };
 
   const handlePlaceOrder = async () => {
-    if (!isVerified || !user) return;
+    console.log('[Checkout] Placing order...', { paymentMethod, totalAmount });
+    
+    if (!isVerified) {
+      console.error('[Checkout] Order blocked: Identity not verified.');
+      toast({ variant: 'destructive', title: 'Action Required', description: 'Please verify your identity first.' });
+      return;
+    }
+    
+    if (!user) return;
+    
     if (paymentMethod === 'wallet' && walletBalance < totalAmount) {
+      console.error('[Checkout] Order blocked: Insufficient wallet funds.', { balance: walletBalance, required: totalAmount });
       toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Please recharge your wallet.' });
       return;
     }
 
     setSubmitting(true);
     const orderId = `AH-2026-${Date.now().toString().slice(-6)}${Math.floor(1000 + Math.random() * 9000)}`;
+    console.log('[Checkout] Generated Order ID:', orderId);
     
     try {
       if (paymentMethod === 'wallet') {
@@ -109,26 +127,33 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
+        console.log('[Checkout] Executing non-blocking Firestore mutations for Wallet flow...');
+
         // Non-blocking Firestore mutations with rich error handling
         setDoc(txRef, txData).catch(async (error) => {
+          console.error('[Firestore] Failed to create transaction record:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: txRef.path, operation: 'create', requestResourceData: txData
           } satisfies SecurityRuleContext));
         });
 
         setDoc(walletDocRef, walletData, { merge: true }).catch(async (error) => {
+          console.error('[Firestore] Failed to update wallet balance:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: walletDocRef.path, operation: 'update', requestResourceData: walletData
           } satisfies SecurityRuleContext));
         });
 
         setDoc(orderRef, orderData).catch(async (error) => {
+          console.error('[Firestore] Failed to create order record:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
         });
         
+        console.log('[Checkout] Wallet order finalized. Notifying Telegram.');
         sendTelegramNotification(db, `🚀 <b>NEW ORDER (WALLET)</b>\n\n📦 ID: ${orderId}\n👤 User: ${profile?.fullName}\n💰 Amount: ₹${totalAmount}`);
+        
         clearCart();
         router.push(`/checkout/success/${orderId}`);
       } else if (paymentMethod === 'phonepe') {
@@ -145,28 +170,44 @@ export default function CheckoutPage() {
         };
         const orderRef = doc(db, 'orders', orderId);
 
+        console.log('[Checkout] Creating pending order for PhonePe flow...');
+
         // Initiate order creation in background
         setDoc(orderRef, orderData).catch(async (error) => {
+          console.error('[Firestore] Failed to create pending order record:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
         });
 
+        console.log('[Checkout] Requesting PhonePe gateway initiation via secure API...');
+
         // Initiate external payment gateway
         const res = await fetch('/api/payments/phonepe/initiate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: totalAmount, transactionId: orderId, userId: user.uid, type: 'order', orderId }),
+          body: JSON.stringify({ 
+            amount: totalAmount, 
+            transactionId: orderId, 
+            userId: user.uid, 
+            type: 'order', 
+            orderId 
+          }),
         });
+
         const data = await res.json();
+        
         if (data.url) {
+          console.log('[Checkout] Gateway initiated. Redirecting to:', data.url);
           clearCart();
           window.location.href = data.url;
         } else {
+          console.error('[Checkout] PhonePe initiation failed:', data.error);
           throw new Error(data.error || 'Payment failed to initiate');
         }
       }
     } catch (error: any) {
+      console.error('[Checkout] Fatal process error:', error);
       toast({ variant: 'destructive', title: 'Order Failed', description: error.message });
     } finally {
       setSubmitting(false);
