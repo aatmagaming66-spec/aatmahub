@@ -32,15 +32,19 @@ export function AppSidebar() {
   const { setOpenMobile } = useSidebar();
   const pathname = usePathname();
 
-  // Automatically close sidebar on mobile when navigating
+  // Automatically close sidebar on mobile when navigating (fallback)
   useEffect(() => {
     setOpenMobile(false);
   }, [pathname, setOpenMobile]);
 
+  const handleLinkClick = () => {
+    setOpenMobile(false);
+  };
+
   return (
     <Sidebar className="border-r border-white/5">
       <SidebarHeader className="h-14 flex items-center px-4 border-b border-white/5">
-        <Link href="/" className="font-headline font-bold text-lg text-primary">
+        <Link href="/" className="font-headline font-bold text-lg text-primary" onClick={handleLinkClick}>
           AATMA HUB
         </Link>
       </SidebarHeader>
@@ -50,17 +54,17 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild onClick={handleLinkClick}>
                   <Link href="/"><Gamepad2 /><span>Games</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild onClick={handleLinkClick}>
                   <Link href="/"><Tv /><span>OTT Services</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild onClick={handleLinkClick}>
                   <Link href="/"><Share2 /><span>Social Services</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -73,17 +77,17 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild onClick={handleLinkClick}>
                   <Link href="/orders"><Package /><span>My Orders</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild onClick={handleLinkClick}>
                   <Link href="/account"><Settings /><span>Account Settings</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild onClick={handleLinkClick}>
                   <Link href="/contact"><HelpCircle /><span>Support</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -96,17 +100,17 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild onClick={handleLinkClick}>
                   <Link href="/terms"><FileText /><span>Terms & Conditions</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild onClick={handleLinkClick}>
                   <Link href="/privacy"><ShieldCheck /><span>Privacy Policy</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton className="text-destructive">
+                <SidebarMenuButton className="text-destructive" onClick={handleLinkClick}>
                   <LogOut /><span>Logout</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
