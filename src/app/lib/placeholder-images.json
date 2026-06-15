@@ -1,4 +1,3 @@
-
 {
   "placeholderImages": [
     {
@@ -10,56 +9,92 @@
     {
       "id": "game-mlbb",
       "description": "Mobile Legends Bang Bang India",
-      "imageUrl": "https://picsum.photos/seed/mlbb-premium/600/800",
+      "imageUrl": "https://picsum.photos/seed/mlbb_hero_main/600/800",
       "imageHint": "mobile legends"
     },
     {
       "id": "game-hok",
       "description": "Honor of Kings",
-      "imageUrl": "https://picsum.photos/seed/hok-game/600/800",
+      "imageUrl": "https://picsum.photos/seed/hok_pro/600/800",
       "imageHint": "honor kings"
     },
     {
       "id": "game-genshin",
       "description": "Genshin Impact",
-      "imageUrl": "https://picsum.photos/seed/genshin-impact/600/800",
+      "imageUrl": "https://picsum.photos/seed/genshin_impact_pro/600/800",
       "imageHint": "genshin impact"
     },
     {
       "id": "game-bgmi",
       "description": "BGMI",
-      "imageUrl": "https://picsum.photos/seed/bgmi-mobile/600/800",
+      "imageUrl": "https://picsum.photos/seed/bgmi_mobile_pro/600/800",
       "imageHint": "battlegrounds mobile"
+    },
+    {
+      "id": "hero-main",
+      "description": "AATMA HUB Main Hero Banner",
+      "imageUrl": "https://picsum.photos/seed/aatma_main/1200/600",
+      "imageHint": "digital marketplace"
     },
     {
       "id": "hero-mlbb",
       "description": "MLBB Hero Banner",
-      "imageUrl": "https://picsum.photos/seed/mlbb-banner-top/1200/600",
+      "imageUrl": "https://picsum.photos/seed/mlbb_banner_top/1200/600",
       "imageHint": "gaming banner"
+    },
+    {
+      "id": "hero-ott",
+      "description": "OTT Services Banner",
+      "imageUrl": "https://picsum.photos/seed/ott_premium_banner/1200/600",
+      "imageHint": "streaming movies"
+    },
+    {
+      "id": "hero-social",
+      "description": "Social Media Growth Banner",
+      "imageUrl": "https://picsum.photos/seed/social_growth_banner/1200/600",
+      "imageHint": "social media"
+    },
+    {
+      "id": "hero-trust",
+      "description": "Trusted Hub Banner",
+      "imageUrl": "https://picsum.photos/seed/secure_hub/1200/600",
+      "imageHint": "secure technology"
     },
     {
       "id": "ott-netflix",
       "description": "Netflix Premium",
-      "imageUrl": "https://picsum.photos/seed/netflix-hub/600/400",
+      "imageUrl": "https://picsum.photos/seed/netflix_hub_pro/600/400",
       "imageHint": "netflix"
     },
     {
       "id": "ott-prime",
       "description": "Amazon Prime",
-      "imageUrl": "https://picsum.photos/seed/prime-video/600/400",
+      "imageUrl": "https://picsum.photos/seed/prime_video_pro/600/400",
       "imageHint": "amazon prime"
     },
     {
       "id": "ott-yt",
       "description": "YouTube Premium",
-      "imageUrl": "https://picsum.photos/seed/yt-premium/600/400",
+      "imageUrl": "https://picsum.photos/seed/yt_premium_pro/600/400",
       "imageHint": "youtube"
     },
     {
       "id": "ott-spotify",
       "description": "Spotify Premium",
-      "imageUrl": "https://picsum.photos/seed/spotify-hub/600/400",
+      "imageUrl": "https://picsum.photos/seed/spotify_hub_pro/600/400",
       "imageHint": "spotify"
+    },
+    {
+      "id": "social-ig",
+      "description": "Instagram Growth",
+      "imageUrl": "https://picsum.photos/seed/instagram_pro/600/400",
+      "imageHint": "instagram"
+    },
+    {
+      "id": "social-fb",
+      "description": "Facebook Services",
+      "imageUrl": "https://picsum.photos/seed/facebook_pro/600/400",
+      "imageHint": "facebook"
     }
   ]
 }
