@@ -145,6 +145,18 @@
         "siteBranding": { "type": "string" },
         "updatedAt": { "type": "string", "format": "date-time" }
       }
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Digital products/packages for sale",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" },
+        "region": { "type": "string" }
+      }
     }
   },
   "auth": {
@@ -176,6 +188,10 @@
     "/settings/site": {
       "schema": "SiteSettings",
       "description": "Global website settings"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Available products catalog"
     }
   }
 }

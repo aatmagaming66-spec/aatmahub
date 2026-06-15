@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -13,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { sendTelegramNotification } from '@/lib/telegram';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('');
@@ -52,13 +53,22 @@ export default function RegisterPage() {
 
       await firebaseUpdateProfile(user, { displayName: fullName });
 
-      await setDoc(doc(db, 'users', user.uid), {
+      const profileData = {
         uid: user.uid,
         fullName,
         email,
         phoneNumber,
         role: 'user',
         createdAt: new Date().toISOString(),
+      };
+
+      const userDocRef = doc(db, 'users', user.uid);
+      setDoc(userDocRef, profileData).catch(async (err) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'create',
+          requestResourceData: profileData
+        }));
       });
 
       // Notify Telegram

@@ -1,61 +1,55 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
+import { useDoc } from '@/firebase/firestore/use-doc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Megaphone, Zap, Loader2, Sparkles } from 'lucide-react';
+import { Megaphone, Loader2, Sparkles } from 'lucide-react';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function AnnouncementsPage() {
   const db = useFirestore();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  
+  const siteSettingsRef = useMemo(() => doc(db, 'settings', 'site'), [db]);
+  const { data: settingsData, loading } = useDoc(siteSettingsRef);
+
   const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState({
-    announcementEnabled: false,
-    announcementText: '',
-  });
+  const [localEnabled, setLocalEnabled] = useState<boolean | null>(null);
+  const [localText, setLocalText] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchSettings() {
-      try {
-        const snap = await getDoc(doc(db, 'settings', 'site'));
-        if (snap.exists()) {
-          const data = snap.data();
-          setSettings({
-            announcementEnabled: data.announcementEnabled || false,
-            announcementText: data.announcementText || '',
-          });
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSettings();
-  }, [db]);
+  const announcementEnabled = localEnabled ?? settingsData?.announcementEnabled ?? false;
+  const announcementText = localText ?? settingsData?.announcementText ?? '';
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setSaving(true);
-    try {
-      await setDoc(doc(db, 'settings', 'site'), {
-        ...settings,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
-      toast({ title: "Broadcast Updated", description: "Global announcement status synchronized." });
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: "Update Failed", description: error.message });
-    } finally {
-      setSaving(false);
-    }
+    const data = {
+      announcementEnabled,
+      announcementText,
+      updatedAt: new Date().toISOString(),
+    };
+
+    setDoc(siteSettingsRef, data, { merge: true })
+      .then(() => {
+        toast({ title: "Broadcast Updated", description: "Global announcement status synchronized." });
+      })
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: siteSettingsRef.path,
+          operation: 'update',
+          requestResourceData: data
+        }));
+      })
+      .finally(() => {
+        setSaving(false);
+      });
   };
 
   if (loading) {
@@ -86,8 +80,8 @@ export default function AnnouncementsPage() {
               <p className="text-[9px] text-muted-foreground uppercase font-black">Visibility on all client pages</p>
             </div>
             <Switch 
-              checked={settings.announcementEnabled} 
-              onCheckedChange={(val) => setSettings({...settings, announcementEnabled: val})}
+              checked={announcementEnabled} 
+              onCheckedChange={(val) => setLocalEnabled(val)}
               className="data-[state=checked]:bg-primary"
             />
           </div>
@@ -96,8 +90,8 @@ export default function AnnouncementsPage() {
             <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Announcement Text</Label>
             <Textarea 
               placeholder="e.g. FLASH SALE: 20% Extra Diamonds on all MLBB India packs!" 
-              value={settings.announcementText}
-              onChange={(e) => setSettings({...settings, announcementText: e.target.value})}
+              value={announcementText}
+              onChange={(e) => setLocalText(e.target.value)}
               className="bg-black/50 border-border min-h-[100px] rounded-2xl focus:border-primary font-bold text-sm"
             />
             <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest px-1">Use emojis for higher visibility ✨</p>

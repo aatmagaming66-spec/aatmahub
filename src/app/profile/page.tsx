@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { LogOut, User, Phone, Mail, Calendar, Crown, Shield, Loader2, Wallet, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function ProfilePage() {
   const { user, profile, loading: userLoading } = useUser();
@@ -60,7 +62,7 @@ export default function ProfilePage() {
     }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = () => {
     if (!user || !profile) return;
     if (!fullName.trim()) {
       toast({ variant: 'destructive', title: 'Error', description: 'Full name is required.' });
@@ -68,22 +70,30 @@ export default function ProfilePage() {
     }
 
     setSaving(true);
-    try {
-      const userDocRef = doc(db, 'users', user.uid);
-      await updateDoc(userDocRef, {
-        fullName: fullName.trim(),
-        phoneNumber: phoneNumber.trim(),
+    const userDocRef = doc(db, 'users', user.uid);
+    const updateData = {
+      fullName: fullName.trim(),
+      phoneNumber: phoneNumber.trim(),
+    };
+
+    updateDoc(userDocRef, updateData)
+      .then(() => {
+        toast({
+          title: "Profile Updated",
+          description: "Your account details have been successfully synchronized.",
+        });
+        setEditing(false);
+      })
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'update',
+          requestResourceData: updateData
+        }));
+      })
+      .finally(() => {
+        setSaving(false);
       });
-      toast({
-        title: "Profile Updated",
-        description: "Your account details have been successfully synchronized.",
-      });
-      setEditing(false);
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update profile.' });
-    } finally {
-      setSaving(false);
-    }
   };
 
   if (userLoading || !user) return (

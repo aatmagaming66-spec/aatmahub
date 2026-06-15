@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -6,10 +5,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useFirestore } from '@/firebase/provider';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { useUser } from '@/firebase/auth/use-user';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export function MaintenanceCheck() {
   const db = useFirestore();
-  const { profile } = useUser();
+  const { user, profile } = useUser();
   const router = useRouter();
   const pathname = usePathname();
   const [isReady, setIsMounted] = useState(false);
@@ -19,9 +20,10 @@ export function MaintenanceCheck() {
   }, []);
 
   useEffect(() => {
-    if (!isReady) return;
+    if (!isReady || !user) return;
 
-    const unsub = onSnapshot(doc(db, 'settings', 'site'), (snap) => {
+    const docRef = doc(db, 'settings', 'site');
+    const unsub = onSnapshot(docRef, (snap) => {
       if (snap.exists()) {
         const data = snap.data();
         const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
@@ -33,10 +35,17 @@ export function MaintenanceCheck() {
           router.push('/');
         }
       }
+    }, async (err) => {
+      if (err.code === 'permission-denied') {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'get'
+        }));
+      }
     });
 
     return () => unsub();
-  }, [db, profile, router, pathname, isReady]);
+  }, [db, user, profile, router, pathname, isReady]);
 
   return null;
 }

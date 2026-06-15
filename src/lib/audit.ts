@@ -1,7 +1,8 @@
-
 'use client';
 
 import { Firestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export type LogSeverity = 'info' | 'warning' | 'critical';
 
@@ -15,16 +16,20 @@ export interface AuditLogData {
 /**
  * Record a security or system event in the Audit Logs.
  */
-export async function logEvent(db: Firestore, data: AuditLogData) {
-  try {
-    const logsRef = collection(db, 'auditLogs');
-    await addDoc(logsRef, {
-      ...data,
-      timestamp: new Date().toISOString(),
-      serverTimestamp: serverTimestamp(),
+export function logEvent(db: Firestore, data: AuditLogData) {
+  const logsRef = collection(db, 'auditLogs');
+  const logData = {
+    ...data,
+    timestamp: new Date().toISOString(),
+    serverTimestamp: serverTimestamp(),
+  };
+
+  addDoc(logsRef, logData)
+    .catch(async (error) => {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: logsRef.path,
+        operation: 'create',
+        requestResourceData: logData
+      }));
     });
-  } catch (error) {
-    // Fail-silent logging to prevent crashing the main UI flow
-    console.error('Audit Logging Error:', error);
-  }
 }

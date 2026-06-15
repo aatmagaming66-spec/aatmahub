@@ -1,24 +1,41 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
+import { useUser } from '@/firebase/auth/use-user';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { Megaphone, X } from 'lucide-react';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export function AnnouncementBar() {
   const db = useFirestore();
+  const { user } = useUser();
   const [data, setData] = useState<any>(null);
   const [dismissed, setVisible] = useState(false);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'settings', 'site'), (snap) => {
+    // Only initialize listener if user is authenticated to avoid permission errors
+    if (!user) {
+      setData(null);
+      return;
+    }
+
+    const docRef = doc(db, 'settings', 'site');
+    const unsub = onSnapshot(docRef, (snap) => {
       if (snap.exists()) {
         setData(snap.data());
       }
+    }, async (err) => {
+      if (err.code === 'permission-denied') {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'get'
+        }));
+      }
     });
     return () => unsub();
-  }, [db]);
+  }, [db, user]);
 
   if (!data?.announcementEnabled || !data?.announcementText || dismissed) return null;
 
