@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "UserProfile": {
@@ -129,6 +128,22 @@
         "details": { "type": "string" },
         "status": { "type": "string" },
         "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "SiteSettings": {
+      "title": "Site Settings",
+      "description": "Global website settings",
+      "type": "object",
+      "properties": {
+        "maintenanceMode": { "type": "boolean" },
+        "maintenanceMessage": { "type": "string" },
+        "announcementEnabled": { "type": "boolean" },
+        "announcementText": { "type": "string" },
+        "contactWhatsApp": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactTelegram": { "type": "string" },
+        "siteBranding": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
       }
     }
   },

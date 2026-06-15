@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { initializeFirebase } from '@/firebase';
+import { initializeFirebase } from '@/firebase/init';
 import { processSmileOneOrder } from '@/lib/smileone';
 import { processUniPinOrder } from '@/lib/unipin';
 import { doc, getDoc } from 'firebase/firestore';
@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
       } else if (mapping.provider === 'unipin') {
         await processUniPinOrder(db, orderId);
       } else {
-        // Default to Smile.one for legacy if no explicit provider mapping exists
         await processSmileOneOrder(db, orderId);
       }
     } else {

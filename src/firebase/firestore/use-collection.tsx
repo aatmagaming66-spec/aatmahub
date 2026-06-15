@@ -1,8 +1,9 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
+import { errorEmitter } from '../error-emitter';
+import { FirestorePermissionError } from '../errors';
 
 export function useCollection<T = any>(query: Query | null) {
   const [data, setData] = useState<T[]>([]);
@@ -27,7 +28,14 @@ export function useCollection<T = any>(query: Query | null) {
         setData(results);
         setLoading(false);
       },
-      (err) => {
+      async (err) => {
+        if (err.code === 'permission-denied') {
+          const permissionError = new FirestorePermissionError({
+            path: (query as any)._query?.path?.toString() || 'unknown collection',
+            operation: 'list',
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        }
         setError(err);
         setLoading(false);
       }
