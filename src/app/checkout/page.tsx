@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -91,6 +91,7 @@ export default function CheckoutPage() {
         };
 
         const walletData = {
+          userId: user.uid,
           balance: walletBalance - totalAmount,
           updatedAt: new Date().toISOString(),
           serverTimestamp: serverTimestamp(),
@@ -108,22 +109,23 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
-        setDoc(txRef, txData).catch(async () => {
+        // Non-blocking Firestore mutations with rich error handling
+        setDoc(txRef, txData).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: txRef.path, operation: 'create', requestResourceData: txData
-          }));
+          } satisfies SecurityRuleContext));
         });
 
-        setDoc(walletDocRef, walletData, { merge: true }).catch(async () => {
+        setDoc(walletDocRef, walletData, { merge: true }).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: walletDocRef.path, operation: 'update', requestResourceData: walletData
-          }));
+          } satisfies SecurityRuleContext));
         });
 
-        setDoc(orderRef, orderData).catch(async () => {
+        setDoc(orderRef, orderData).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
-          }));
+          } satisfies SecurityRuleContext));
         });
         
         sendTelegramNotification(db, `🚀 <b>NEW ORDER (WALLET)</b>\n\n📦 ID: ${orderId}\n👤 User: ${profile?.fullName}\n💰 Amount: ₹${totalAmount}`);
@@ -142,8 +144,15 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
         const orderRef = doc(db, 'orders', orderId);
-        await setDoc(orderRef, orderData);
 
+        // Initiate order creation in background
+        setDoc(orderRef, orderData).catch(async (error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: orderRef.path, operation: 'create', requestResourceData: orderData
+          } satisfies SecurityRuleContext));
+        });
+
+        // Initiate external payment gateway
         const res = await fetch('/api/payments/phonepe/initiate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -183,7 +192,7 @@ export default function CheckoutPage() {
               <div className="space-y-2"><Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Server ID</Label><Input placeholder="1234" value={serverId} onChange={(e) => setServerId(e.target.value)} className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold" /></div>
             </div>
             <Button className="w-full h-12 bg-secondary hover:bg-white/5 border border-border text-[11px] font-black uppercase tracking-widest" onClick={handleVerify} disabled={verifying}>{verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify Identity"}</Button>
-            {isVerified && <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in-95"><CheckCircle2 className="h-5 w-5 text-green-500" /><span className="text-[9px] font-black text-green-500 uppercase tracking-widest leading-none">Status: Secured & Validated</span></div>}
+            {isVerified && <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in-95"><CheckCircle2 className="h-5 w-5 text-green-500" /><span className="text-[9px] font-black text-green-500 uppercase tracking-widest leading-none">Status: Verified & Secured</span></div>}
           </CardContent>
         </Card>
       </section>
