@@ -39,7 +39,7 @@ export function SplashScreen() {
         
         <div className="relative z-10 animate-in zoom-in-50 duration-1000 ease-out">
           <Image 
-            src={logo?.imageUrl || "https://picsum.photos/seed/aatma-logo/512/512"} 
+            src={logo?.imageUrl || "/logo.png"} 
             alt="AATMA HUB" 
             width={160} 
             height={160} 
