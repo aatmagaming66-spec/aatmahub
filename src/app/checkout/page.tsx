@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -304,35 +303,35 @@ export default function CheckoutPage() {
         </CardContent>
       </Card>
 
-      {/* Payment Selection - Optimized Horizontal Grid */}
+      {/* Payment Selection - Reduced Height Layout */}
       <section className="space-y-3">
         <div className="flex items-center gap-2 px-1">
           <div className="h-4 w-1 bg-accent rounded-full" />
           <h3 className="text-[10px] font-black uppercase tracking-widest text-white/80">Select Gateway</h3>
         </div>
         <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-2.5">
-          <Label htmlFor="wallet" className={`flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer bg-card min-h-[100px] ${paymentMethod === 'wallet' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-primary/20' : 'bg-white/5'}`}>
-              <Wallet size={16} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
+          <Label htmlFor="wallet" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'wallet' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
+            <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-primary/20' : 'bg-white/5'}`}>
+              <Wallet size={14} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
             </div>
             <div className="text-center">
               <span className="text-[10px] font-black uppercase block leading-none mb-1">Hub Wallet</span>
               <span className={`text-[7px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>₹{walletBalance.toLocaleString()}</span>
             </div>
             <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
-            {paymentMethod === 'wallet' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-3 w-3 text-primary" /></div>}
+            {paymentMethod === 'wallet' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-2.5 w-2.5 text-primary" /></div>}
           </Label>
           
-          <Label htmlFor="phonepe" className={`flex flex-col items-center justify-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer bg-card min-h-[100px] ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className={`h-9 w-9 rounded-xl flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
-              <Smartphone size={16} className={paymentMethod === 'phonepe' ? 'text-primary' : 'text-muted-foreground'} />
+          <Label htmlFor="phonepe" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
+            <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
+              <Smartphone size={14} className={paymentMethod === 'phonepe' ? 'text-primary' : 'text-muted-foreground'} />
             </div>
             <div className="text-center">
               <span className="text-[10px] font-black uppercase block leading-none mb-1">PhonePe UPI</span>
               <span className="text-[7px] font-bold text-muted-foreground uppercase">Instant Activation</span>
             </div>
             <RadioGroupItem value="phonepe" id="phonepe" className="sr-only" />
-            {paymentMethod === 'phonepe' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-3 w-3 text-primary" /></div>}
+            {paymentMethod === 'phonepe' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-2.5 w-2.5 text-primary" /></div>}
           </Label>
         </RadioGroup>
       </section>
