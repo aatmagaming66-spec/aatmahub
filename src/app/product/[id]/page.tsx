@@ -54,6 +54,15 @@ export default function ProductPage() {
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
+      
+      // Temporary persistence during the current form session
+      localStorage.setItem('aatma_verification', JSON.stringify({
+        playerId,
+        serverId,
+        verifiedName: "AATMA_USER",
+        timestamp: new Date().toISOString()
+      }));
+
       toast({ title: "Identity Confirmed", description: "Profile authenticated successfully." });
     }, 1200);
   };
@@ -65,7 +74,15 @@ export default function ProductPage() {
     // Reset verification if user modifies the validated input
     if (isVerified) {
       setIsVerified(false);
+      localStorage.removeItem('aatma_verification');
     }
+  };
+
+  const resetForm = () => {
+    setPlayerId("");
+    setServerId("");
+    setIsVerified(false);
+    localStorage.removeItem('aatma_verification');
   };
 
   const handleAddToCart = () => {
@@ -101,9 +118,7 @@ export default function ProductPage() {
     });
 
     // IMMEDIATE RESET: Purge form state so page is fresh for next entry
-    setPlayerId("");
-    setServerId("");
-    setIsVerified(false);
+    resetForm();
   };
 
   const handleBuyNow = () => {
@@ -138,9 +153,7 @@ export default function ProductPage() {
     });
 
     // Reset local state before navigating
-    setPlayerId("");
-    setServerId("");
-    setIsVerified(false);
+    resetForm();
 
     router.push('/checkout');
   };
