@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -38,6 +38,23 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
+  // Load existing verification on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('aatma_verification');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.isVerified) {
+          setPlayerId(data.playerId);
+          setServerId(data.serverId);
+          setIsVerified(true);
+        }
+      } catch (e) {
+        console.error("Failed to load verification", e);
+      }
+    }
+  }, []);
+
   const productName = id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
   const imgId = id?.toString().startsWith('mlbb') ? 'game-mlbb' : 
                 id === 'hok' ? 'game-hok' : 
@@ -53,8 +70,29 @@ export default function ProductPage() {
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
+      
+      // Save verification state for checkout reuse
+      localStorage.setItem('aatma_verification', JSON.stringify({
+        playerId,
+        serverId,
+        isVerified: true,
+        verifiedName: "AATMA_USER",
+        verifiedAt: new Date().toISOString()
+      }));
+
       toast({ title: "Identity Confirmed", description: "Profile authenticated successfully." });
     }, 1200);
+  };
+
+  const handleInputChange = (type: 'player' | 'server', val: string) => {
+    if (type === 'player') setPlayerId(val);
+    else setServerId(val);
+    
+    // Reset verification if IDs are modified
+    if (isVerified) {
+      setIsVerified(false);
+      localStorage.removeItem('aatma_verification');
+    }
   };
 
   const handleAddToCart = () => {
@@ -145,7 +183,7 @@ export default function ProductPage() {
                 placeholder="12345678" 
                 className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary transition-all font-bold"
                 value={playerId}
-                onChange={(e) => setPlayerId(e.target.value)}
+                onChange={(e) => handleInputChange('player', e.target.value)}
               />
             </div>
             <div className="space-y-2">
@@ -154,17 +192,20 @@ export default function ProductPage() {
                 placeholder="1234" 
                 className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary transition-all font-bold"
                 value={serverId}
-                onChange={(e) => setServerId(e.target.value)}
+                onChange={(e) => handleInputChange('server', e.target.value)}
               />
             </div>
           </div>
-          <Button 
-            className="w-full h-12 bg-secondary hover:bg-white/5 border border-border text-[11px] font-black uppercase tracking-[0.2em] transition-all"
-            onClick={handleVerify}
-            disabled={verifying}
-          >
-            {verifying ? "Searching Data..." : "Verify Identity"}
-          </Button>
+          
+          {!isVerified && (
+            <Button 
+              className="w-full h-12 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/20"
+              onClick={handleVerify}
+              disabled={verifying}
+            >
+              {verifying ? "Searching Data..." : "Verify Identity"}
+            </Button>
+          )}
 
           {isVerified && (
             <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center justify-between animate-in zoom-in-95">

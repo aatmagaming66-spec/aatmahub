@@ -24,7 +24,8 @@ import {
   Smartphone, 
   ArrowRight, 
   ArrowLeft,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
 
@@ -41,26 +42,26 @@ export default function CheckoutPage() {
   const [verifying, setVerifying] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
+  const [verifiedName, setVerifiedName] = useState('');
 
-  // LOGGING: Audit UID and Wallet Path
+  // Load identity from Product Page verification
   useEffect(() => {
-    if (user) {
-      console.log('[Checkout Audit] Current UID:', user.uid);
-      console.log('[Checkout Audit] Target Wallet Path:', `wallets/${user.uid}`);
+    const savedVerification = localStorage.getItem('aatma_verification');
+    if (savedVerification) {
+      try {
+        const data = JSON.parse(savedVerification);
+        if (data.isVerified && data.playerId && data.serverId) {
+          console.log('[Checkout Audit] Reusing verified identity from Product Page.');
+          setPlayerId(data.playerId);
+          setServerId(data.serverId);
+          setIsVerified(true);
+          setVerifiedName(data.verifiedName || 'AATMA_USER');
+        }
+      } catch (e) {
+        console.error('[Checkout Audit] Failed to parse existing verification.', e);
+      }
     }
-  }, [user]);
-
-  useEffect(() => {
-    const savedPlayerId = localStorage.getItem('aatma_last_player_id');
-    const savedServerId = localStorage.getItem('aatma_last_server_id');
-    if (savedPlayerId) setPlayerId(savedPlayerId);
-    if (savedServerId) setServerId(savedServerId);
   }, []);
-
-  useEffect(() => {
-    if (playerId) localStorage.setItem('aatma_last_player_id', playerId);
-    if (serverId) localStorage.setItem('aatma_last_server_id', serverId);
-  }, [playerId, serverId]);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
@@ -81,17 +82,36 @@ export default function CheckoutPage() {
       return;
     }
     setVerifying(true);
-    setIsVerified(false); 
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
+      setVerifiedName('AATMA_USER');
+      
+      // Save for persistence
+      localStorage.setItem('aatma_verification', JSON.stringify({
+        playerId,
+        serverId,
+        isVerified: true,
+        verifiedName: "AATMA_USER",
+        verifiedAt: new Date().toISOString()
+      }));
+
       toast({ title: "Verified", description: "Identity confirmed in game database." });
     }, 1500);
   };
 
-  const handlePlaceOrder = async () => {
-    console.log('[Checkout Audit] Initiating Order Cycle...');
+  const handleInputChange = (type: 'player' | 'server', val: string) => {
+    if (type === 'player') setPlayerId(val);
+    else setServerId(val);
     
+    // Require re-verification if identity inputs change
+    if (isVerified) {
+      setIsVerified(false);
+      localStorage.removeItem('aatma_verification');
+    }
+  };
+
+  const handlePlaceOrder = async () => {
     if (!isVerified) {
       toast({ variant: 'destructive', title: 'Action Required', description: 'Please verify your identity first.' });
       return;
@@ -143,8 +163,6 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
-        console.log('[Checkout Audit] Writing Wallet transactions...');
-
         setDoc(txRef, txData).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: txRef.path, operation: 'create', requestResourceData: txData
@@ -180,16 +198,11 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
-        console.log('[Checkout Audit] Step 1: Creating Order record for PhonePe flow...');
-
-        // Important: Ensure the record is persisted before redirection
         await setDoc(orderRef, orderData).catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
         });
-
-        console.log('[Checkout Audit] Step 2: Requesting Gateway Initiation...');
 
         const res = await fetch('/api/payments/phonepe/initiate', {
           method: 'POST',
@@ -204,17 +217,13 @@ export default function CheckoutPage() {
         });
 
         const text = await res.text();
-        console.log('[Checkout Audit] Gateway Raw Response:', text);
-        
         if (!res.ok) {
           const errData = text ? JSON.parse(text) : { error: 'Unknown Error' };
           throw new Error(errData.error || 'Payment gateway failed to initialize.');
         }
 
         const data = text ? JSON.parse(text) : {};
-        
         if (data.success && data.paymentUrl) {
-          console.log('[Checkout Audit] Step 3: Success. Redirecting user.');
           clearCart();
           window.location.href = data.paymentUrl;
         } else {
@@ -222,7 +231,6 @@ export default function CheckoutPage() {
         }
       }
     } catch (error: any) {
-      console.error('[Checkout Audit] Fatal creation error:', error);
       toast({ variant: 'destructive', title: 'Order Failed', description: error.message });
     } finally {
       setSubmitting(false);
@@ -240,59 +248,72 @@ export default function CheckoutPage() {
       </header>
 
       <section className="space-y-6">
-        <div className="flex items-center gap-3"><div className="h-6 w-1 bg-primary rounded-full" /><h3 className="text-xs font-black uppercase tracking-widest text-white/80">Target Destination</h3></div>
+        <div className="flex items-center gap-3">
+          <div className="h-6 w-1 bg-primary rounded-full" />
+          <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Target Destination</h3>
+        </div>
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl">
           <CardContent className="p-6 space-y-5">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Player ID</Label>
-                <Input 
-                  placeholder="12345678" 
-                  value={playerId} 
-                  onChange={(e) => {
-                    setPlayerId(e.target.value);
-                    setIsVerified(false);
-                  }} 
-                  className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold" 
-                />
+                <div className="relative">
+                  <Input 
+                    placeholder="12345678" 
+                    value={playerId} 
+                    readOnly={isVerified}
+                    onChange={(e) => handleInputChange('player', e.target.value)} 
+                    className={cn(
+                      "bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold",
+                      isVerified && "opacity-60 pr-10"
+                    )} 
+                  />
+                  {isVerified && <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20" />}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Server ID</Label>
-                <Input 
-                  placeholder="1234" 
-                  value={serverId} 
-                  onChange={(e) => {
-                    setServerId(e.target.value);
-                    setIsVerified(false);
-                  }} 
-                  className="bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold" 
-                />
+                <div className="relative">
+                  <Input 
+                    placeholder="1234" 
+                    value={serverId} 
+                    readOnly={isVerified}
+                    onChange={(e) => handleInputChange('server', e.target.value)} 
+                    className={cn(
+                      "bg-black/50 border-border h-12 rounded-xl text-white focus:border-primary font-bold",
+                      isVerified && "opacity-60 pr-10"
+                    )} 
+                  />
+                  {isVerified && <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20" />}
+                </div>
               </div>
             </div>
             
-            <Button 
-              className={cn(
-                "w-full h-12 text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-xl",
-                isVerified 
-                  ? "bg-green-500 hover:bg-green-600 shadow-green-500/20" 
-                  : "bg-primary hover:bg-secondary shadow-primary/20"
-              )} 
-              onClick={handleVerify} 
-              disabled={verifying}
-            >
-              {verifying ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : isVerified ? (
-                <span className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> VERIFIED</span>
-              ) : (
-                "Verify Identity"
-              )}
-            </Button>
+            {!isVerified && (
+              <Button 
+                className="w-full h-12 text-[11px] font-black uppercase tracking-[0.2em] bg-primary hover:bg-secondary shadow-primary/20 shadow-xl" 
+                onClick={handleVerify} 
+                disabled={verifying}
+              >
+                {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify Identity"}
+              </Button>
+            )}
 
             {isVerified && (
-              <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center gap-3 animate-in zoom-in-95">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                <span className="text-[9px] font-black text-green-500 uppercase tracking-widest leading-none">Status: Identity Secured</span>
+              <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center justify-between animate-in zoom-in-95">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black text-green-500 uppercase tracking-widest leading-none">VERIFIED IDENTITY</span>
+                    <span className="text-[11px] font-black text-white uppercase mt-1">{verifiedName}</span>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setIsVerified(false)}
+                  className="text-[8px] font-black text-white/40 uppercase tracking-widest hover:text-white"
+                >
+                  Change
+                </button>
               </div>
             )}
           </CardContent>
