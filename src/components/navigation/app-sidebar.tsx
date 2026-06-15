@@ -10,7 +10,8 @@ import {
   SidebarMenuButton,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarGroupContent
+  SidebarGroupContent,
+  useSidebar
 } from "@/components/ui/sidebar";
 import { 
   Gamepad2, 
@@ -24,8 +25,18 @@ import {
   Package
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
 export function AppSidebar() {
+  const { setOpenMobile } = useSidebar();
+  const pathname = usePathname();
+
+  // Automatically close sidebar on mobile when navigating
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [pathname, setOpenMobile]);
+
   return (
     <Sidebar className="border-r border-white/5">
       <SidebarHeader className="h-14 flex items-center px-4 border-b border-white/5">
@@ -73,7 +84,7 @@ export function AppSidebar() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/"><HelpCircle /><span>Support</span></Link>
+                  <Link href="/contact"><HelpCircle /><span>Support</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -86,12 +97,12 @@ export function AppSidebar() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/"><FileText /><span>Terms & Conditions</span></Link>
+                  <Link href="/terms"><FileText /><span>Terms & Conditions</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/"><ShieldCheck /><span>Privacy Policy</span></Link>
+                  <Link href="/privacy"><ShieldCheck /><span>Privacy Policy</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
