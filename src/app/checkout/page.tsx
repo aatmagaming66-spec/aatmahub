@@ -57,24 +57,22 @@ export default function CheckoutPage() {
 
   const handleVerify = () => {
     if (!playerId || !serverId) {
-      console.error('[Checkout] Verification failed: Player ID or Server ID missing.');
+      toast({ variant: 'destructive', title: 'Missing IDs', description: 'Player ID and Server ID are required.' });
       return;
     }
     setVerifying(true);
-    console.log('[Checkout] Initiating identity verification for:', { playerId, serverId });
+    console.log('[Checkout] Verifying identity:', { playerId, serverId });
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      console.log('[Checkout] Identity verified successfully.');
-      toast({ title: "Verified", description: "Identity found in regional database." });
+      toast({ title: "Verified", description: "Identity confirmed in game database." });
     }, 1500);
   };
 
   const handlePlaceOrder = async () => {
-    console.log('[Checkout] Placing order...', { paymentMethod, totalAmount });
+    console.log('[Checkout] Initiating order process...', { paymentMethod, totalAmount });
     
     if (!isVerified) {
-      console.error('[Checkout] Order blocked: Identity not verified.');
       toast({ variant: 'destructive', title: 'Action Required', description: 'Please verify your identity first.' });
       return;
     }
@@ -82,14 +80,12 @@ export default function CheckoutPage() {
     if (!user) return;
     
     if (paymentMethod === 'wallet' && walletBalance < totalAmount) {
-      console.error('[Checkout] Order blocked: Insufficient wallet funds.', { balance: walletBalance, required: totalAmount });
-      toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Please recharge your wallet.' });
+      toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Please recharge your wallet to proceed.' });
       return;
     }
 
     setSubmitting(true);
     const orderId = `AH-2026-${Date.now().toString().slice(-6)}${Math.floor(1000 + Math.random() * 9000)}`;
-    console.log('[Checkout] Generated Order ID:', orderId);
     
     try {
       if (paymentMethod === 'wallet') {
@@ -127,32 +123,27 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
-        console.log('[Checkout] Executing non-blocking Firestore mutations for Wallet flow...');
+        console.log('[Checkout] Writing Wallet-based transaction records...');
 
-        // Non-blocking Firestore mutations with rich error handling
         setDoc(txRef, txData).catch(async (error) => {
-          console.error('[Firestore] Failed to create transaction record:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: txRef.path, operation: 'create', requestResourceData: txData
           } satisfies SecurityRuleContext));
         });
 
         setDoc(walletDocRef, walletData, { merge: true }).catch(async (error) => {
-          console.error('[Firestore] Failed to update wallet balance:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: walletDocRef.path, operation: 'update', requestResourceData: walletData
           } satisfies SecurityRuleContext));
         });
 
         setDoc(orderRef, orderData).catch(async (error) => {
-          console.error('[Firestore] Failed to create order record:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
         });
         
-        console.log('[Checkout] Wallet order finalized. Notifying Telegram.');
-        sendTelegramNotification(db, `🚀 <b>NEW ORDER (WALLET)</b>\n\n📦 ID: ${orderId}\n👤 User: ${profile?.fullName}\n💰 Amount: ₹${totalAmount}`);
+        sendTelegramNotification(db, `🚀 <b>NEW ORDER (WALLET)</b>\n\n📦 ID: ${orderId}\n👤 User: ${profile?.fullName || user.email}\n💰 Amount: ₹${totalAmount}`);
         
         clearCart();
         router.push(`/checkout/success/${orderId}`);
@@ -170,19 +161,15 @@ export default function CheckoutPage() {
         };
         const orderRef = doc(db, 'orders', orderId);
 
-        console.log('[Checkout] Creating pending order for PhonePe flow...');
+        console.log('[Checkout] Persisting pending order for PhonePe gateway...');
 
-        // Initiate order creation in background
+        // Important: Create order record BEFORE redirecting
         setDoc(orderRef, orderData).catch(async (error) => {
-          console.error('[Firestore] Failed to create pending order record:', error);
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: orderRef.path, operation: 'create', requestResourceData: orderData
           } satisfies SecurityRuleContext));
         });
 
-        console.log('[Checkout] Requesting PhonePe gateway initiation via secure API...');
-
-        // Initiate external payment gateway
         const res = await fetch('/api/payments/phonepe/initiate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -196,26 +183,24 @@ export default function CheckoutPage() {
         });
 
         const text = await res.text();
-        console.log('[Checkout] PhonePe API Raw Response:', text);
+        console.log('[Checkout] API Raw Response:', text);
         
         if (!res.ok) {
-          throw new Error(text || 'Payment failed to initiate');
+          throw new Error(text || 'Payment gateway failed to initialize.');
         }
 
         const data = text ? JSON.parse(text) : {};
-        console.log('[Checkout] PhonePe API Parsed Data:', data);
+        console.log('[Checkout] API Parsed Data:', data);
         
         if (data.success && data.paymentUrl) {
-          console.log('[Checkout] Gateway initiated. Redirecting to:', data.paymentUrl);
           clearCart();
           window.location.href = data.paymentUrl;
         } else {
-          console.error('[Checkout] PhonePe initiation failed:', data.error);
-          throw new Error(data.error || 'Payment failed to initiate');
+          throw new Error(data.error || 'Gateway response invalid.');
         }
       }
     } catch (error: any) {
-      console.error('[Checkout] Fatal process error:', error);
+      console.error('[Checkout] Fatal creation error:', error);
       toast({ variant: 'destructive', title: 'Order Failed', description: error.message });
     } finally {
       setSubmitting(false);

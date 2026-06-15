@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const orderSnap = await getDoc(orderRef);
     
     if (!orderSnap.exists()) {
-      return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Order document not found' }, { status: 404 });
     }
 
     const orderData = orderSnap.data();
@@ -39,12 +39,13 @@ export async function POST(req: NextRequest) {
         await processSmileOneOrder(db, orderId);
       }
     } else {
+      // Default to Smile.one if no mapping exists
       await processSmileOneOrder(db, orderId);
     }
 
-    return NextResponse.json({ success: true, message: 'Fulfillment process initialized' });
+    return NextResponse.json({ success: true, message: 'Fulfillment sequence dispatched successfully' });
   } catch (error: any) {
-    console.error('Fulfillment trigger error:', error);
-    return NextResponse.json({ success: false, error: error.message || 'Internal Server Error' }, { status: 500 });
+    console.error('[API] Fulfillment dispatcher error:', error);
+    return NextResponse.json({ success: false, error: error.message || 'Internal failure during fulfillment dispatch.' }, { status: 500 });
   }
 }
