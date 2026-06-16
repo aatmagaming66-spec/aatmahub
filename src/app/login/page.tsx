@@ -14,6 +14,10 @@ import Link from 'next/link';
 import { Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+/**
+ * AATMA HUB Authentication Sector
+ * Optimized for instant shell mount and non-blocking state resolution.
+ */
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -60,7 +64,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent className="p-8 pt-0 space-y-6">
           {initialized && user ? (
-            // Already logged in state: Avoid flicker by showing quick redirect
+            /* Instant Connected State: Replaces form with status rather than blocking redirect */
             <div className="text-center py-10 space-y-6 animate-in zoom-in-95">
                <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20">
                   <ShieldCheck size={40} className="text-primary" />
@@ -76,6 +80,7 @@ export default function LoginPage() {
                </Link>
             </div>
           ) : (
+            /* Login Form: Mounts immediately with skeletons for background hydration */
             <>
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
