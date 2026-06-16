@@ -23,10 +23,10 @@ import {
 
 /**
  * Broadcast Sector (Notification Settings)
- * Optimized for 0ms render-blocking and instant shell visibility.
+ * Optimized for 0ms render-blocking and background hydration.
  */
 export default function NotificationSettingsPage() {
-  const { user, profile, initialized } = useUser();
+  const { user, profile } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
@@ -39,12 +39,12 @@ export default function NotificationSettingsPage() {
     securityAlerts: true
   });
 
-  // Background hydration: Update state when profile data arrives
+  // OPTIMIZATION: Background hydration logic - only sync if not currently saving/interacting
   useEffect(() => {
-    if (profile?.notifications) {
+    if (profile?.notifications && !saving) {
       setSettings(profile.notifications);
     }
-  }, [profile]);
+  }, [profile?.notifications, saving]);
 
   const handleToggle = (key: keyof typeof settings) => {
     setSettings(prev => ({ ...prev, [key]: !prev[key] }));

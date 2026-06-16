@@ -54,24 +54,27 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // OPTIMIZATION: Sync identity fields only when not editing to prevent overwrites
   useEffect(() => {
-    if (profile) {
+    if (profile && !editing) {
       setFullName(profile.fullName || '');
       setPhoneNumber(profile.phoneNumber || '');
     }
-    
-    // Performance: Prefetch optimized routes for instant navigation
+  }, [profile, editing]);
+
+  // OPTIMIZATION: Prefetch routes only once when identity is established
+  useEffect(() => {
     if (user) {
       router.prefetch('/profile/change-password');
       router.prefetch('/profile/notifications');
       router.prefetch('/profile/security');
       router.prefetch('/profile/linked-accounts');
     }
-  }, [profile, user, router]);
+  }, [user, router]);
 
   const rankInfo = useMemo(() => {
     return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
-  }, [profile, ranks]);
+  }, [profile?.lifetimeSpend, ranks]);
 
   const handleLogout = async () => {
     try { 
@@ -84,7 +87,6 @@ export default function ProfilePage() {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  // Polymorphic Return: Shell mounts instantly, content branches based on identity
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-500 pb-24">
       {/* 1. SHARED GRADIENT HEADER SHELL */}
@@ -93,7 +95,6 @@ export default function ProfilePage() {
         
         <div className="relative z-10">
           {initialized && !user ? (
-            /* GUEST HEADER CONTENT */
             <div className="flex flex-col items-center justify-center gap-4 py-6 animate-in zoom-in-95 duration-300">
                <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
                   <User size={30} className="text-primary" />
@@ -104,7 +105,6 @@ export default function ProfilePage() {
                </div>
             </div>
           ) : (
-            /* AUTHENTICATED HEADER CONTENT (w/ Skeletons) */
             <div className="flex items-center gap-6">
               {!initialized ? (
                  <div className="relative"><Skeleton className="h-24 w-24 rounded-full bg-white/5" /><div className="absolute inset-0 border-2 border-white/5 rounded-full" /></div>
@@ -141,7 +141,6 @@ export default function ProfilePage() {
       {/* 2. PAGE CONTENT BODY */}
       <div className="p-6 space-y-8">
         {initialized && !user ? (
-          /* GUEST BODY: CONNECTION TRIGGER */
           <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
             <Link href="/login" className="block">
               <Button className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 gap-3">
@@ -155,7 +154,6 @@ export default function ProfilePage() {
             </Link>
           </div>
         ) : (
-          /* AUTHENTICATED BODY: SETTINGS & PROTOCOLS */
           <div className="space-y-8 animate-in fade-in duration-500">
             {isAdmin && (
               <Link href="/admin" prefetch={true}>
@@ -180,7 +178,7 @@ export default function ProfilePage() {
                     <ChevronRight size={16} className={cn("text-white/20 transition-transform", editing && "rotate-90")} />
                   </button>
 
-                  <Link href="/profile/change-password" prefetch={true}>
+                  <Link href="/profile/change-password">
                     <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Key size={16} /></div>
@@ -190,7 +188,7 @@ export default function ProfilePage() {
                     </div>
                   </Link>
 
-                  <Link href="/profile/notifications" prefetch={true}>
+                  <Link href="/profile/notifications">
                     <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><Bell size={16} /></div>
@@ -200,7 +198,7 @@ export default function ProfilePage() {
                     </div>
                   </Link>
 
-                  <Link href="/profile/security" prefetch={true}>
+                  <Link href="/profile/security">
                     <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Fingerprint size={16} /></div>
@@ -210,7 +208,7 @@ export default function ProfilePage() {
                     </div>
                   </Link>
 
-                  <Link href="/profile/linked-accounts" prefetch={true}>
+                  <Link href="/profile/linked-accounts">
                     <div className="w-full flex items-center justify-between p-5 hover:bg-white/5 group transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><LinkIcon size={16} /></div>
