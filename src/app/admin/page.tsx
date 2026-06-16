@@ -60,10 +60,10 @@ export default function AdminDashboard() {
     const totalDeposits = transactions?.filter(t => t.type === 'deposit' && t.status === 'success').reduce((acc, t) => acc + t.amount, 0) || 0;
 
     return [
-      { label: 'Total Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: IndianRupee, color: 'text-primary' },
-      { label: 'Active Users', value: users?.length || 0, icon: Users, color: 'text-accent' },
-      { label: 'Total Orders', value: orders?.length || 0, icon: ShoppingCart, color: 'text-white' },
-      { label: 'Wallet Deposits', value: `₹${totalDeposits.toLocaleString()}`, icon: TrendingUp, color: 'text-green-400' },
+      { label: 'Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: IndianRupee, color: 'text-primary' },
+      { label: 'Users', value: users?.length || 0, icon: Users, color: 'text-accent' },
+      { label: 'Orders', value: orders?.length || 0, icon: ShoppingCart, color: 'text-white' },
+      { label: 'Deposits', value: `₹${totalDeposits.toLocaleString()}`, icon: TrendingUp, color: 'text-green-400' },
     ];
   }, [users, orders, transactions, isMounted]);
 
@@ -114,17 +114,17 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Main Stats Grid - 2x2 on Mobile, 4 columns on Desktop */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-1">
+      {/* Main Stats Grid - 4 columns across all viewports for maximum density */}
+      <div className="grid grid-cols-4 gap-1 px-1">
         {stats.map((stat, i) => (
-          <Card key={i} className="h-[72px] bg-card border-border shadow-xl rounded-2xl overflow-hidden group hover:border-primary/30 transition-all">
-            <CardContent className="p-3 flex items-center gap-3 h-full">
-              <div className={`h-8 w-8 shrink-0 rounded-lg bg-white/5 flex items-center justify-center ${stat.color}`}>
-                <stat.icon size={16} />
+          <Card key={i} className="h-[64px] bg-card border-border shadow-xl rounded-xl overflow-hidden group hover:border-primary/30 transition-all">
+            <CardContent className="p-1.5 flex flex-col justify-center gap-1 h-full">
+              <div className={`h-6 w-6 shrink-0 rounded-md bg-white/5 flex items-center justify-center ${stat.color}`}>
+                <stat.icon size={11} />
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm font-black tracking-tighter leading-tight truncate">{stat.value}</h3>
-                <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest truncate">{stat.label}</p>
+                <h3 className="text-[10px] sm:text-xs font-black tracking-tighter leading-none truncate">{stat.value}</h3>
+                <p className="text-[6px] font-black text-muted-foreground uppercase tracking-tight truncate">{stat.label}</p>
               </div>
             </CardContent>
           </Card>
