@@ -1,48 +1,36 @@
+
 "use client"
 
-import { ShoppingBag, Bell, Menu } from "lucide-react";
+import { ShoppingCart, Bell, Menu } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { RankAvatar } from "@/components/ui/rank-avatar";
-import { useUser } from "@/firebase/auth/use-user";
-import { useFirestore } from "@/firebase/provider";
-import { useDoc } from "@/firebase/firestore/use-doc";
-import { doc } from "firebase/firestore";
-import { useMemo } from "react";
-import { getRankFromSpend } from "@/lib/ranks";
+import { useState } from "react";
 
 export function TopHeader() {
   const { totalCount } = useCart();
   const { toggleSidebar } = useSidebar();
-  const { user, profile } = useUser();
-  const db = useFirestore();
+  const [logoError, setLogoError] = useState(false);
   
   const logo = PlaceHolderImages.find(img => img.id === 'app-logo');
-
-  const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
-  const { data: wallet } = useDoc(walletRef);
-
-  const rankInfo = useMemo(() => {
-    return getRankFromSpend(wallet?.balance || 0);
-  }, [wallet]);
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b border-border h-14">
       <div className="flex h-full items-center justify-between px-4">
-        {/* Left Side: Logo only */}
-        <div className="flex items-center gap-3">
+        {/* Left Side: Logo */}
+        <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2 group">
-            {logo && (
+            {logo && !logoError && (
               <Image 
                 src={logo.imageUrl} 
                 alt="AATMA Logo" 
                 width={28} 
                 height={28} 
                 className="h-7 w-7 object-contain group-hover:scale-110 transition-transform"
+                onError={() => setLogoError(true)}
               />
             )}
             <span className="font-headline font-bold text-lg tracking-tighter">
@@ -53,20 +41,9 @@ export function TopHeader() {
         
         {/* Right Side: Actions & Menu */}
         <div className="flex items-center gap-1">
-          {user && (
-            <Link href="/profile" className="mr-1">
-              <RankAvatar 
-                src={`https://picsum.photos/seed/${user.uid}/50/50`}
-                rank={rankInfo.name}
-                size="xs"
-                className="hover:scale-110 transition-transform"
-              />
-            </Link>
-          )}
-
           <Link href="/cart">
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full relative hover:bg-white/5">
-              <ShoppingBag className="h-5 w-5 text-foreground" />
+              <ShoppingCart className="h-5 w-5 text-foreground" />
               {totalCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-primary rounded-full flex items-center justify-center text-[8px] font-black text-white shadow-[0_0_8px_rgba(220,38,38,0.5)] border border-background">
                   {totalCount}
