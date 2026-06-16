@@ -71,22 +71,15 @@ export default function WalletDashboard() {
     const name = rankName.toLowerCase();
     const baseAatmaBg = 'bg-gradient-to-br from-red-900 via-zinc-950 to-black';
     
-    if (name.includes('immortal')) return {
+    if (name.includes('immortal') || name.includes('vip')) return {
       bg: 'bg-gradient-to-br from-yellow-600 via-red-900 to-yellow-700 animate-pulse',
       border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]',
       shine: 'via-white/30',
     };
     
-    // Warrior logic
-    if (name.includes('warrior')) return {
-      bg: baseAatmaBg,
-      border: 'border-slate-400/40',
-      shine: 'via-white/5',
-    };
-
     return {
       bg: baseAatmaBg,
-      border: `border-[${rankInfo.color}]/40 shadow-[0_0_10px_${rankInfo.color}33]`,
+      border: 'border-slate-400/40',
       shine: 'via-white/5',
     };
   };
@@ -149,7 +142,6 @@ export default function WalletDashboard() {
                   <span className="font-headline font-black text-sm sm:text-base tracking-tighter text-white uppercase truncate">AATMA HUB</span>
                   <span className="text-[5px] font-black text-white/50 uppercase tracking-[0.4em]">Digital Gaming Bank</span>
                 </div>
-                {/* Floating Rank Badge Top-Right */}
                 <div className={cn(
                   "backdrop-blur-md border px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-xl bg-black/40 shrink-0 text-white metallic-badge",
                   cardTheme.border
@@ -159,7 +151,6 @@ export default function WalletDashboard() {
                 </div>
               </div>
 
-              {/* CLEAN CENTER AREA */}
               <div className="flex-1" />
 
               <div className="mt-auto space-y-4">
@@ -215,10 +206,8 @@ export default function WalletDashboard() {
         </Link>
       </div>
 
-      {/* Advanced Rank Progression Slider (Horizontal Swipe) */}
       <RankProgressionSlider lifetimeSpend={lifetimeSpend} ranks={activeRanks} />
 
-      {/* Recent Activity */}
       <div className="space-y-5">
         <div className="flex justify-between items-end px-2">
           <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Recent Activity</h3>

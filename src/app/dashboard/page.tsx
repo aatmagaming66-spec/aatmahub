@@ -71,22 +71,15 @@ export default function DashboardPage() {
     const name = rankName.toLowerCase();
     const baseAatmaBg = 'bg-gradient-to-br from-red-900 via-zinc-950 to-black';
     
-    if (name.includes('immortal')) return {
+    if (name.includes('immortal') || name.includes('vip')) return {
       bg: 'bg-gradient-to-br from-yellow-600 via-red-900 to-yellow-700 animate-pulse',
       border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]',
       shine: 'via-white/30',
     };
     
-    // Warrior logic
-    if (name.includes('warrior')) return {
-      bg: baseAatmaBg,
-      border: 'border-slate-400/40',
-      shine: 'via-white/5',
-    };
-
     return {
       bg: baseAatmaBg,
-      border: `border-[${rankInfo.color}]/40 shadow-[0_0_10px_${rankInfo.color}33]`,
+      border: 'border-slate-400/40',
       shine: 'via-white/5',
     };
   };
@@ -120,8 +113,8 @@ export default function DashboardPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Wallet Hub</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Assets & Credits</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Wallet</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage your balance and transactions</p>
         </div>
       </header>
 
@@ -158,7 +151,6 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* CLEAN CENTER AREA */}
               <div className="flex-1" />
 
               <div className="mt-auto space-y-4">
@@ -209,20 +201,18 @@ export default function DashboardPage() {
         </Link>
         <Link href="/wallet/history" className="flex-1">
           <Button variant="outline" className="w-full h-16 border-border bg-card text-white hover:bg-white/5 font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all gap-3">
-            <History className="h-5 w-5" /> Statement
+            <History className="h-5 w-5" /> Transaction History
           </Button>
         </Link>
       </div>
 
-      {/* Advanced Rank Progression Slider (Horizontal Swipe) */}
       <RankProgressionSlider lifetimeSpend={lifetimeSpend} ranks={activeRanks} />
 
-      {/* Activity Logs */}
       <div className="space-y-5">
         <div className="flex justify-between items-end px-2">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Activity Logs</h3>
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Recent Activity</h3>
           <Link href="/wallet/history">
-            <span className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/30">Sync All</span>
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/30">View All</span>
           </Link>
         </div>
         
@@ -231,7 +221,7 @@ export default function DashboardPage() {
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 text-primary animate-spin" /></div>
           ) : recentTransactions.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-10 rounded-2xl text-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No financial records found</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No activity found</p>
             </div>
           ) : (
             recentTransactions.map((tx) => (
