@@ -67,9 +67,12 @@ export default function DynamicMediaHub() {
     const unsubscribe = onSnapshot(q, (snap) => {
       setAssets(snap.docs.map(d => ({ ...d.data(), id: d.id } as MediaAsset)));
       setLoading(false);
+    }, (error) => {
+      console.error('[Media Hub] Snapshot error:', error);
+      toast({ variant: 'destructive', title: 'Connection Error', description: 'Failed to stream media registry.' });
     });
     return () => unsubscribe();
-  }, [db]);
+  }, [db, toast]);
 
   // 2. AUTO-HYDRATION ENGINE: Reconcile with Source Collections
   useEffect(() => {
@@ -92,7 +95,6 @@ export default function DynamicMediaHub() {
           for (const d of snap.docs) {
             const data = d.data();
             if (!currentMediaIds.has(d.id)) {
-              // Entity exists in source but not in media_assets - AUTO CREATE
               const assetRef = doc(db, 'media_assets', d.id);
               await setDoc(assetRef, {
                 entityId: d.id,
@@ -222,12 +224,16 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    console.log(`MEDIA_UPLOAD_START: ${file.name} (${type})`);
+
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
+      console.error(`MEDIA_UPLOAD_FAILED: Invalid type ${file.type}`);
       toast({ variant: 'destructive', title: 'Invalid File', description: 'Please use JPG, PNG or WEBP.' });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
+      console.error(`MEDIA_UPLOAD_FAILED: File too large (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
       toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum file size is 5MB.' });
       return;
     }
@@ -243,10 +249,14 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         else setBannerProgress(progress);
       }, 
       (error) => {
+        console.error(`MEDIA_UPLOAD_FAILED: ${error.message}`);
         toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
+        if (type === 'logo') setLogoProgress(0);
+        else setBannerProgress(0);
       }, 
       async () => {
         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+        console.log(`MEDIA_UPLOAD_SUCCESS: ${downloadURL}`);
         if (type === 'logo') {
           setLocalLogo(downloadURL);
           setLogoProgress(0);
@@ -261,18 +271,21 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
   const handleSave = async () => {
     setIsSaving(true);
+    const assetData = {
+      ...asset,
+      logoUrl: localLogo,
+      bannerUrl: localBanner,
+      isEnabled: enabled,
+      updatedAt: new Date().toISOString()
+    };
+
     try {
       const assetRef = doc(db, 'media_assets', asset.id);
-      await setDoc(assetRef, {
-        ...asset,
-        logoUrl: localLogo,
-        bannerUrl: localBanner,
-        isEnabled: enabled,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-      
+      await setDoc(assetRef, assetData, { merge: true });
+      console.log(`MEDIA_SAVE_SUCCESS: ${asset.id}`);
       toast({ title: 'Protocol Synchronized', description: `${asset.entityName} media updated.` });
     } catch (e: any) {
+      console.error(`MEDIA_SAVE_FAILED: ${e.message}`);
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
     } finally {
       setIsSaving(false);
@@ -286,7 +299,12 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all duration-500">
       <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {localBanner ? (
-          <Image src={localBanner} alt="Banner" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
+          <Image 
+            src={localBanner} 
+            alt="Banner" 
+            fill 
+            className="object-cover transition-transform duration-700 group-hover:scale-105" 
+          />
         ) : (
           <div className="flex flex-col items-center gap-2 opacity-10">
             <ImageIcon size={40} className="text-white" />
@@ -297,7 +315,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         {bannerProgress > 0 && (
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-6 gap-2 z-20">
             <Progress value={bannerProgress} className="h-1 bg-white/10" />
-            <span className="text-[8px] font-black text-white uppercase tracking-widest">Uploading...</span>
+            <span className="text-[8px] font-black text-white uppercase tracking-widest">{bannerProgress.toFixed(0)}% Uploading...</span>
           </div>
         )}
 
@@ -341,11 +359,11 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo Asset</Label>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1 h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-                <Upload size={12} className="mr-1.5" /> Upload
+                <Upload size={12} className="mr-1.5" /> {localLogo ? 'Replace' : 'Upload'}
                 <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
               </Button>
               {localLogo && (
-                <Button variant="ghost" onClick={() => setLocalLogo(null)} className="h-9 w-9 rounded-xl text-primary p-0">
+                <Button variant="ghost" onClick={() => setLocalLogo(null)} className="h-9 w-9 rounded-xl text-primary p-0 hover:bg-primary/10">
                   <Trash2 size={12} />
                 </Button>
               )}
@@ -356,11 +374,11 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner Asset</Label>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1 h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-                <ImageIcon size={12} className="mr-1.5" /> Upload
+                <ImageIcon size={12} className="mr-1.5" /> {localBanner ? 'Replace' : 'Upload'}
                 <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
               </Button>
               {localBanner && (
-                <Button variant="ghost" onClick={() => setLocalBanner(null)} className="h-9 w-9 rounded-xl text-primary p-0">
+                <Button variant="ghost" onClick={() => setLocalBanner(null)} className="h-9 w-9 rounded-xl text-primary p-0 hover:bg-primary/10">
                   <Trash2 size={12} />
                 </Button>
               )}
@@ -368,7 +386,11 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           </div>
         </div>
 
-        <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-primary hover:bg-secondary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 gap-2">
+        <Button 
+          onClick={handleSave} 
+          disabled={isSaving || (logoProgress > 0) || (bannerProgress > 0)} 
+          className="w-full h-12 bg-primary hover:bg-secondary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 gap-2"
+        >
           {isSaving ? <Loader2 className="animate-spin h-4 w-4" /> : <><Save size={14} /> Commit Changes</>}
         </Button>
       </CardContent>
