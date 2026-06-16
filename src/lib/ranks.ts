@@ -3,13 +3,23 @@
  * Optimized for the Advanced Swipeable Progression Center
  */
 
+export interface RankBenefits {
+  discount: string;
+  cashback: string;
+  priority: string;
+  promotions: string;
+  limitBonus: string;
+  accessLevel: string;
+}
+
 export interface RankDefinition {
   id: string;
   name: string;
   threshold: number;
   discount: number;
   color: string;
-  benefits: string[];
+  benefits: string[]; // Key benefits list
+  detailedBenefits: RankBenefits;
   sortOrder: number;
 }
 
@@ -20,7 +30,15 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 0, 
     discount: 0, 
     color: '#94a3b8', 
-    benefits: ['0% Purchase Discount', 'Basic HUB Access'],
+    benefits: ['Basic HUB Access'],
+    detailedBenefits: {
+      discount: '0%',
+      cashback: '0%',
+      priority: 'No',
+      promotions: 'Basic',
+      limitBonus: '0%',
+      accessLevel: 'Basic'
+    },
     sortOrder: 0
   },
   { 
@@ -29,7 +47,15 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 1000, 
     discount: 1, 
     color: '#10b981', 
-    benefits: ['1% Purchase Discount', 'Priority Order Processing'],
+    benefits: ['Priority Order Processing'],
+    detailedBenefits: {
+      discount: '1%',
+      cashback: '0.5%',
+      priority: 'Basic',
+      promotions: 'Elite',
+      limitBonus: '1%',
+      accessLevel: 'Elite'
+    },
     sortOrder: 1
   },
   { 
@@ -38,7 +64,15 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 5000, 
     discount: 2, 
     color: '#3b82f6', 
-    benefits: ['2% Purchase Discount', 'Faster Order Queue'],
+    benefits: ['Faster Order Queue'],
+    detailedBenefits: {
+      discount: '2%',
+      cashback: '1%',
+      priority: 'Standard',
+      promotions: 'Master',
+      limitBonus: '2%',
+      accessLevel: 'Master'
+    },
     sortOrder: 2
   },
   { 
@@ -47,7 +81,15 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 10000, 
     discount: 3, 
     color: '#a855f7', 
-    benefits: ['3% Purchase Discount', 'Premium Profile Badge'],
+    benefits: ['Premium Profile Badge'],
+    detailedBenefits: {
+      discount: '3%',
+      cashback: '1.5%',
+      priority: 'High',
+      promotions: 'Epic',
+      limitBonus: '3%',
+      accessLevel: 'Epic'
+    },
     sortOrder: 3
   },
   { 
@@ -56,7 +98,15 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 50000, 
     discount: 5, 
     color: '#eab308', 
-    benefits: ['5% Purchase Discount', 'Priority Customer Support'],
+    benefits: ['Priority Customer Support'],
+    detailedBenefits: {
+      discount: '5%',
+      cashback: '2.5%',
+      priority: 'Premium',
+      promotions: 'Legend',
+      limitBonus: '5%',
+      accessLevel: 'Legend'
+    },
     sortOrder: 4
   },
   { 
@@ -65,7 +115,15 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 100000, 
     discount: 7, 
     color: '#ef4444', 
-    benefits: ['7% Purchase Discount', 'Exclusive Community Perks'],
+    benefits: ['Exclusive Community Perks'],
+    detailedBenefits: {
+      discount: '7%',
+      cashback: '4%',
+      priority: 'Ultra',
+      promotions: 'Mythic',
+      limitBonus: '8%',
+      accessLevel: 'Mythic'
+    },
     sortOrder: 5
   },
   { 
@@ -74,7 +132,15 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 500000, 
     discount: 10, 
     color: '#fbbf24', 
-    benefits: ['10% Purchase Discount', 'Highest Order Priority', 'Exclusive Immortal Benefits'],
+    benefits: ['Highest Order Priority'],
+    detailedBenefits: {
+      discount: '10%',
+      cashback: '6%',
+      priority: 'Critical',
+      promotions: 'Immortal',
+      limitBonus: '15%',
+      accessLevel: 'Immortal'
+    },
     sortOrder: 6
   },
 ];
