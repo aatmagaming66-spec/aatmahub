@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -5,64 +6,25 @@
       "description": "Store user specific information",
       "type": "object",
       "properties": {
-        "uid": {
-          "type": "string",
-          "description": "Unique identifier for the user"
-        },
-        "fullName": {
-          "type": "string",
-          "description": "User's full name"
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "User's email address"
-        },
-        "phoneNumber": {
-          "type": "string",
-          "description": "User's phone number"
-        },
-        "role": {
-          "type": "string",
-          "enum": [
-            "user",
-            "admin",
-            "super_admin"
-          ],
-          "description": "User's access role"
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "When the account was created"
-        }
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phoneNumber": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin", "super_admin"] },
+        "banned": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "uid",
-        "email",
-        "fullName",
-        "role"
-      ]
+      "required": ["uid", "email", "fullName", "role"]
     },
     "Order": {
       "title": "Order",
       "description": "Stores transaction and purchase details",
       "type": "object",
       "properties": {
-        "orderId": {
-          "type": "string",
-          "description": "Unique order identifier"
-        },
-        "userId": {
-          "type": "string",
-          "description": "ID of the user who placed the order"
-        },
-        "items": {
-          "type": "array"
-        },
-        "totalAmount": {
-          "type": "number"
-        },
+        "orderId": { "type": "string" },
+        "userId": { "type": "string" },
+        "items": { "type": "array" },
+        "totalAmount": { "type": "number" },
         "playerInfo": {
           "type": "object",
           "properties": {
@@ -70,128 +32,73 @@
             "serverId": { "type": "string" }
           }
         },
-        "paymentMethod": {
-          "type": "string",
-          "enum": ["wallet", "razorpay", "phonepe"]
-        },
-        "paymentStatus": {
-          "type": "string"
-        },
-        "status": {
-          "type": "string",
-          "enum": ["pending", "processing", "completed", "cancelled", "failed", "pending_payment"]
-        },
-        "retryCount": { "type": "number" },
-        "failoverTriggered": { "type": "boolean" },
-        "smileOneStatus": { "type": "string" },
-        "unipinStatus": { "type": "string" },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time"
-        }
-      },
-      "required": ["orderId", "userId", "items", "totalAmount", "status", "createdAt"]
-    },
-    "Wallet": {
-      "title": "Wallet",
-      "description": "Stores user wallet balance",
-      "type": "object",
-      "properties": {
-        "userId": { "type": "string" },
-        "balance": { "type": "number" },
-        "updatedAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["userId", "balance", "updatedAt"]
-    },
-    "Transaction": {
-      "title": "Transaction",
-      "description": "Wallet transaction records",
-      "type": "object",
-      "properties": {
-        "transactionId": { "type": "string" },
-        "userId": { "type": "string" },
-        "amount": { "type": "number" },
-        "type": { "type": "string", "enum": ["deposit", "purchase", "refund"] },
-        "status": { "type": "string" },
+        "paymentMethod": { "type": "string", "enum": ["wallet", "razorpay", "phonepe"] },
+        "status": { "type": "string", "enum": ["pending", "processing", "completed", "cancelled", "failed", "refunded"] },
         "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["transactionId", "userId", "amount", "type", "status", "createdAt"]
-    },
-    "AutomationLog": {
-      "title": "Automation Log",
-      "description": "History of retries, failovers, and recoveries",
-      "type": "object",
-      "properties": {
-        "logId": { "type": "string" },
-        "type": { "type": "string", "enum": ["retry", "failover", "recovery", "report"] },
-        "orderId": { "type": "string" },
-        "details": { "type": "string" },
-        "status": { "type": "string" },
-        "timestamp": { "type": "string", "format": "date-time" }
       }
     },
-    "SiteSettings": {
-      "title": "Site Settings",
-      "description": "Global website settings",
+    "Game": {
+      "title": "Game",
+      "description": "Managed game titles in the hub",
       "type": "object",
       "properties": {
-        "maintenanceMode": { "type": "boolean" },
-        "maintenanceMessage": { "type": "string" },
-        "announcementEnabled": { "type": "boolean" },
-        "announcementText": { "type": "string" },
-        "contactWhatsApp": { "type": "string" },
-        "contactEmail": { "type": "string" },
-        "contactTelegram": { "type": "string" },
-        "siteBranding": { "type": "string" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "icon": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "requirePlayerId": { "type": "boolean" },
+        "requireServerId": { "type": "boolean" },
+        "requireVerifyId": { "type": "boolean" },
+        "sortOrder": { "type": "number" }
       }
     },
     "Product": {
       "title": "Product",
-      "description": "Digital products/packages for sale",
+      "description": "Purchasable digital packages",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "price": { "type": "number" },
+        "discountPrice": { "type": "number" },
         "category": { "type": "string" },
-        "region": { "type": "string" }
+        "region": { "type": "string" },
+        "tab": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] }
+      }
+    },
+    "Wallet": {
+      "title": "Wallet",
+      "properties": {
+        "userId": { "type": "string" },
+        "balance": { "type": "number" }
+      }
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "properties": {
+        "userId": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string" },
+        "status": { "type": "string" }
       }
     }
   },
   "auth": {
-    "providers": [
-      "password"
-    ]
+    "providers": ["password"]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": "UserProfile",
-      "description": "User profiles"
-    },
-    "/orders/{orderId}": {
-      "schema": "Order",
-      "description": "Customer orders"
-    },
-    "/wallets/{userId}": {
-      "schema": "Wallet",
-      "description": "User wallets"
-    },
-    "/transactions/{transactionId}": {
-      "schema": "Transaction",
-      "description": "Wallet transactions"
-    },
-    "/automationLogs/{logId}": {
-      "schema": "AutomationLog",
-      "description": "Automation event logs"
-    },
-    "/settings/site": {
-      "schema": "SiteSettings",
-      "description": "Global website settings"
-    },
-    "/products/{productId}": {
-      "schema": "Product",
-      "description": "Available products catalog"
-    }
+    "/users/{userId}": { "schema": "UserProfile", "description": "User profiles" },
+    "/orders/{orderId}": { "schema": "Order", "description": "Customer orders" },
+    "/games/{gameId}": { "schema": "Game", "description": "Managed games" },
+    "/products/{productId}": { "schema": "Product", "description": "Managed products" },
+    "/regions/{regionId}": { "schema": "object", "description": "Managed regions" },
+    "/tabs/{tabId}": { "schema": "object", "description": "Managed tabs" },
+    "/wallets/{userId}": { "schema": "Wallet", "description": "User wallets" },
+    "/transactions/{txId}": { "schema": "Transaction", "description": "Wallet tx" },
+    "/settings/site": { "schema": "object", "description": "Global settings" },
+    "/settings/payments": { "schema": "object", "description": "Payment config" },
+    "/settings/telegram": { "schema": "object", "description": "Bot config" }
   }
 }
