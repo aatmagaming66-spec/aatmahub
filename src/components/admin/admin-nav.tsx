@@ -33,17 +33,17 @@ const ADMIN_LINKS = [
 
 const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Intel Analytics', icon: BarChart3 },
-  { href: '/admin/users', label: 'User Registry', icon: Users },
-  { href: '/admin/products', label: 'Product Catalog', icon: Package },
-  { href: '/admin/regions', label: 'Regional Grid', icon: Globe },
+  { href: '/admin/users', label: 'User Management', icon: Users },
+  { href: '/admin/products', label: 'Product Management', icon: Package },
+  { href: '/admin/regions', label: 'Region Management', icon: Globe },
   { href: '/admin/settings/website', label: 'Web Branding', icon: Palette },
-  { href: '/admin/settings/payments', label: 'Payment Hub', icon: CreditCard },
+  { href: '/admin/settings/payments', label: 'Payment Settings', icon: CreditCard },
   { href: '/admin/settings/telegram', label: 'Bot Settings', icon: Key },
   { href: '/admin/settings/smileone', label: 'Smile.one API', icon: Zap },
   { href: '/admin/settings/unipin', label: 'UniPin API', icon: Cpu },
   { href: '/admin/announcements', label: 'Broadcasts', icon: Megaphone },
-  { href: '/admin/system', label: 'System Health', icon: Activity },
-  { href: '/admin/backups', label: 'Data Archives', icon: Database },
+  { href: '/admin/system', label: 'System Settings', icon: Activity },
+  { href: '/admin/backups', label: 'Backup Management', icon: Database },
 ];
 
 export function AdminNav() {

@@ -83,12 +83,12 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = [
-    { label: 'Identity Registry', href: '/admin/users', icon: Users, desc: 'Manage Roles & Access' },
-    { label: 'Catalog Engine', href: '/admin/products', icon: Package, desc: 'Deploy Game Products' },
-    { label: 'Regional Grid', href: '/admin/regions', icon: Globe, desc: 'Global Distribution' },
-    { label: 'Gateway Hub', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Financial Protocols' },
-    { label: 'System Health', href: '/admin/system', icon: Activity, desc: 'Kernel Logs & Latency' },
-    { label: 'Data Archives', href: '/admin/backups', icon: Database, desc: 'Secure Vault Export' },
+    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
+    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage products & pricing' },
+    { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Manage regions & availability' },
+    { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },
+    { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Website & system configuration' },
+    { label: 'Backup Management', href: '/admin/backups', icon: Database, desc: 'Database backups & restore' },
   ];
 
   if (!isMounted) return null;
