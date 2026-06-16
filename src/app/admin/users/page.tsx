@@ -217,7 +217,6 @@ const UserRow = memo(function UserRow({ user, updateRole, toggleBan, setAdjustin
       <TableCell className="py-6 px-6">
         <div className="flex items-center gap-4">
           <RankAvatar 
-            src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`}
             rank={user.currentRank || 'Warrior'}
             size="md"
             fallback={user.fullName?.charAt(0)}

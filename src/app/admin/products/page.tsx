@@ -37,12 +37,16 @@ export default function AdminProductsPage() {
     status: 'active'
   });
 
+  // OPTIMIZATION: Query results are capped to 50 items initially
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
-    limit(50) // OPTIMIZATION: Pagination Limit
+    limit(50)
   ), [db]);
 
-  const gamesQuery = useMemo(() => query(collection(db, 'games'), orderBy('sortOrder', 'asc')), [db]);
+  const gamesQuery = useMemo(() => query(
+    collection(db, 'games'), 
+    orderBy('sortOrder', 'asc')
+  ), [db]);
 
   const { data: products, loading: productsLoading } = useCollection(productsQuery);
   const { data: games } = useCollection(gamesQuery);

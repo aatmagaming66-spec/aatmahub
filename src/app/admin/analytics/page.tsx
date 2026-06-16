@@ -18,7 +18,7 @@ import {
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Dynamic Imports for Recharts components
+// Dynamic Imports for Recharts components with lighter loading state
 const LineChartComponent = dynamic(() => import('recharts').then(mod => {
   const { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } = mod;
   return function LineChartWrapper({ data }: { data: any[] }) {
@@ -82,11 +82,13 @@ export default function AnalyticsPage() {
     setIsMounted(true);
   }, []);
 
+  // OPTIMIZATION: Strictly capped temporal query to prevent full scan delay
   const analyticsWindow = useMemo(() => subDays(new Date(), 30).toISOString(), []);
 
   const ordersQuery = useMemo(() => query(
     collection(db, 'orders'),
-    where('createdAt', '>=', analyticsWindow)
+    where('createdAt', '>=', analyticsWindow),
+    limit(500) // Preventing memory exhaustion on high-volume days
   ), [db, analyticsWindow]);
 
   const usersQuery = useMemo(() => query(
@@ -102,7 +104,6 @@ export default function AnalyticsPage() {
 
     const now = new Date();
     const today = { start: startOfDay(now), end: endOfDay(now) };
-    const last7Days = { start: startOfDay(subDays(now, 7)), end: endOfDay(now) };
 
     const completedOrders = orders.filter(o => o.status === 'completed');
     const totalRevenue = completedOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
