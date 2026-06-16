@@ -22,6 +22,11 @@ const ProfileContext = createContext<ProfileContextType>({
 const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
 const SUPER_ADMIN_UID = 'iDeDaksq2hUmkyyIxvlNHgvb2y43';
 
+/**
+ * ProfileProvider - Optimized for zero-block rendering.
+ * Sets initialized: true as soon as the Auth state is determined,
+ * allowing the UI to mount immediately with background profile hydration.
+ */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
   const db = useFirestore();
@@ -32,12 +37,14 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const startTime = performance.now();
-    console.log('[PERF] Auth Handshake Started');
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       const authTime = performance.now() - startTime;
-      console.log(`[PERF] Firebase Auth Resolved in ${authTime.toFixed(2)}ms`);
+      console.log(`[PERF_HUB] Auth Handshake: ${authTime.toFixed(2)}ms`);
+      
       setUser(firebaseUser);
+      // PERFORMANCE: We are now "initialized" as soon as we know IF there is a user.
+      // We do not wait for the profile snapshot to mount the app shell.
       setInitialized(true);
       
       if (!firebaseUser) {
@@ -53,12 +60,12 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
 
     const startTime = performance.now();
-    console.log('[PERF] Profile Hydration Started');
-
     const userDocRef = doc(db, 'users', user.uid);
+    
+    // Hydrate profile in background
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       const hydrationTime = performance.now() - startTime;
-      console.log(`[PERF] Profile Document Hydrated in ${hydrationTime.toFixed(2)}ms`);
+      console.log(`[PERF_HUB] Profile Hydration: ${hydrationTime.toFixed(2)}ms`);
       
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -82,7 +89,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(false);
     }, (error) => {
-      console.error('[PERF] Profile Sync Error:', error);
+      console.error('[PERF_HUB] Profile Sync Error:', error);
       setLoading(false);
     });
 
