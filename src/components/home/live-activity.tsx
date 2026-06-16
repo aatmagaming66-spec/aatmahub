@@ -27,7 +27,7 @@ export function LiveActivity() {
   return (
     <section className="px-4 mt-6 mb-2">
       <div className="bg-card/30 border border-white/5 rounded-2xl p-3 flex flex-col gap-1 relative overflow-hidden">
-        <div className="flex items-center gap-2 mb-0.5">
+        <div className="flex items-center gap-2 mb-1">
           <div className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
@@ -35,14 +35,15 @@ export function LiveActivity() {
           <span className="text-[7px] font-black text-white/30 uppercase tracking-[0.3em]">Live Feed Distribution</span>
         </div>
         
-        {/* Compact Vertical Auto-Slider - 1 line at a time */}
-        <div className="relative h-[20px] overflow-hidden">
+        {/* Compact Vertical Auto-Slider - 2 lines visible, 1 line slide */}
+        <div className="relative h-[44px] overflow-hidden">
           <div 
             className="flex flex-col transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateY(-${index * 20}px)` }}
+            style={{ transform: `translateY(-${index * 22}px)` }}
           >
-            {RECENT_ACTIVITY.map((activity, i) => (
-              <div key={i} className="flex items-center justify-between h-[20px] px-0.5">
+            {/* Map activity items - Duplicate first few items at end for smoother visual looping if needed */}
+            {[...RECENT_ACTIVITY, RECENT_ACTIVITY[0]].map((activity, i) => (
+              <div key={i} className="flex items-center justify-between h-[22px] px-0.5 shrink-0">
                 <div className="flex items-center gap-2 truncate">
                   <Zap size={7} className="text-primary shrink-0" />
                   <span className="text-primary text-[9px] font-black shrink-0">{activity.id}</span>
