@@ -2,10 +2,9 @@
 "use client"
 
 import { useMemo, useEffect, useState } from "react";
-import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2, Crown, Cpu, ShieldCheck, Target, Zap, ChevronRight, ArrowRight } from "lucide-react";
+import { Wallet, Package, Clock, CheckCircle2, Cpu, ShieldCheck, ArrowRight, Loader2, Crown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
 import { useDoc } from "@/firebase/firestore/use-doc";
@@ -18,6 +17,7 @@ export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
   const db = useFirestore();
   const [isMounted, setIsMounted] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -83,15 +83,15 @@ export default function DashboardPage() {
     return { current, next, progress, lifetimeSpend };
   }, [lifetimeSpend]);
 
-  const getRankColor = (rankName: string) => {
+  const getRankStyle = (rankName: string) => {
     const name = rankName.toLowerCase();
-    if (name.includes('warrior')) return 'text-slate-400 border-slate-400/30 bg-slate-400/10';
-    if (name.includes('elite')) return 'text-slate-200 border-slate-200/30 bg-slate-200/10';
+    if (name.includes('warrior')) return 'text-slate-400 border-slate-400/40 bg-slate-400/10 shadow-[0_0_10px_rgba(148,163,184,0.2)]';
+    if (name.includes('elite')) return 'text-slate-100 border-slate-200/30 bg-slate-200/10';
     if (name.includes('master')) return 'text-orange-400 border-orange-400/30 bg-orange-400/10';
     if (name.includes('grandmaster')) return 'text-cyan-400 border-cyan-400/30 bg-cyan-400/10';
     if (name.includes('epic')) return 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10';
     if (name.includes('legend')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
-    if (name.includes('mythical immortal')) return 'text-red-600 border-red-600/40 bg-red-600/20 shadow-[0_0_10px_rgba(220,38,38,0.2)]';
+    if (name.includes('mythical immortal')) return 'text-red-600 border-red-600/40 bg-red-600/20 shadow-[0_0_10px_rgba(220,38,38,0.3)]';
     if (name.includes('mythic')) return 'text-red-500 border-red-500/30 bg-red-500/10';
     return 'text-primary border-primary/20 bg-primary/10';
   };
@@ -127,85 +127,113 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      {/* PREMIUM DEBIT CARD - REDESIGNED LAYOUT */}
-      <Link href="/wallet" className="block w-full mb-10">
-        <div className="relative w-full aspect-[2.1/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-[0.98]">
-          <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
+      {/* 3D FLIPPING PREMIUM DEBIT CARD */}
+      <div 
+        className="w-full mb-10 [perspective:1000px] cursor-pointer"
+        onClick={() => setIsFlipped(!isFlipped)}
+      >
+        <div className={cn(
+          "relative w-full aspect-[2/1] transition-all duration-700 [transform-style:preserve-3d]",
+          isFlipped && "[transform:rotateY(180deg)]"
+        )}>
           
-          <div className="relative h-full p-5 flex flex-col justify-between z-10">
-            {/* Top Row: Logo & Rank Badge */}
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col">
-                <span className="font-headline font-black text-sm tracking-tighter text-white/90 uppercase">AATMA HUB</span>
-                <span className="text-[5px] font-black text-primary uppercase tracking-[0.4em]">Digital Banking</span>
+          {/* FRONT SIDE */}
+          <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[2rem] overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
+            
+            <div className="relative h-full p-6 flex flex-col justify-between z-10">
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col">
+                  <span className="font-headline font-black text-sm tracking-tighter text-white/90 uppercase">AATMA HUB</span>
+                  <span className="text-[5px] font-black text-primary uppercase tracking-[0.4em]">Digital Gaming Bank</span>
+                </div>
+                <div className={cn(
+                  "backdrop-blur-md border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xl transition-colors duration-500",
+                  getRankStyle(rankData.current.name)
+                )}>
+                   <Crown size={8} className="fill-current/20" />
+                   <span className="text-[8px] font-black uppercase tracking-widest">{rankData.current.name}</span>
+                </div>
               </div>
-              <div className={cn(
-                "backdrop-blur-md border px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-xl transition-colors duration-500",
-                getRankColor(rankData.current.name)
-              )}>
-                 <Crown size={8} className="fill-current/20" />
-                 <span className="text-[7px] font-black uppercase tracking-widest">{rankData.current.name}</span>
+
+              <div className="flex items-center">
+                <div className="h-8 w-11 bg-gradient-to-br from-yellow-600 via-yellow-400 to-yellow-700 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-200/30 shadow-inner opacity-90">
+                   <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-20">
+                      {[...Array(9)].map((_, i) => <div key={i} className="border border-black/40 rounded-sm" />)}
+                   </div>
+                   <Cpu className="absolute h-4 w-4 text-black/20" />
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                 <div className="flex justify-between items-end">
+                    <div className="space-y-0.5">
+                       <span className="text-[7px] font-black text-white/30 uppercase tracking-widest leading-none">Card Holder</span>
+                       <p className="text-[10px] font-black text-white uppercase tracking-tight leading-none">{profile?.fullName || 'AATMA USER'}</p>
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className="text-[9px] font-mono font-black text-white/40 tracking-[0.2em]">**** **** **** 2047</p>
+                    </div>
+                 </div>
               </div>
             </div>
+            {/* Animated Shine */}
+            <div className="absolute inset-0 translate-x-[-100%] hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 z-20" />
+          </div>
 
-            {/* Center Area: Chip (Left) and Balance (Center) */}
-            <div className="relative flex items-center justify-center">
-               <div className="absolute left-0 h-7 w-10 bg-gradient-to-br from-yellow-600 to-yellow-200 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-400/50 shadow-inner shrink-0 opacity-80">
-                  <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-40">
-                     {[...Array(9)].map((_, i) => <div key={i} className="border border-black/20" />)}
-                  </div>
-                  <Cpu className="absolute h-3 w-3 text-black/20" />
-               </div>
-               
-               <div className="text-center space-y-0 translate-y-1">
-                  <span className="text-[7px] font-black text-white/40 uppercase tracking-widest block mb-0.5">Available Balance</span>
-                  <h2 className="text-3xl font-black text-white tracking-tighter leading-none">
-                    ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
-                  </h2>
-               </div>
-            </div>
+          {/* BACK SIDE */}
+          <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[2rem] overflow-hidden shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a1a] to-black" />
+            
+            <div className="relative h-full flex flex-col z-10">
+              {/* Magnetic Stripe */}
+              <div className="w-full h-10 bg-zinc-900 mt-6 shadow-inner" />
+              
+              <div className="flex-1 p-6 flex flex-col justify-center">
+                 <div className="flex items-center gap-4 mb-4">
+                    <div className="flex-1 h-8 bg-white/10 rounded flex items-center px-3 border border-white/5">
+                       <span className="text-[6px] font-black text-white/20 uppercase">Signature Strip</span>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 px-2 py-1 rounded text-[8px] font-black">247</div>
+                 </div>
 
-            {/* Bottom Section: Identity, Card Number, Arrow, and Strip */}
-            <div className="space-y-3">
-               <div className="flex justify-between items-end">
-                  <div className="space-y-0.5">
-                     <span className="text-[6px] font-black text-white/30 uppercase tracking-widest leading-none">Card Holder</span>
-                     <p className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{profile?.fullName || 'AATMA USER'}</p>
-                  </div>
-                  
-                  <div className="flex-1 text-center">
-                    <p className="text-[8px] font-mono font-black text-white/30 tracking-[0.2em]">**** **** **** 2047</p>
-                  </div>
+                 <div className="text-center space-y-1">
+                    <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Available Balance</span>
+                    <h2 className="text-4xl font-black text-white tracking-tighter leading-none">
+                      ₹{balance.toLocaleString()}<span className="text-xl text-white/40">.00</span>
+                    </h2>
+                 </div>
+              </div>
 
-                  <div className="flex items-center">
-                    <ArrowRight className="h-3.5 w-3.5 text-white/40 group-hover:text-primary transition-colors" />
-                  </div>
-               </div>
-               
-               {/* Bottom Info Strip Row */}
-               <div className="flex justify-between items-center text-[6px] font-black uppercase text-white/20 tracking-widest pt-2 border-t border-white/5">
-                  <span className="flex items-center gap-1">Rank: <span className="text-white/40">{rankData.current.name}</span></span>
-                  <span className="flex items-center gap-1">Discount: <span className="text-green-500/60">{rankData.current.discount}% OFF</span></span>
-                  <span className="flex items-center gap-1">Spend: <span className="text-primary/60">₹{lifetimeSpend.toLocaleString()}</span></span>
-               </div>
+              {/* Bottom Info Row */}
+              <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest">
+                 <span>Rank: <span className="text-white/60">{rankData.current.name}</span></span>
+                 <span>Discount: <span className="text-green-500/60">{rankData.current.discount}%</span></span>
+                 <span>Spend: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
+              </div>
             </div>
           </div>
-          
-          <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[150%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 z-20" />
-        </div>
-      </Link>
 
-      {/* RANK PROGRESSION SECTION */}
-      <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl">
+        </div>
+      </div>
+
+      <div className="flex gap-4 mb-2">
+         <Link href="/wallet/deposit" className="flex-1">
+           <Button className="w-full h-14 bg-primary hover:bg-secondary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20">Deposit</Button>
+         </Link>
+         <Link href="/wallet/history" className="flex-1">
+           <Button variant="outline" className="w-full h-14 border-white/10 bg-card rounded-2xl font-black uppercase text-[10px] tracking-widest">Statement</Button>
+         </Link>
+      </div>
+
+      <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-primary" />
               <h3 className="text-xs font-headline font-black uppercase tracking-widest text-white/90">Rank Progression</h3>
-            </div>
-            <div className="bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
-              <span className="text-[8px] font-black uppercase text-primary tracking-widest">{rankData.current.discount}% Discount Active</span>
             </div>
           </div>
 
@@ -231,7 +259,7 @@ export default function DashboardPage() {
             </div>
             <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
               <div 
-                className="absolute top-0 left-0 h-full bg-primary transition-all duration-1000 shadow-[0_0_10px_#DC2626]" 
+                className="absolute top-0 left-0 h-full bg-primary transition-all duration-1000" 
                 style={{ width: `${rankData.progress}%` }} 
               />
             </div>
@@ -263,7 +291,7 @@ export default function DashboardPage() {
           </Link>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-3 pb-10">
           {ordersLoading ? (
             <div className="flex justify-center py-10">
               <Loader2 className="h-6 w-6 text-primary animate-spin" />
