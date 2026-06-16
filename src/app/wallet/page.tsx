@@ -48,11 +48,36 @@ export default function WalletDashboard() {
   }, [rawTransactions]);
 
   const rankInfo = useMemo(() => {
-    if (lifetimeSpend >= 75000) return { name: 'IMMORTAL', discount: 6, next: 'MAX RANK', nextThreshold: 75000, progress: 100 };
-    if (lifetimeSpend >= 35000) return { name: 'MYTHICAL GLORY', discount: 4, next: 'IMMORTAL', nextThreshold: 75000, progress: Math.floor(((lifetimeSpend - 35000) / 40000) * 100) };
-    if (lifetimeSpend >= 15000) return { name: 'PLATINUM', discount: 2, next: 'MYTHICAL GLORY', nextThreshold: 35000, progress: Math.floor(((lifetimeSpend - 15000) / 20000) * 100) };
-    if (lifetimeSpend >= 5000) return { name: 'GOLD', discount: 1, next: 'PLATINUM', nextThreshold: 15000, progress: Math.floor(((lifetimeSpend - 5000) / 10000) * 100) };
-    return { name: 'SILVER', discount: 0, next: 'GOLD', nextThreshold: 5000, progress: Math.floor((lifetimeSpend / 5000) * 100) };
+    const RANKS = [
+      { name: 'Warrior', threshold: 0, discount: 0 },
+      { name: 'Elite', threshold: 500, discount: 0 },
+      { name: 'Master', threshold: 1500, discount: 0 },
+      { name: 'Grandmaster', threshold: 3000, discount: 0 },
+      { name: 'Epic', threshold: 7500, discount: 0 },
+      { name: 'Legend', threshold: 15000, discount: 0 },
+      { name: 'Mythic', threshold: 30000, discount: 0 },
+      { name: 'Mythical Honor', threshold: 50000, discount: 1 },
+      { name: 'Mythical Glory', threshold: 75000, discount: 2 },
+      { name: 'Mythical Immortal', threshold: 100000, discount: 3 },
+    ];
+
+    let currentIdx = 0;
+    for (let i = RANKS.length - 1; i >= 0; i--) {
+      if (lifetimeSpend >= RANKS[i].threshold) {
+        currentIdx = i;
+        break;
+      }
+    }
+
+    const current = RANKS[currentIdx];
+    const next = currentIdx < RANKS.length - 1 ? RANKS[currentIdx + 1] : null;
+    
+    let progress = 100;
+    if (next) {
+      progress = Math.min(100, Math.floor(((lifetimeSpend - current.threshold) / (next.threshold - current.threshold)) * 100));
+    }
+
+    return { ...current, next: next?.name || 'MAX RANK', nextThreshold: next?.threshold || current.threshold, progress };
   }, [lifetimeSpend]);
 
   if (userLoading || walletLoading) {
@@ -87,75 +112,71 @@ export default function WalletDashboard() {
         </div>
       </header>
 
-      {/* PREMIUM DEBIT CARD */}
-      <div className="relative w-full aspect-[1.58/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-95">
+      {/* PREMIUM DEBIT CARD - COMPACT REFINEMENT */}
+      <div className="relative w-full aspect-[2.1/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-95">
         {/* Background Layers */}
         <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-10" />
         
-        {/* Shine Animation Overlay */}
-        <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 z-20" />
-
         {/* Card Elements */}
-        <div className="relative h-full p-6 flex flex-col justify-between z-10">
+        <div className="relative h-full p-4 flex flex-col justify-between z-10">
           {/* Top Section */}
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="font-headline font-black text-xl tracking-tighter text-white/90">AATMA HUB</span>
-              <span className="text-[7px] font-black text-primary uppercase tracking-[0.4em]">Digital Banking Layer</span>
+              <span className="font-headline font-black text-base tracking-tighter text-white/90">AATMA HUB</span>
+              <span className="text-[5px] font-black text-primary uppercase tracking-[0.4em]">Digital Banking Layer</span>
             </div>
             
-            <div className="flex flex-col items-end">
-              <div className="bg-white/10 backdrop-blur-md border border-white/10 px-3 py-1 rounded-xl flex items-center gap-2 shadow-2xl">
-                 <Crown size={11} className="text-primary fill-primary/20" />
-                 <span className="text-[9px] font-black uppercase text-white tracking-widest">{rankInfo.name}</span>
-              </div>
-              {rankInfo.discount > 0 && (
-                <span className="text-[7px] font-black text-green-400 uppercase tracking-widest mt-1.5 drop-shadow-md">
-                   {rankInfo.discount}% Discount Unlocked
-                </span>
-              )}
+            <div className="bg-white/10 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-2xl">
+               <Crown size={8} className="text-primary fill-primary/20" />
+               <span className="text-[7px] font-black uppercase text-white tracking-widest">{rankInfo.name}</span>
             </div>
           </div>
 
           {/* Center Section: Chip & Balance */}
-          <div className="flex items-center gap-6">
-             <div className="h-10 w-14 bg-gradient-to-br from-yellow-600 via-yellow-400 to-yellow-700 rounded-lg relative overflow-hidden flex items-center justify-center border border-yellow-200/30 shadow-inner shrink-0">
-                <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1.5 opacity-30">
+          <div className="flex items-center gap-4">
+             <div className="h-7 w-10 bg-gradient-to-br from-yellow-600 via-yellow-400 to-yellow-700 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-200/30 shadow-inner shrink-0">
+                <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-20">
                    {[...Array(9)].map((_, i) => <div key={i} className="border border-black/40 rounded-sm" />)}
                 </div>
-                <Cpu className="absolute h-6 w-6 text-black/20" />
+                <Cpu className="absolute h-4 w-4 text-black/20" />
              </div>
              
-             <div className="space-y-0.5">
-                <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Available Credits</span>
-                <h2 className="text-5xl font-black text-white tracking-tighter drop-shadow-2xl">
-                  ₹{balance.toLocaleString()}<span className="text-2xl text-white/40">.00</span>
+             <div className="space-y-0">
+                <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em]">Available Credits</span>
+                <h2 className="text-3xl font-black text-white tracking-tighter leading-none">
+                  ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
                 </h2>
              </div>
           </div>
 
-          {/* Bottom Section */}
-          <div className="flex justify-between items-end">
-             <div className="space-y-1">
-                <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">Card Holder</span>
-                <p className="text-sm font-black text-white uppercase tracking-tight">{profile?.fullName || 'AATMA OPERATOR'}</p>
-             </div>
-             <div className="text-right space-y-1">
-                <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">Since</span>
-                <p className="text-sm font-black text-white uppercase tracking-tight">
-                  {new Date(profile?.createdAt || Date.now()).getFullYear()}
-                </p>
-             </div>
+          {/* Bottom Section - Identity & Compact Stats */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-end">
+               <div className="space-y-0.5">
+                  <span className="text-[7px] font-black text-white/30 uppercase tracking-widest leading-none">Card Holder</span>
+                  <p className="text-xs font-black text-white uppercase tracking-tight leading-none">{profile?.fullName || 'AATMA OPERATOR'}</p>
+               </div>
+               <div className="text-right space-y-0.5">
+                  <span className="text-[7px] font-black text-white/30 uppercase tracking-widest leading-none">Member Since</span>
+                  <p className="text-xs font-black text-white uppercase tracking-tight leading-none">
+                    {new Date(profile?.createdAt || Date.now()).getFullYear()}
+                  </p>
+               </div>
+            </div>
+            
+            {/* Compact Info Row */}
+            <div className="flex justify-between items-center text-[6px] font-black uppercase text-white/20 tracking-widest pt-1.5 border-t border-white/5">
+               <span>Rank: {rankInfo.name}</span>
+               <span className="text-primary/60">Disc: {rankInfo.discount}%</span>
+               <span>Spend: ₹{lifetimeSpend.toLocaleString()}</span>
+            </div>
           </div>
         </div>
 
-        {/* Ambient Glow */}
-        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-primary/20 blur-[60px] rounded-full pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.02] pointer-events-none -rotate-12 select-none">
-           <h1 className="text-9xl font-black uppercase tracking-tighter">AATMA</h1>
-        </div>
+        {/* Animated Shine Overlay */}
+        <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 z-20" />
       </div>
 
       {/* QUICK ACTIONS */}

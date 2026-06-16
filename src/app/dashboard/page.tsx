@@ -2,7 +2,7 @@
 "use client"
 
 import { useMemo, useEffect, useState } from "react";
-import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2, Crown, Cpu, ShieldCheck, Target, Zap, ChevronRight } from "lucide-react";
+import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2, Crown, Cpu, ShieldCheck, Target, Zap, ChevronRight, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -114,48 +114,56 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      {/* PREMIUM DEBIT CARD MINI VERSION */}
+      {/* PREMIUM DEBIT CARD COMPACT VERSION */}
       <Link href="/wallet" className="block w-full">
-        <div className="relative w-full aspect-[1.58/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-[0.98]">
+        <div className="relative w-full aspect-[2.1/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-[0.98]">
           <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
           
-          <div className="relative h-full p-6 flex flex-col justify-between z-10">
+          <div className="relative h-full p-4 flex flex-col justify-between z-10">
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
-                <span className="font-headline font-black text-lg tracking-tighter text-white/90 uppercase">AATMA HUB</span>
-                <span className="text-[6px] font-black text-primary uppercase tracking-[0.4em]">Digital Banking</span>
+                <span className="font-headline font-black text-base tracking-tighter text-white/90 uppercase">AATMA HUB</span>
+                <span className="text-[5px] font-black text-primary uppercase tracking-[0.4em]">Digital Banking</span>
               </div>
               <div className="bg-white/10 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-xl">
-                 <Crown size={9} className="text-primary" />
-                 <span className="text-[8px] font-black uppercase text-white tracking-widest">{rankData.current.name}</span>
+                 <Crown size={8} className="text-primary" />
+                 <span className="text-[7px] font-black uppercase text-white tracking-widest">{rankData.current.name}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-               <div className="h-8 w-11 bg-gradient-to-br from-yellow-600 to-yellow-200 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-400/50 shadow-inner shrink-0">
+               <div className="h-7 w-10 bg-gradient-to-br from-yellow-600 to-yellow-200 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-400/50 shadow-inner shrink-0">
                   <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-40">
                      {[...Array(9)].map((_, i) => <div key={i} className="border border-black/20" />)}
                   </div>
-                  <Cpu className="absolute h-4 w-4 text-black/20" />
+                  <Cpu className="absolute h-3 w-3 text-black/20" />
                </div>
                
-               <div className="space-y-0.5">
-                  <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Available Balance</span>
-                  <h2 className="text-4xl font-black text-white tracking-tighter">
-                    ₹{balance.toLocaleString()}<span className="text-xl text-white/40">.00</span>
+               <div className="space-y-0">
+                  <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">Available Balance</span>
+                  <h2 className="text-3xl font-black text-white tracking-tighter leading-none">
+                    ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
                   </h2>
                </div>
             </div>
 
-            <div className="flex justify-between items-end">
-               <div className="space-y-1">
-                  <span className="text-[7px] font-black text-white/30 uppercase tracking-widest">Identity</span>
-                  <p className="text-xs font-black text-white uppercase tracking-tighter">{profile?.fullName || 'AATMA USER'}</p>
+            <div className="space-y-1.5">
+               <div className="flex justify-between items-end">
+                  <div className="space-y-0.5">
+                     <span className="text-[6px] font-black text-white/30 uppercase tracking-widest leading-none">Identity</span>
+                     <p className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">{profile?.fullName || 'AATMA USER'}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {rankData.current.discount > 0 && <span className="text-[7px] font-black text-green-400 uppercase tracking-widest">{rankData.current.discount}% Discount</span>}
+                    <ArrowRight className="h-3 w-3 text-white/40 group-hover:text-primary transition-colors" />
+                  </div>
                </div>
-               <div className="flex items-center gap-2">
-                 {rankData.current.discount > 0 && <span className="text-[8px] font-black text-green-400 uppercase tracking-widest">{rankData.current.discount}% Discount</span>}
-                 <ArrowRight className="h-4 w-4 text-white/40 group-hover:text-primary transition-colors" />
+               
+               <div className="flex justify-between items-center text-[5px] font-black uppercase text-white/20 tracking-widest pt-1 border-t border-white/5">
+                  <span>Rank: {rankData.current.name}</span>
+                  <span className="text-primary/50">Disc: {rankData.current.discount}%</span>
+                  <span>Spend: ₹{lifetimeSpend.toLocaleString()}</span>
                </div>
             </div>
           </div>
@@ -272,20 +280,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-const ArrowRight = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    width="24" 
-    height="24" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
-  </svg>
-);
