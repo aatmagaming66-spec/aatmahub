@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, setDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, setDoc, deleteDoc, doc, query } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,10 +41,9 @@ export default function AdminProductsPage() {
     thumbnail: ''
   });
 
-  // Master Registry Query
+  // Master Registry Query - Removed orderBy to prevent hidden documents
   const productsQuery = useMemo(() => query(
-    collection(db, 'products'),
-    orderBy('name', 'asc')
+    collection(db, 'products')
   ), [db]);
 
   const { data: products, loading } = useCollection(productsQuery);

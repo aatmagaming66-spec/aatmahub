@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, setDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, setDoc, deleteDoc, doc, query } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,10 +43,9 @@ export default function GameManagementPage() {
     sortOrder: 0
   });
 
-  // MEMOIZE QUERY TO PREVENT INFINITE LOOPS
+  // Master Registry Query - Removed orderBy to reveal all documents
   const gamesQuery = useMemo(() => query(
-    collection(db, 'games'), 
-    orderBy('sortOrder', 'asc')
+    collection(db, 'games')
   ), [db]);
 
   const { data: games, loading } = useCollection(gamesQuery);
@@ -93,7 +92,7 @@ export default function GameManagementPage() {
       setEditingGame(null);
       setFormData({
         id: '', name: '', slug: '', status: 'active', icon: '', cardImage: '', banner: '', thumbnail: '',
-        requirePlayerId: true, requireServerId: true, requireVerifyId: false, sortOrder: games.length + 1
+        requirePlayerId: true, requireServerId: true, requireVerifyId: false, sortOrder: (games?.length || 0) + 1
       });
     }
     setIsModalOpen(true);
@@ -258,7 +257,7 @@ export default function GameManagementPage() {
             <div className="space-y-4 pt-4 border-t border-border">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-10px] font-black uppercase">Enable Game</Label>
+                  <Label className="text-[10px] font-black uppercase">Enable Game</Label>
                   <p className="text-[8px] text-muted-foreground uppercase font-black">Visibility on frontend</p>
                 </div>
                 <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
