@@ -1,25 +1,20 @@
+
 "use client"
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, ShieldCheck, Zap, ShoppingBag, ArrowRight, Gamepad2 } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Zap, ShoppingBag, ArrowRight, Gamepad2, Loader2, PackageSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/firebase/auth/use-user";
-
-const PACKS = [
-  { id: "p1", name: "86 Diamonds", price: 99, currency: "₹", tab: "small" },
-  { id: "p2", name: "172 Diamonds", price: 199, currency: "₹", tab: "small" },
-  { id: "p3", name: "257 Diamonds", price: 299, currency: "₹", tab: "small" },
-  { id: "p4", name: "429 Diamonds", price: 499, currency: "₹", tab: "large" },
-  { id: "p5", name: "Weekly Pass", price: 159, currency: "₹", badge: "Hot", tab: "pass" },
-  { id: "p6", name: "Monthly Pass", price: 799, currency: "₹", tab: "pass" },
-];
+import { useFirestore } from "@/firebase/provider";
+import { collection, query, where } from "firebase/firestore";
+import { useCollection } from "@/firebase/firestore/use-collection";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -27,8 +22,18 @@ export default function ProductPage() {
   const { toast } = useToast();
   const { addItem, clearCart } = useCart();
   const { user } = useUser();
+  const db = useFirestore();
   
-  const [selectedPack, setSelectedPack] = useState(PACKS[0]);
+  // Real-time listener for products belonging to this category
+  const productsQuery = useMemo(() => query(
+    collection(db, 'products'),
+    where('category', '==', id),
+    where('status', '==', 'active')
+  ), [db, id]);
+
+  const { data: packs, loading: productsLoading } = useCollection(productsQuery);
+
+  const [selectedPack, setSelectedPack] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("small");
   const [playerId, setPlayerId] = useState("");
   const [serverId, setServerId] = useState("");
@@ -36,6 +41,14 @@ export default function ProductPage() {
   const [isVerified, setIsVerified] = useState(false);
 
   const productName = id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
+
+  // Auto-select first pack when data arrives
+  useMemo(() => {
+    if (packs.length > 0 && !selectedPack) {
+      setSelectedPack(packs[0]);
+      setActiveTab(packs[0].tab || 'small');
+    }
+  }, [packs, selectedPack]);
 
   const handleVerify = () => {
     if (!playerId || !serverId) {
@@ -87,15 +100,17 @@ export default function ProductPage() {
       return;
     }
 
+    if (!selectedPack) return;
+
     const cartId = `${id}-${selectedPack.id}-${playerId}`;
     addItem({
       id: cartId,
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: "", // Image-free
-      region: id?.toString().split('-')[1]?.toUpperCase() || "GLOBAL",
-      tabName: selectedPack.tab.toUpperCase(),
+      image: "", 
+      region: selectedPack.region || "GLOBAL",
+      tabName: selectedPack.tab?.toUpperCase() || "PACKAGE",
       playerId,
       serverId,
       verifiedName: "AATMA_USER"
@@ -121,6 +136,8 @@ export default function ProductPage() {
       return;
     }
 
+    if (!selectedPack) return;
+
     const cartId = `${id}-${selectedPack.id}-${playerId}`;
     clearCart();
     addItem({
@@ -128,9 +145,9 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: "", // Image-free
-      region: id?.toString().split('-')[1]?.toUpperCase() || "GLOBAL",
-      tabName: selectedPack.tab.toUpperCase(),
+      image: "",
+      region: selectedPack.region || "GLOBAL",
+      tabName: selectedPack.tab?.toUpperCase() || "PACKAGE",
       playerId,
       serverId,
       verifiedName: "AATMA_USER"
@@ -142,7 +159,7 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      {/* Header Shell - Gradient instead of Image */}
+      {/* Dynamic Header */}
       <div className="relative w-full h-48 bg-gradient-to-br from-primary/30 via-background to-background border-b border-white/5">
         <div className="absolute inset-0 flex items-center justify-center opacity-5">
            <Gamepad2 size={120} className="text-white" />
@@ -196,7 +213,7 @@ export default function ProductPage() {
               onClick={handleVerify}
               disabled={verifying}
             >
-              {verifying ? "Searching Data..." : "Verify Player ID"}
+              {verifying ? <Loader2 className="animate-spin h-4 w-4" /> : "Verify Player ID"}
             </Button>
           ) : (
             <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center justify-between animate-in zoom-in-95">
@@ -208,7 +225,7 @@ export default function ProductPage() {
           )}
         </div>
 
-        {/* Product Selection */}
+        {/* Dynamic Product Selection */}
         <div className="space-y-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-4 bg-card border border-border h-12 rounded-2xl p-1.5">
@@ -219,36 +236,43 @@ export default function ProductPage() {
             </TabsList>
             
             <TabsContent value={activeTab} className="mt-6">
-              <div className="grid grid-cols-2 gap-4">
-                {PACKS.filter(p => p.tab === activeTab).map((pack) => (
-                  <button
-                    key={pack.id}
-                    onClick={() => setSelectedPack(pack)}
-                    className={cn(
-                      "relative p-5 rounded-2xl border transition-all text-left bg-card overflow-hidden group",
-                      selectedPack.id === pack.id 
-                        ? "border-primary shadow-[0_0_25px_rgba(220,38,38,0.15)] bg-primary/5" 
-                        : "border-border hover:border-accent/30"
-                    )}
-                  >
-                    <div className="flex flex-col gap-1">
-                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none">Package</span>
-                      <span className="text-sm font-black text-white">{pack.name}</span>
-                    </div>
-                    <div className="mt-4 flex items-baseline gap-1">
-                      <span className="text-lg font-black text-primary">{pack.currency}{pack.price}</span>
-                    </div>
-                    {pack.badge && (
-                      <span className="absolute -top-1 -right-1 bg-accent text-white text-[8px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-tighter">
-                        {pack.badge}
-                      </span>
-                    )}
-                    {selectedPack.id === pack.id && (
-                      <CheckCircle2 className="absolute bottom-4 right-4 h-5 w-5 text-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
+              {productsLoading ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                  <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-40">Syncing Packages...</p>
+                </div>
+              ) : packs.filter(p => p.tab === activeTab).length === 0 ? (
+                <div className="bg-card border border-dashed border-border rounded-3xl p-10 text-center space-y-3">
+                  <PackageSearch className="mx-auto h-8 w-8 text-muted-foreground opacity-20" />
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No packages available in this tab</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-4">
+                  {packs.filter(p => p.tab === activeTab).map((pack) => (
+                    <button
+                      key={pack.id}
+                      onClick={() => setSelectedPack(pack)}
+                      className={cn(
+                        "relative p-5 rounded-2xl border transition-all text-left bg-card overflow-hidden group",
+                        selectedPack?.id === pack.id 
+                          ? "border-primary shadow-[0_0_25px_rgba(220,38,38,0.15)] bg-primary/5" 
+                          : "border-border hover:border-accent/30"
+                      )}
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest leading-none">Package</span>
+                        <span className="text-sm font-black text-white">{pack.name}</span>
+                      </div>
+                      <div className="mt-4 flex items-baseline gap-1">
+                        <span className="text-lg font-black text-primary">₹{pack.price}</span>
+                      </div>
+                      {selectedPack?.id === pack.id && (
+                        <CheckCircle2 className="absolute bottom-4 right-4 h-5 w-5 text-primary" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>
@@ -257,6 +281,7 @@ export default function ProductPage() {
         <div className="flex flex-col gap-4">
           <Button 
             onClick={handleBuyNow}
+            disabled={!selectedPack || productsLoading}
             className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl group transition-all"
           >
             Buy Now
@@ -265,6 +290,7 @@ export default function ProductPage() {
           <Button 
             variant="outline" 
             onClick={handleAddToCart}
+            disabled={!selectedPack || productsLoading}
             className="w-full h-14 border-white/10 bg-transparent text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-white/5 transition-all gap-2"
           >
             <ShoppingBag className="h-4 w-4" /> Add to Cart

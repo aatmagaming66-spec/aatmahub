@@ -1,16 +1,22 @@
+
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { useFirestore, useStorage } from '@/firebase/provider';
+import { useState, useMemo } from 'react';
+import { useFirestore } from '@/firebase/provider';
 import { collection, setDoc, deleteDoc, doc, query, orderBy, limit } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Progress } from '@/components/ui/progress';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { 
   Dialog,
   DialogContent,
@@ -18,20 +24,16 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Upload, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Layers, Globe } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
 
 export default function AdminProductsPage() {
   const db = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [formData, setFormData] = useState({
     id: '',
@@ -40,29 +42,36 @@ export default function AdminProductsPage() {
     category: '',
     region: 'Global',
     tab: 'small',
-    status: 'active',
-    thumbnailUrl: '',
-    bannerUrl: ''
+    status: 'active'
   });
 
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
-    limit(50)
+    limit(100)
   ), [db]);
 
-  const gamesQuery = useMemo(() => query(
-    collection(db, 'games'), 
-    orderBy('sortOrder', 'asc')
-  ), [db]);
+  const gamesQuery = useMemo(() => query(collection(db, 'games')), [db]);
+  const ottQuery = useMemo(() => query(collection(db, 'ott_services')), [db]);
+  const socialQuery = useMemo(() => query(collection(db, 'social_services')), [db]);
 
   const { data: products, loading: productsLoading } = useCollection(productsQuery);
   const { data: games } = useCollection(gamesQuery);
+  const { data: ott } = useCollection(ottQuery);
+  const { data: social } = useCollection(socialQuery);
+
+  const categories = useMemo(() => {
+    return [
+      ...(games || []).map(g => ({ id: g.id, name: g.name, type: 'Game' })),
+      ...(ott || []).map(o => ({ id: o.id, name: o.name, type: 'OTT' })),
+      ...(social || []).map(s => ({ id: s.id, name: s.name, type: 'Social' }))
+    ];
+  }, [games, ott, social]);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
     return products.filter(p => 
       p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.id?.toLowerCase().includes(searchQuery.toLowerCase())
+      p.category?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [products, searchQuery]);
 
@@ -76,51 +85,26 @@ export default function AdminProductsPage() {
         category: product.category || '',
         region: product.region || 'Global',
         tab: product.tab || 'small',
-        status: product.status || 'active',
-        thumbnailUrl: product.thumbnailUrl || '',
-        bannerUrl: product.bannerUrl || ''
+        status: product.status || 'active'
       });
     } else {
       setEditingProduct(null);
       setFormData({ 
         id: '', name: '', price: '', category: '', region: 'Global', tab: 'small',
-        status: 'active', thumbnailUrl: '', bannerUrl: '' 
+        status: 'active'
       });
     }
     setIsModalOpen(true);
   };
 
-  const handleFileUpload = async (file: File, type: 'thumbnail' | 'banner') => {
-    if (!file) return;
-    setUploading(true);
-    setUploadProgress(0);
-
-    const storageRef = ref(storage, `products/${formData.id || 'new'}/${type}_${Date.now()}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on('state_changed', 
-      (snap) => setUploadProgress((snap.bytesTransferred / snap.totalBytes) * 100),
-      (err) => {
-        toast({ variant: 'destructive', title: 'Upload Error', description: err.message });
-        setUploading(false);
-      },
-      async () => {
-        const url = await getDownloadURL(uploadTask.snapshot.ref);
-        setFormData(prev => ({ ...prev, [type === 'thumbnail' ? 'thumbnailUrl' : 'bannerUrl']: url }));
-        setUploading(false);
-        toast({ title: 'Media Synced', description: 'Product image updated.' });
-      }
-    );
-  };
-
   const handleSave = async () => {
-    if (!formData.id || !formData.name || !formData.price || !formData.category) {
-      toast({ variant: 'destructive', title: 'Validation Error', description: 'Missing mandatory fields.' });
+    if (!formData.name || !formData.price || !formData.category) {
+      toast({ variant: 'destructive', title: 'Validation Error', description: 'Mandatory fields missing (Name, Price, Category).' });
       return;
     }
     setSaving(true);
     try {
-      const pId = formData.id.toLowerCase().replace(/\s+/g, '-');
+      const pId = formData.id || `${formData.category}-${Date.now()}`;
       const dataToSave = {
         ...formData,
         id: pId,
@@ -129,7 +113,7 @@ export default function AdminProductsPage() {
       };
 
       await setDoc(doc(db, 'products', pId), dataToSave, { merge: true });
-      toast({ title: "Product Registry Updated", description: `${formData.name} configuration synchronized.` });
+      toast({ title: "Package Registry Updated", description: `${formData.name} is now live.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
@@ -139,10 +123,10 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently remove this product?')) return;
+    if (!confirm('Permanently remove this package from the registry?')) return;
     try {
       await deleteDoc(doc(db, 'products', id));
-      toast({ title: "Product Terminated" });
+      toast({ title: "Package Purged" });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Delete Failed', description: e.message });
     }
@@ -152,18 +136,18 @@ export default function AdminProductsPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Product Registry</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Package & Asset Management</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Package Registry</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital SKU Management</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
-          <Plus size={16} /> Deploy New Package
+          <Plus size={16} /> Deploy New SKU
         </Button>
       </header>
 
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Search product registry..." 
+          placeholder="Search SKUs or Categories..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
@@ -181,23 +165,19 @@ export default function AdminProductsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((p) => (
             <Card key={p.id} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
-              <div className="relative h-32 w-full bg-black/40 overflow-hidden">
-                {p.bannerUrl || p.thumbnailUrl ? (
-                  <Image src={p.bannerUrl || p.thumbnailUrl} alt={p.name} fill className="object-cover opacity-50" />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center text-white/5"><Package size={40} /></div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
-                <div className="absolute top-4 left-4 flex gap-2">
-                   <div className="bg-black/60 rounded-lg px-3 py-1 text-primary font-black text-xs border border-white/5 shadow-xl">
-                      ₹{p.price}
-                    </div>
-                </div>
-              </div>
               <CardContent className="p-6 space-y-6">
-                <div>
-                  <h3 className="text-sm font-black uppercase tracking-tight truncate text-white">{p.name}</h3>
-                  <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mt-0.5">{p.category} • {p.region}</p>
+                <div className="flex justify-between items-start">
+                   <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-primary">
+                        <Tag size={10} />
+                        <span className="text-[8px] font-black uppercase tracking-widest">{p.category}</span>
+                      </div>
+                      <h3 className="text-sm font-black uppercase tracking-tight text-white">{p.name}</h3>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-lg font-black text-primary leading-none">₹{p.price}</p>
+                      <p className="text-[7px] font-black uppercase opacity-40 mt-1">{p.tab}</p>
+                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -218,20 +198,33 @@ export default function AdminProductsPage() {
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase tracking-tighter">
-              {editingProduct ? 'Configure Product' : 'Registry Entry'}
+              {editingProduct ? 'Configure SKU' : 'Registry Entry'}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto no-scrollbar">
+          <div className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2 col-span-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Product Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="86 Diamonds" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+                <Label className="text-[9px] font-black uppercase tracking-widest">Package Name</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. 86 Diamonds" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
               </div>
+
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Entry ID</Label>
-                <Input disabled={!!editingProduct} value={formData.id} onChange={(e) => setFormData({...formData, id: e.target.value})} placeholder="product-id" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+                <Label className="text-[9px] font-black uppercase tracking-widest">Parent Category</Label>
+                <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
+                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
+                    <SelectValue placeholder="Select Title" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    {categories.map((c) => (
+                      <SelectItem key={c.id} value={c.id} className="text-[10px] font-black uppercase">
+                        {c.name} ({c.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+
               <div className="space-y-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest">Price (INR)</Label>
                 <div className="relative">
@@ -239,54 +232,49 @@ export default function AdminProductsPage() {
                   <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} placeholder="99" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold pl-10" />
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4">
-              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Media Assets</Label>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <span className="text-[8px] font-black uppercase">Thumbnail URL</span>
-                  <div className="flex gap-2">
-                    <Input value={formData.thumbnailUrl} onChange={(e) => setFormData({...formData, thumbnailUrl: e.target.value})} className="bg-black/50 border-border h-10 rounded-xl text-[10px]" placeholder="https://..." />
-                    <input type="file" id="thumb-up" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'thumbnail')} />
-                    <Button variant="outline" asChild className="h-10 w-10 p-0 rounded-xl cursor-pointer"><label htmlFor="thumb-up"><Upload size={14} /></label></Button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[8px] font-black uppercase">Banner URL</span>
-                  <div className="flex gap-2">
-                    <Input value={formData.bannerUrl} onChange={(e) => setFormData({...formData, bannerUrl: e.target.value})} className="bg-black/50 border-border h-10 rounded-xl text-[10px]" placeholder="https://..." />
-                    <input type="file" id="banner-up" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'banner')} />
-                    <Button variant="outline" asChild className="h-10 w-10 p-0 rounded-xl cursor-pointer"><label htmlFor="banner-up"><Upload size={14} /></label></Button>
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Catalog Tab</Label>
+                <Select value={formData.tab} onValueChange={(val) => setFormData({...formData, tab: val})}>
+                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
+                    <SelectValue placeholder="Select Tab" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="small" className="text-[10px] font-black uppercase">Small Packs</SelectItem>
+                    <SelectItem value="large" className="text-[10px] font-black uppercase">Large Packs</SelectItem>
+                    <SelectItem value="pass" className="text-[10px] font-black uppercase">Passes</SelectItem>
+                    <SelectItem value="promo" className="text-[10px] font-black uppercase">Promo</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              
-              {uploading && <Progress value={uploadProgress} className="h-1" />}
-              
-              <div className="relative h-24 w-full rounded-xl overflow-hidden border border-white/5 bg-black/40">
-                {formData.bannerUrl || formData.thumbnailUrl ? (
-                  <Image src={formData.bannerUrl || formData.thumbnailUrl} alt="Preview" fill className="object-cover opacity-50" />
-                ) : <div className="h-full w-full flex items-center justify-center text-white/5"><ImageIcon size={20} /></div>}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[8px] font-black uppercase bg-black/60 px-3 py-1 rounded-full">Preview Mode</span>
-                </div>
+
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Region</Label>
+                <Select value={formData.region} onValueChange={(val) => setFormData({...formData, region: val})}>
+                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
+                    <SelectValue placeholder="Global" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="Global" className="text-[10px] font-black uppercase">Global</SelectItem>
+                    <SelectItem value="India" className="text-[10px] font-black uppercase">India</SelectItem>
+                    <SelectItem value="Indonesia" className="text-[10px] font-black uppercase">Indonesia</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
               <div className="space-y-0.5">
-                <Label className="text-[10px] font-black uppercase">Enable Package</Label>
-                <p className="text-[8px] text-muted-foreground uppercase font-black">Visibility in marketplace</p>
+                <Label className="text-[10px] font-black uppercase">SKU Operational Status</Label>
+                <p className="text-[8px] text-muted-foreground uppercase font-black">Visibility in catalog</p>
               </div>
               <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
             </div>
           </div>
 
           <DialogFooter>
-            <Button onClick={handleSave} disabled={saving || uploading} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Authorize Deployment"}
+            <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
+              {saving ? <Loader2 className="animate-spin" /> : "Commit SKU Registry"}
             </Button>
           </DialogFooter>
         </DialogContent>

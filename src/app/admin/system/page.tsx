@@ -1,28 +1,24 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useFirestore, useStorage } from '@/firebase/provider';
+import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc, writeBatch } from 'firebase/firestore';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ShieldCheck, Zap, Database, Bot, Smartphone, Terminal, Loader2, RefreshCcw, History, Wrench, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { Activity, ShieldCheck, Zap, Database, Bot, Terminal, Loader2, RefreshCcw, History, Wrench, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
 export default function SystemHealthPage() {
   const db = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [repairing, setRepairing] = useState(false);
-  const [migrating, setMigrating] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [health, setHealth] = useState<any>({
     firestore: 'checking',
-    telegram: 'checking',
-    phonepe: 'checking',
-    smileone: 'checking',
-    unipin: 'checking'
+    telegram: 'checking'
   });
 
   const logsQuery = useMemo(() => query(
@@ -46,48 +42,45 @@ export default function SystemHealthPage() {
     setLoading(false);
   };
 
-  // PERFORMANCE: Payload Migration Tool (Base64 -> Storage URL)
-  const migrateAssets = async () => {
-    if (!confirm('This will find documents with Base64 images and move them to Firebase Storage. Continue?')) return;
-    setMigrating(true);
-    let migratedCount = 0;
-
+  const seedMarketplace = async () => {
+    if (!confirm('Deploy dynamic marketplace data? This will seed Games and initial Products.')) return;
+    setSeeding(true);
     try {
-      const collections = ['games', 'ott_services', 'social_services', 'products'];
-      for (const colName of collections) {
-        const snap = await getDocs(collection(db, colName));
-        for (const d of snap.docs) {
-          const data = d.data();
-          const updates: any = {};
-          
-          // Check for Base64 markers in known image fields
-          const fields = ['icon', 'cardImage', 'thumbnail', 'banner'];
-          for (const field of fields) {
-            if (data[field]?.startsWith('data:image')) {
-              const storageRef = ref(storage, `migrated/${colName}/${d.id}_${field}`);
-              await uploadString(storageRef, data[field], 'data_url');
-              updates[field] = await getDownloadURL(storageRef);
-              migratedCount++;
-            }
-          }
+      const batch = writeBatch(db);
+      
+      const sampleGames = [
+        { id: 'mlbb-global', name: 'Mobile Legends', slug: 'mlbb-global', status: 'active', sortOrder: 1, flag: '🌐' },
+        { id: 'mlbb-in', name: 'MLBB India', slug: 'mlbb-in', status: 'active', sortOrder: 2, flag: '🇮🇳' },
+        { id: 'ff-global', name: 'Free Fire', slug: 'ff-global', status: 'active', sortOrder: 3, flag: '🔥' }
+      ];
 
-          if (Object.keys(updates).length > 0) {
-            await setDoc(doc(db, colName, d.id), { ...updates, updatedAt: new Date().toISOString() }, { merge: true });
-          }
-        }
+      const sampleProducts = [
+        { id: 'ml-86', name: '86 Diamonds', price: 99, category: 'mlbb-global', tab: 'small', status: 'active' },
+        { id: 'ml-172', name: '172 Diamonds', price: 199, category: 'mlbb-global', tab: 'small', status: 'active' },
+        { id: 'ml-weekly', name: 'Weekly Pass', price: 159, category: 'mlbb-global', tab: 'pass', status: 'active' }
+      ];
+
+      for (const game of sampleGames) {
+        batch.set(doc(db, 'games', game.id), { ...game, updatedAt: new Date().toISOString() });
       }
-      toast({ title: "Migration Complete", description: `Successfully moved ${migratedCount} assets to Storage.` });
+
+      for (const prod of sampleProducts) {
+        batch.set(doc(db, 'products', prod.id), { ...prod, updatedAt: new Date().toISOString() });
+      }
+
+      await batch.commit();
+      toast({ title: 'Dynamic Seed Complete', description: 'Marketplace registry is now database-driven.' });
     } catch (e: any) {
-      toast({ variant: 'destructive', title: "Migration Error", description: e.message });
+      toast({ variant: 'destructive', title: 'Seed Failed', description: e.message });
     } finally {
-      setMigrating(false);
+      setSeeding(false);
     }
   };
 
   const repairRegistry = async () => {
     setRepairing(true);
     try {
-      const collections = ['games', 'ott_services', 'social_services'];
+      const collections = ['games', 'ott_services', 'social_services', 'products'];
       for (const colName of collections) {
         const snap = await getDocs(collection(db, colName));
         const docs = snap.docs;
@@ -99,7 +92,7 @@ export default function SystemHealthPage() {
           }, { merge: true });
         }
       }
-      toast({ title: "Repair Complete", description: "All documents now have valid sortOrder." });
+      toast({ title: "Registry Stabilized", description: "Standard operational fields restored site-wide." });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Repair Failed", description: error.message });
     } finally {
@@ -119,11 +112,11 @@ export default function SystemHealthPage() {
         <div className="flex gap-2">
           <Button 
             variant="outline" 
-            onClick={migrateAssets}
-            disabled={migrating}
+            onClick={seedMarketplace}
+            disabled={seeding}
             className="h-10 px-4 rounded-xl border-accent/20 bg-accent/5 text-accent font-black uppercase text-[10px] tracking-widest gap-2"
           >
-            {migrating ? <Loader2 size={12} className="animate-spin" /> : <ImageIcon size={12} />} Migrate Payload
+            {seeding ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} Initialize Marketplace
           </Button>
           <Button 
             variant="outline" 
