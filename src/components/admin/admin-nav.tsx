@@ -24,7 +24,7 @@ import {
   Gamepad2,
   Tv,
   Share2,
-  Image as ImageIcon,
+  ImageIcon,
   Home as HomeIcon,
   Layers,
   Wallet
