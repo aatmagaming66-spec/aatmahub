@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from "react";
@@ -11,15 +10,17 @@ import { useUser } from "@/firebase/auth/use-user";
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading } = useUser();
+  const { user, initialized, loading } = useUser();
 
   const NAV_ITEMS = [
     { label: "Home", icon: Home, href: "/" },
     { label: "Wallet", icon: Wallet, href: "/wallet" },
     { label: "Orders", icon: ClipboardList, href: "/orders" },
     { 
-      label: loading ? "Loading" : (user ? "Account" : "Login"), 
-      icon: loading ? Loader2 : (user ? UserCircle : LogIn), 
+      // CRITICAL FIX: Use 'initialized' to know if the Auth phase is done.
+      // Show Account/Login immediately once identity is known, even if profile data is still hydrating.
+      label: !initialized ? "Loading" : (user ? "Account" : "Login"), 
+      icon: !initialized ? Loader2 : (user ? UserCircle : LogIn), 
       href: user ? "/profile" : "/login" 
     },
   ];

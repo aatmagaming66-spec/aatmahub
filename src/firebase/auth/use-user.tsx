@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -47,12 +46,21 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // 1. Singleton Auth Listener
+    console.log('[PERF_HUB] Auth Listener Initializing...');
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      console.log('[PERF_HUB] Auth State Resolved:', firebaseUser ? `UID: ${firebaseUser.uid}` : 'Guest Session');
+      
       setUser(firebaseUser);
+      
+      // CRITICAL FIX: Resolve loading/initialized as soon as Auth is confirmed.
+      // This prevents the UI from hanging while waiting for the profile fetch.
       if (!firebaseUser) {
         setProfile(null);
         setLoading(false);
+        setInitialized(true);
+      } else {
+        // We have a user, but profile is still fetching. 
+        // We set initialized true so the UI can render the 'Account' state.
         setInitialized(true);
       }
     });
@@ -63,9 +71,12 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
 
-    // 2. Singleton Profile Listener (Persists through navigation)
+    console.log('[PERF_HUB] Profile Listener Initializing for:', user.uid);
     const userDocRef = doc(db, 'users', user.uid);
+    
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
+      console.log('[PERF_HUB] Profile Snapshot Received');
+      
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
@@ -88,11 +99,13 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (needsUpdate) {
-          updateDoc(userDocRef, updatePayload);
+          console.log('[PERF_HUB] Syncing Profile Schema Defaults...');
+          updateDoc(userDocRef, updatePayload).catch(e => console.error('Silent update failure', e));
         }
         
         setProfile({ ...data, ...updatePayload });
       } else {
+        console.log('[PERF_HUB] Creating New User Profile...');
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         const newProfile: UserProfile = {
           uid: user.uid,
@@ -106,12 +119,13 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           rankId: 'warrior',
           createdAt: new Date().toISOString(),
         };
-        setDoc(userDocRef, newProfile);
+        setDoc(userDocRef, newProfile).catch(e => console.error('Silent create failure', e));
       }
+      
       setLoading(false);
       setInitialized(true);
     }, (error) => {
-      console.error(`[Profile Audit] Firestore Read Error:`, error);
+      console.error(`[PERF_HUB] Profile Read Error:`, error);
       setLoading(false);
       setInitialized(true);
     });
