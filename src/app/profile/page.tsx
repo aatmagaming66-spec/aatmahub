@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -106,8 +105,8 @@ export default function ProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 1 * 1024 * 1024) {
-      toast({ variant: 'destructive', title: 'Asset Restricted', description: 'Maximum file size is 1MB.' });
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'Asset Restricted', description: 'Maximum file size is 5MB.' });
       return;
     }
 
@@ -338,7 +337,7 @@ export default function ProfilePage() {
                     accept="image/png, image/jpeg, image/webp" 
                     onChange={handleFileChange} 
                   />
-                  <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">JPG, PNG, WEBP (Max 1MB)</p>
+                  <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">JPG, PNG, WEBP (Max 5MB)</p>
                 </div>
 
                 <div className="space-y-4">

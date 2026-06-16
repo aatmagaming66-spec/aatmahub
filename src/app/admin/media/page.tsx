@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -26,8 +25,8 @@ export default function MediaManagementPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum size is 2MB.' });
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum size is 5MB.' });
       return;
     }
 
@@ -133,7 +132,7 @@ export default function MediaManagementPage() {
           <span className="text-[10px] font-black uppercase tracking-widest text-primary">Media Protocol</span>
         </div>
         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          Assets are compressed automatically before transmission. Use .PNG or .JPG formats. Maximum file size per asset is 2MB for optimal kernel performance.
+          Assets are compressed automatically before transmission. Use .PNG or .JPG formats. Maximum file size per asset is 5MB for optimal kernel performance.
         </p>
       </div>
     </div>
