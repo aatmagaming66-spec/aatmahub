@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useEffect } from "react";
 import { HeroBanner } from "@/components/home/hero-banner";
 import { QuickActions } from "@/components/home/quick-actions";
 import { GameGrid } from "@/components/home/game-grid";
@@ -28,11 +29,18 @@ const SOCIAL_SERVICES = [
 export default function Home() {
   const logo = PlaceHolderImages.find(img => img.id === 'app-logo');
 
+  useEffect(() => {
+    const mountTime = performance.now();
+    if (window.__nav_click_time) {
+      console.log(`[NAV_TRACE] Route "/" loaded in ${(mountTime - window.__nav_click_time).toFixed(2)}ms`);
+      window.__nav_click_time = undefined;
+    }
+  }, []);
+
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <HeroBanner />
       
-      {/* Trust Badges Section */}
       <section className="px-4 py-0.5 mt-4">
         <div className="grid grid-cols-4 gap-1.5">
           <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
@@ -66,17 +74,11 @@ export default function Home() {
       </section>
       
       <QuickActions />
-      
       <GameGrid />
-      
       <ServiceCarousel title="OTT Services" items={OTT_SERVICES} />
-      
       <ServiceCarousel title="Social Services" items={SOCIAL_SERVICES} />
-
-      {/* Live Activity Feed */}
       <LiveActivity />
 
-      {/* Ultra Compact Premium Footer */}
       <footer className="px-6 py-10 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
         {logo && (
           <Image 

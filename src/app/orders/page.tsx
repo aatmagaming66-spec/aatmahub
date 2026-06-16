@@ -21,9 +21,11 @@ export default function OrdersPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    if (window.__nav_click_time) {
+      console.log(`[NAV_TRACE] Route "/orders" mounted in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
+    }
   }, []);
 
-  // FIX: Removed server-side orderBy to prevent Index failure
   const ordersQuery = useMemo(() => {
     if (!user) return null;
     return query(
@@ -34,32 +36,28 @@ export default function OrdersPage() {
 
   const { data: rawOrders, loading: ordersLoading, error } = useCollection(ordersQuery);
 
-  // FIX: Explicitly sort locally and filter
+  useEffect(() => {
+    if (!ordersLoading && isMounted) {
+      if (window.__nav_click_time) {
+        console.log(`[NAV_TRACE] Orders data ready in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
+        window.__nav_click_time = undefined;
+      }
+    }
+  }, [ordersLoading, isMounted]);
+
   const filteredOrders = useMemo(() => {
     if (!rawOrders) return [];
-    
-    // 1. Sort latest first
     const sorted = [...rawOrders].sort((a, b) => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-
-    // 2. Filter by search and tab
     return sorted.filter(order => {
       const productName = order.items?.[0]?.name || '';
       const matchesSearch = order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            productName.toLowerCase().includes(searchQuery.toLowerCase());
-      
       const matchesTab = activeTab === 'all' || order.status.toLowerCase() === activeTab.toLowerCase();
-      
       return matchesSearch && matchesTab;
     });
   }, [rawOrders, searchQuery, activeTab]);
-
-  useEffect(() => {
-    if (error) {
-      console.error('[Orders Audit] Query Failed:', error.message);
-    }
-  }, [error]);
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -130,7 +128,6 @@ export default function OrdersPage() {
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
                 {error ? 'Firestore Protocol Violation Detected' : 'No orders matching your criteria'}
               </p>
-              {error && <p className="text-[8px] text-primary/60 font-mono mt-2 uppercase">{error.message}</p>}
               <Link href="/" className="inline-block">
                 <Button variant="link" className="text-primary font-black uppercase text-[10px] tracking-widest">Start Shopping</Button>
               </Link>
@@ -153,9 +150,6 @@ export default function OrdersPage() {
                           </span>
                         </div>
                         <h4 className="text-base font-black uppercase tracking-tight">{firstItem.name}</h4>
-                        {order.items?.length > 1 && (
-                          <p className="text-[8px] font-black text-primary uppercase tracking-widest">+{order.items.length - 1} more items</p>
-                        )}
                       </div>
                       <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${statusStyle.bg} border border-white/5`}>
                         <StatusIcon size={12} className={`${statusStyle.color} ${statusStyle.animate || ''}`} />
@@ -171,15 +165,6 @@ export default function OrdersPage() {
                       <div className="flex flex-col items-end gap-1">
                         <span className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">Total Paid</span>
                         <span className="text-lg font-black text-white tracking-tighter leading-none">₹{order.totalAmount}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between opacity-50">
-                      <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em]">
-                        {isMounted ? `${new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • ${new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : '...'}
-                      </p>
-                      <div className="flex items-center gap-1 text-[9px] font-black uppercase tracking-widest group-hover:text-primary transition-colors">
-                        Details <ArrowRight size={10} />
                       </div>
                     </div>
                   </div>

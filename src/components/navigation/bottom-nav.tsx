@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from "react";
@@ -23,12 +24,16 @@ export function BottomNav() {
     },
   ];
 
-  // Aggressive route prefetching for instant navigation
   useEffect(() => {
     NAV_ITEMS.forEach((item) => {
       router.prefetch(item.href);
     });
   }, [router]);
+
+  const handleTrackClick = (href: string) => {
+    window.__nav_click_time = performance.now();
+    console.log(`[NAV_TRACE] Clicked ${href} at ${window.__nav_click_time.toFixed(2)}ms`);
+  };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border h-16 safe-area-bottom">
@@ -40,6 +45,7 @@ export function BottomNav() {
             <Link 
               key={item.href} 
               href={item.href}
+              onClick={() => handleTrackClick(item.href)}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-accent"

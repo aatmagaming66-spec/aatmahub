@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -29,6 +30,14 @@ export default function ProfilePage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    if (window.__nav_click_time) {
+      console.log(`[NAV_TRACE] Route "/profile" mounted in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
+    }
+  }, []);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet } = useDoc(walletRef);
@@ -37,9 +46,17 @@ export default function ProfilePage() {
     if (profile) {
       setFullName(profile.fullName || '');
       setPhoneNumber(profile.phoneNumber || '');
-      console.log(`[Admin Audit] Profile Page Role: ${profile.role}`);
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (!userLoading && isMounted) {
+      if (window.__nav_click_time) {
+        console.log(`[NAV_TRACE] Profile data ready in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
+        window.__nav_click_time = undefined;
+      }
+    }
+  }, [userLoading, isMounted]);
 
   useEffect(() => {
     if (!userLoading && !user) {

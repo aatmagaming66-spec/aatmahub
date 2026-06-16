@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo, useEffect, useState } from "react";
@@ -15,9 +16,13 @@ export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
   const db = useFirestore();
   const [isMounted, setIsMounted] = useState(false);
+  const [mountStartTime] = useState(performance.now());
 
   useEffect(() => {
     setIsMounted(true);
+    if (window.__nav_click_time) {
+      console.log(`[NAV_TRACE] Route "/dashboard" mounted in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
+    }
   }, []);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
@@ -32,6 +37,15 @@ export default function DashboardPage() {
   }, [user, db]);
 
   const { data: rawOrders, loading: ordersLoading } = useCollection(ordersQuery);
+
+  useEffect(() => {
+    if (!walletLoading && !ordersLoading && isMounted) {
+      if (window.__nav_click_time) {
+        console.log(`[NAV_TRACE] Dashboard data ready in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
+        window.__nav_click_time = undefined;
+      }
+    }
+  }, [walletLoading, ordersLoading, isMounted]);
 
   const orders = useMemo(() => {
     if (!rawOrders) return [];
