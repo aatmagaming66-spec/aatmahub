@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -17,7 +16,7 @@ import {
   AccordionContent, 
   AccordionItem, 
   AccordionTrigger 
-} from "@/components/ui/accordion";
+} from "@/components/accordion";
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
@@ -38,10 +37,11 @@ import {
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
 import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CheckoutPage() {
   const { items, totalAmount } = useCart();
-  const { user, profile, loading: userLoading } = useUser();
+  const { user, profile, loading: userLoading, initialized } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();
@@ -51,21 +51,21 @@ export default function CheckoutPage() {
 
   // REDIRECT GATING
   useEffect(() => {
-    if (!userLoading && (!items || items.length === 0)) {
+    if (initialized && (!items || items.length === 0)) {
       router.push('/cart');
     }
-  }, [items, userLoading, router]);
+  }, [items, initialized, router]);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
   const walletBalance = wallet?.balance ?? 0;
 
   useEffect(() => {
-    if (!userLoading && !user) {
+    if (initialized && !user) {
       toast({ variant: 'destructive', title: 'Session Required', description: 'Please login to complete your order.' });
       router.push('/login');
     }
-  }, [user, userLoading, router, toast]);
+  }, [user, initialized, router, toast]);
 
   // IDENTITY GROUPING LOGIC
   const groupedIdentities = useMemo(() => {
@@ -180,7 +180,7 @@ export default function CheckoutPage() {
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: orderRef.path, operation: 'create', requestResourceData: baseOrderData })));
         
         // 4. Update Lifetime Spending & Rank Persistence
-        const currentSpend = (profile as any)?.lifetimeSpend || 0;
+        const currentSpend = profile?.lifetimeSpend || 0;
         const newSpend = currentSpend + totalAmount;
         const newRank = getRankFromSpend(newSpend, DEFAULT_RANKS);
         
@@ -216,10 +216,6 @@ export default function CheckoutPage() {
     }
   };
 
-  if (userLoading || walletLoading || !user || !items || items.length === 0) {
-    return <div className="flex h-[80vh] items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
-  }
-
   return (
     <div className="flex flex-col w-full p-4 space-y-6 animate-in fade-in duration-700">
       <header className="py-2">
@@ -238,11 +234,11 @@ export default function CheckoutPage() {
           <div className="grid grid-cols-2 border-b border-border">
             <div className="p-4 border-r border-border text-center space-y-0.5">
               <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Accounts</span>
-              <p className="text-xl font-black text-white">{totalAccounts}</p>
+              <p className="text-xl font-black text-white">{totalAccounts || '0'}</p>
             </div>
             <div className="p-4 text-center space-y-0.5">
               <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Products</span>
-              <p className="text-xl font-black text-white">{totalProducts}</p>
+              <p className="text-xl font-black text-white">{totalProducts || '0'}</p>
             </div>
           </div>
 
@@ -253,46 +249,48 @@ export default function CheckoutPage() {
                <span className="text-[8px] font-black uppercase tracking-widest text-white/50">Verified Account</span>
             </div>
             
-            <Accordion type="single" collapsible className="space-y-1.5">
-              {groupedIdentities.map((group, idx) => (
-                <AccordionItem 
-                  key={idx} 
-                  value={`account-${idx}`}
-                  className="border border-white/5 rounded-xl overflow-hidden bg-white/5"
-                >
-                  <AccordionTrigger className="px-3 py-2 hover:no-underline group text-left">
-                    <div className="flex items-center justify-between w-full pr-2">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <User size={12} className="text-primary" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-[9px] font-black uppercase text-white truncate max-w-[100px]">{group.verifiedName}</p>
-                          <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-tighter">ID: {group.playerId}</p>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-black text-primary">₹{group.total}</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="px-3 pb-3 pt-0">
-                    <div className="space-y-2 pt-2 border-t border-white/5">
-                      <div className="flex justify-between items-center text-[8px] font-black uppercase">
-                        <span className="text-muted-foreground">Server:</span>
-                        <span className="text-white">{group.serverId}</span>
-                      </div>
-                      <div className="space-y-1">
-                        {group.items.map((item, i) => (
-                          <div key={i} className="flex justify-between items-center bg-black/40 p-1.5 rounded-lg">
-                            <span className="text-[7px] font-bold text-white/70 uppercase truncate max-w-[140px]">{item.name}</span>
-                            <span className="text-[7px] font-black text-primary">₹{item.price * item.quantity}</span>
+            {!initialized && items?.length > 0 ? <Skeleton className="h-20 w-full rounded-xl bg-white/5" /> : (
+              <Accordion type="single" collapsible className="space-y-1.5">
+                {groupedIdentities.map((group, idx) => (
+                  <AccordionItem 
+                    key={idx} 
+                    value={`account-${idx}`}
+                    className="border border-white/5 rounded-xl overflow-hidden bg-white/5"
+                  >
+                    <AccordionTrigger className="px-3 py-2 hover:no-underline group text-left">
+                      <div className="flex items-center justify-between w-full pr-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <User size={12} className="text-primary" />
                           </div>
-                        ))}
+                          <div className="text-left">
+                            <p className="text-[9px] font-black uppercase text-white truncate max-w-[100px]">{group.verifiedName}</p>
+                            <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-tighter">ID: {group.playerId}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black text-primary">₹{group.total}</span>
                       </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-3 pb-3 pt-0">
+                      <div className="space-y-2 pt-2 border-t border-white/5">
+                        <div className="flex justify-between items-center text-[8px] font-black uppercase">
+                          <span className="text-muted-foreground">Server:</span>
+                          <span className="text-white">{group.serverId}</span>
+                        </div>
+                        <div className="space-y-1">
+                          {group.items.map((item, i) => (
+                            <div key={i} className="flex justify-between items-center bg-black/40 p-1.5 rounded-lg">
+                              <span className="text-[7px] font-bold text-white/70 uppercase truncate max-w-[140px]">{item.name}</span>
+                              <span className="text-[7px] font-black text-primary">₹{item.price * item.quantity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
           </div>
 
           {/* Financial Summary Footer - Compact */}
@@ -303,9 +301,11 @@ export default function CheckoutPage() {
             </div>
             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
               <span>Wallet Credit</span>
-              <span className={walletBalance < totalAmount && paymentMethod === 'wallet' ? 'text-primary' : 'text-green-500'}>
-                ₹{walletBalance.toLocaleString()}
-              </span>
+              {walletLoading ? <Skeleton className="h-4 w-12 bg-white/10" /> : (
+                <span className={walletBalance < totalAmount && paymentMethod === 'wallet' ? 'text-primary' : 'text-green-500'}>
+                  ₹{walletBalance.toLocaleString()}
+                </span>
+              )}
             </div>
             
             <div className="pt-3 border-t border-border flex justify-between items-end">
@@ -334,7 +334,9 @@ export default function CheckoutPage() {
             </div>
             <div className="text-center">
               <span className="text-[10px] font-black uppercase block leading-none mb-1">Wallet Balance</span>
-              <span className={`text-[7px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>₹{walletBalance.toLocaleString()}</span>
+              {walletLoading ? <Skeleton className="h-2 w-10 mx-auto bg-white/10" /> : (
+                <span className={`text-[7px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>₹{walletBalance.toLocaleString()}</span>
+              )}
             </div>
             <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
             {paymentMethod === 'wallet' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-2.5 w-2.5 text-primary" /></div>}

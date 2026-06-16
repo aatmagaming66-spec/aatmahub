@@ -16,20 +16,13 @@ import { cn } from '@/lib/utils';
 import { RankAvatar } from '@/components/ui/rank-avatar';
 import { getRankFromSpend, DEFAULT_RANKS, type RankDefinition } from '@/lib/ranks';
 import { RankProgressionSlider } from '@/components/wallet/rank-progression-slider';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
-  const { user, profile, loading: userLoading } = useUser();
+  const { user, profile, loading: userLoading, initialized } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const [isFlipped, setIsFlipped] = useState(false);
-
-  // Performance Trace
-  useEffect(() => {
-    if (window.__nav_click_time) {
-      console.log(`[NAV_TRACE] Route "/wallet" loaded in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
-      window.__nav_click_time = undefined;
-    }
-  }, []);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
@@ -52,11 +45,8 @@ export default function DashboardPage() {
   }, [rawTransactions]);
 
   const lifetimeSpend = useMemo(() => {
-    if (!rawTransactions) return 0;
-    return rawTransactions
-      .filter(tx => tx.type === 'purchase' && tx.status === 'success')
-      .reduce((sum, tx) => sum + (tx.amount || 0), 0);
-  }, [rawTransactions]);
+    return profile?.lifetimeSpend || 0;
+  }, [profile]);
 
   // Dynamic Ranks from Admin (Fallback to Default)
   const ranksQuery = useMemo(() => query(collection(db, 'ranks'), orderBy('sortOrder', 'asc')), [db]);
@@ -68,10 +58,10 @@ export default function DashboardPage() {
   }, [lifetimeSpend, activeRanks]);
 
   const getCardTheme = (rankName: string) => {
-    const name = rankName.toLowerCase();
+    const name = (rankName || 'Warrior').toLowerCase();
     const baseAatmaBg = 'bg-gradient-to-br from-red-900 via-zinc-950 to-black';
     
-    if (name.includes('immortal') || name.includes('vip')) return {
+    if (name.includes('immortal') || name.includes('vip') || name.includes('legend')) return {
       bg: 'bg-gradient-to-br from-yellow-600 via-red-900 to-yellow-700 animate-pulse',
       border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]',
       shine: 'via-white/30',
@@ -86,18 +76,12 @@ export default function DashboardPage() {
 
   const cardTheme = getCardTheme(rankInfo.name);
 
-  if (userLoading || walletLoading) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    router.push('/login');
-    return null;
-  }
+  // REDIRECT GUARD - Non-blocking shell
+  useEffect(() => {
+    if (initialized && !user) {
+      router.push('/login');
+    }
+  }, [user, initialized, router]);
 
   const balance = wallet?.balance || 0;
 
@@ -147,7 +131,9 @@ export default function DashboardPage() {
                   cardTheme.border
                 )}>
                    <Crown size={8} className="fill-white/20 text-white" />
-                   <span className="text-[8px] font-black uppercase tracking-widest">{rankInfo.name}</span>
+                   {!initialized ? <Skeleton className="h-3 w-12 bg-white/10" /> : (
+                     <span className="text-[8px] font-black uppercase tracking-widest">{rankInfo.name}</span>
+                   )}
                 </div>
               </div>
 
@@ -156,8 +142,12 @@ export default function DashboardPage() {
               <div className="mt-auto space-y-4">
                  <div className="flex justify-between items-end gap-4">
                     <div className="space-y-1.5 min-w-0">
-                       <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
-                       <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
+                       {!initialized ? <Skeleton className="h-5 w-32 bg-white/10" /> : (
+                         <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
+                       )}
+                       {!initialized ? <Skeleton className="h-3 w-20 bg-white/10" /> : (
+                         <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
+                       )}
                     </div>
                  </div>
                  <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-3.5 gap-2">
@@ -179,13 +169,15 @@ export default function DashboardPage() {
               <div className="flex-1 px-6 flex flex-col justify-center gap-4">
                  <div className="text-center space-y-2.5 py-2">
                     <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Credits</span>
-                    <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-none truncate px-2">
-                      ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
-                    </h2>
+                    {walletLoading ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : (
+                      <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-none truncate px-2">
+                        ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
+                      </h2>
+                    )}
                  </div>
               </div>
               <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest mt-auto">
-                 <span>Member ID: {user.uid.slice(-8).toUpperCase()}</span>
+                 <span>Member ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
                  <span>Total Volume: ₹{lifetimeSpend.toLocaleString()}</span>
               </div>
             </div>
@@ -206,7 +198,9 @@ export default function DashboardPage() {
         </Link>
       </div>
 
-      <RankProgressionSlider lifetimeSpend={lifetimeSpend} ranks={activeRanks} />
+      {!initialized ? <Skeleton className="h-32 w-full rounded-[2rem] bg-card" /> : (
+        <RankProgressionSlider lifetimeSpend={lifetimeSpend} ranks={activeRanks} />
+      )}
 
       <div className="space-y-5">
         <div className="flex justify-between items-end px-2">
@@ -217,8 +211,8 @@ export default function DashboardPage() {
         </div>
         
         <div className="space-y-3 pb-10">
-          {transactionsLoading ? (
-            <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 text-primary animate-spin" /></div>
+          {transactionsLoading || !initialized ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-2xl bg-card" />)
           ) : recentTransactions.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-10 rounded-2xl text-center">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No activity found</p>
