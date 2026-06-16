@@ -2,7 +2,7 @@
 "use client"
 
 import { useMemo, useEffect, useState } from "react";
-import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2 } from "lucide-react";
+import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2, Crown, Cpu } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/firebase/auth/use-user";
@@ -11,18 +11,15 @@ import { useDoc } from "@/firebase/firestore/use-doc";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { doc, collection, query, where } from "firebase/firestore";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
   const db = useFirestore();
   const [isMounted, setIsMounted] = useState(false);
-  const [mountStartTime] = useState(performance.now());
 
   useEffect(() => {
     setIsMounted(true);
-    if (window.__nav_click_time) {
-      console.log(`[NAV_TRACE] Route "/dashboard" mounted in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
-    }
   }, []);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
@@ -37,15 +34,6 @@ export default function DashboardPage() {
   }, [user, db]);
 
   const { data: rawOrders, loading: ordersLoading } = useCollection(ordersQuery);
-
-  useEffect(() => {
-    if (!walletLoading && !ordersLoading && isMounted) {
-      if (window.__nav_click_time) {
-        console.log(`[NAV_TRACE] Dashboard data ready in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
-        window.__nav_click_time = undefined;
-      }
-    }
-  }, [walletLoading, ordersLoading, isMounted]);
 
   const orders = useMemo(() => {
     if (!rawOrders) return [];
@@ -85,34 +73,52 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      <Card className="bg-gradient-to-br from-primary via-primary to-accent border-none shadow-2xl shadow-primary/20 overflow-hidden relative rounded-3xl">
-        <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 scale-150"><Wallet size={120} /></div>
-        <CardContent className="p-8">
-          <div className="flex justify-between items-start mb-10">
-            <div className="space-y-1">
-              <span className="text-[10px] font-black text-white/70 uppercase tracking-[0.2em]">Wallet Balance</span>
-              <h2 className="text-5xl font-black text-white tracking-tighter">
-                ₹{balance.toLocaleString()}<span className="text-2xl text-white/60">.00</span>
-              </h2>
+      {/* PREMIUM DEBIT CARD MINI VERSION FOR DASHBOARD */}
+      <Link href="/wallet" className="block w-full">
+        <div className="relative w-full aspect-[1.58/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-[0.98]">
+          <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
+          
+          <div className="relative h-full p-6 flex flex-col justify-between z-10">
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col">
+                <span className="font-headline font-black text-lg tracking-tighter text-white/90 uppercase">AATMA HUB</span>
+                <span className="text-[6px] font-black text-primary uppercase tracking-[0.4em]">Digital Banking</span>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-xl">
+                 <Crown size={9} className="text-primary" />
+                 <span className="text-[8px] font-black uppercase text-white tracking-widest">{profile?.role?.toUpperCase() || 'USER'}</span>
+              </div>
             </div>
-            <div className="h-12 w-12 bg-white/20 rounded-2xl backdrop-blur-md flex items-center justify-center border border-white/20">
-              <TrendingUp className="text-white h-6 w-6" />
+
+            <div className="flex items-center gap-4">
+               <div className="h-8 w-11 bg-gradient-to-br from-yellow-600 to-yellow-200 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-400/50 shadow-inner shrink-0">
+                  <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-40">
+                     {[...Array(9)].map((_, i) => <div key={i} className="border border-black/20" />)}
+                  </div>
+                  <Cpu className="absolute h-4 w-4 text-black/20" />
+               </div>
+               
+               <div className="space-y-0.5">
+                  <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Available Balance</span>
+                  <h2 className="text-4xl font-black text-white tracking-tighter">
+                    ₹{balance.toLocaleString()}<span className="text-xl text-white/40">.00</span>
+                  </h2>
+               </div>
+            </div>
+
+            <div className="flex justify-between items-end">
+               <div className="space-y-1">
+                  <span className="text-[7px] font-black text-white/30 uppercase tracking-widest">Identity</span>
+                  <p className="text-xs font-black text-white uppercase tracking-tighter">{profile?.fullName || 'AATMA USER'}</p>
+               </div>
+               <ArrowRight className="h-4 w-4 text-white/40 group-hover:text-primary transition-colors" />
             </div>
           </div>
-          <div className="flex gap-4">
-            <Link href="/wallet/deposit" className="flex-1">
-              <Button className="w-full bg-white text-primary hover:bg-white/90 font-black text-[11px] h-12 uppercase tracking-[0.2em] rounded-2xl transition-all">
-                <CreditCard className="mr-2 h-4 w-4" /> Deposit
-              </Button>
-            </Link>
-            <Link href="/wallet/history" className="flex-1">
-              <Button className="w-full bg-black/20 hover:bg-black/30 text-white border border-white/20 font-black text-[11px] h-12 uppercase tracking-[0.2em] rounded-2xl transition-all">
-                Statement
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
+          
+          <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[150%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 z-20" />
+        </div>
+      </Link>
 
       <div className="grid grid-cols-3 gap-4">
         {stats.map((stat, i) => (
@@ -175,3 +181,20 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+const ArrowRight = ({ className }: { className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="24" 
+    height="24" 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    stroke="currentColor" 
+    strokeWidth="2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round" 
+    className={className}
+  >
+    <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+  </svg>
+);
