@@ -29,7 +29,9 @@ import {
   Key,
   Clock,
   Link as LinkIcon,
-  Fingerprint
+  Fingerprint,
+  Zap,
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
@@ -40,6 +42,7 @@ import { cn } from '@/lib/utils';
 /**
  * AATMA HUB Simplified Profile Hub
  * Optimized for 0ms render-blocking and background hydration.
+ * Refined Header with Badge Matrix.
  */
 export default function ProfilePage() {
   const { user, profile, initialized } = useUser();
@@ -76,6 +79,11 @@ export default function ProfilePage() {
     return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
   }, [profile?.lifetimeSpend, ranks]);
 
+  const userLevel = useMemo(() => {
+    if (!profile) return 1;
+    return Math.floor((profile.lifetimeSpend || 0) / 2500) + 1;
+  }, [profile?.lifetimeSpend]);
+
   const handleLogout = async () => {
     try { 
       await signOut(auth); 
@@ -89,8 +97,8 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-500 pb-24">
-      {/* 1. SHARED GRADIENT HEADER SHELL */}
-      <div className="relative p-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
+      {/* 1. SHARED GRADIENT HEADER SHELL - Optimized Spacing */}
+      <div className="relative p-6 pb-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12"><Shield size={200} className="text-primary" /></div>
         
         <div className="relative z-10">
@@ -105,32 +113,52 @@ export default function ProfilePage() {
                </div>
             </div>
           ) : (
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               {!initialized ? (
-                 <div className="relative"><Skeleton className="h-24 w-24 rounded-full bg-white/5" /><div className="absolute inset-0 border-2 border-white/5 rounded-full" /></div>
+                 <div className="relative"><Skeleton className="h-20 w-20 rounded-full bg-white/5" /><div className="absolute inset-0 border-2 border-white/5 rounded-full" /></div>
               ) : (
-                <RankAvatar src={`https://picsum.photos/seed/${user?.uid}/200/200`} rank={rankInfo.name} size="2xl" className="shadow-2xl" />
+                <RankAvatar 
+                  src={`https://picsum.photos/seed/${user?.uid}/200/200`} 
+                  rank={rankInfo.name} 
+                  size="xl" 
+                  className="shadow-2xl" 
+                />
               )}
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center gap-3">
+              <div className="flex-1 space-y-1.5 min-w-0">
+                <div className="flex flex-col">
                   {!initialized || !profile ? (
                     <Skeleton className="h-6 w-32 bg-white/5" />
                   ) : (
-                    <h2 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none truncate max-w-[160px] text-white">{profile?.fullName || 'Aatma Member'}</h2>
+                    <h2 className="text-xl font-headline font-black uppercase tracking-tighter leading-tight truncate text-white">{profile?.fullName || 'Aatma Member'}</h2>
                   )}
+                  
+                  {/* Identity Badge Matrix */}
                   {profile && (
-                    <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-lg flex items-center gap-1.5 shadow-lg">
-                      <span className="text-[8px] font-black uppercase text-primary tracking-widest">{rankInfo.name}</span>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {/* Role */}
+                      <div className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md flex items-center gap-1">
+                        <ShieldCheck size={8} className="text-white/40" />
+                        <span className="text-[7px] font-black uppercase text-white/70 tracking-widest">{profile.role.replace('_', ' ')}</span>
+                      </div>
+                      {/* Level */}
+                      <div className="px-2 py-0.5 bg-accent/20 border border-accent/30 rounded-md flex items-center gap-1">
+                        <Zap size={8} className="text-accent" />
+                        <span className="text-[7px] font-black uppercase text-accent tracking-widest">Level {userLevel}</span>
+                      </div>
+                      {/* Rank */}
+                      <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-md flex items-center gap-1">
+                        <Star size={8} className="text-primary fill-primary" />
+                        <span className="text-[7px] font-black uppercase text-primary tracking-widest">{rankInfo.name}</span>
+                      </div>
                     </div>
                   )}
                 </div>
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 group cursor-pointer" onClick={() => { if (user) { navigator.clipboard.writeText(user.uid); toast({ title: 'ID Copied' }); } }}>
-                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">
-                      Hub ID: {user ? user.uid.substring(0, 10).toUpperCase() : '----------'}
-                    </p>
-                    {user && <Copy size={10} className="text-white/20 group-hover:text-primary transition-colors" />}
-                  </div>
+
+                <div className="flex items-center gap-2 group cursor-pointer" onClick={() => { if (user) { navigator.clipboard.writeText(user.uid); toast({ title: 'ID Copied' }); } }}>
+                  <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">
+                    Hub ID: {user ? user.uid.substring(0, 10).toUpperCase() : '----------'}
+                  </p>
+                  {user && <Copy size={8} className="text-white/20 group-hover:text-primary transition-colors" />}
                 </div>
               </div>
             </div>
