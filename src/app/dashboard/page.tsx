@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from '@/firebase/auth/use-user';
@@ -183,17 +184,17 @@ export default function DashboardPage() {
               <div className="w-full h-10 bg-zinc-900 mt-6 shadow-inner" />
               
               <div className="flex-1 p-6 flex flex-col justify-center">
-                 <div className="flex items-center gap-4 mb-4">
-                    <div className="flex-1 h-8 bg-white/10 rounded flex items-center px-3 border border-white/5">
+                 <div className="flex items-center gap-4 mb-3">
+                    <div className="flex-1 h-6 bg-white/10 rounded flex items-center px-3 border border-white/5">
                        <span className="text-[6px] font-black text-white/20 uppercase">Signature Area</span>
                     </div>
                     <div className="bg-white/5 border border-white/10 px-2 py-1 rounded text-[8px] font-black">247</div>
                  </div>
 
-                 <div className="text-center space-y-1">
+                 <div className="text-center space-y-2 py-2">
                     <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Available Credits</span>
-                    <h2 className="text-4xl font-black text-white tracking-tighter leading-none">
-                      ₹{balance.toLocaleString()}<span className="text-xl text-white/40">.00</span>
+                    <h2 className="text-3xl font-black text-white tracking-tighter leading-none truncate px-4">
+                      ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
                     </h2>
                  </div>
               </div>
@@ -228,7 +229,7 @@ export default function DashboardPage() {
            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/60">Operations Intelligence</h3>
         </div>
 
-        <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl">
+        <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
           <CardContent className="p-8 space-y-8">
             <div className="grid grid-cols-2 gap-8">
               <div className="space-y-1.5">
