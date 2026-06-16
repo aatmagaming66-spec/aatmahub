@@ -2,9 +2,10 @@
 "use client"
 
 import { useMemo, useEffect, useState } from "react";
-import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2, Crown, Cpu } from "lucide-react";
+import { Wallet, Package, Clock, CheckCircle2, TrendingUp, CreditCard, Loader2, Crown, Cpu, ShieldCheck, Target, Zap, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
 import { useDoc } from "@/firebase/firestore/use-doc";
@@ -42,6 +43,46 @@ export default function DashboardPage() {
     });
   }, [rawOrders]);
 
+  const lifetimeSpend = useMemo(() => {
+    if (!rawOrders) return 0;
+    return rawOrders
+      .filter(o => o.status === 'completed')
+      .reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+  }, [rawOrders]);
+
+  const rankData = useMemo(() => {
+    const RANKS = [
+      { name: 'Warrior', threshold: 0, discount: 0 },
+      { name: 'Elite', threshold: 500, discount: 0 },
+      { name: 'Master', threshold: 1500, discount: 0 },
+      { name: 'Grandmaster', threshold: 3000, discount: 0 },
+      { name: 'Epic', threshold: 7500, discount: 0 },
+      { name: 'Legend', threshold: 15000, discount: 0 },
+      { name: 'Mythic', threshold: 30000, discount: 0 },
+      { name: 'Mythical Honor', threshold: 50000, discount: 1 },
+      { name: 'Mythical Glory', threshold: 75000, discount: 2 },
+      { name: 'Mythical Immortal', threshold: 100000, discount: 3 },
+    ];
+
+    let currentIdx = 0;
+    for (let i = RANKS.length - 1; i >= 0; i--) {
+      if (lifetimeSpend >= RANKS[i].threshold) {
+        currentIdx = i;
+        break;
+      }
+    }
+
+    const current = RANKS[currentIdx];
+    const next = currentIdx < RANKS.length - 1 ? RANKS[currentIdx + 1] : null;
+    
+    let progress = 100;
+    if (next) {
+      progress = Math.min(100, Math.floor(((lifetimeSpend - current.threshold) / (next.threshold - current.threshold)) * 100));
+    }
+
+    return { current, next, progress, lifetimeSpend };
+  }, [lifetimeSpend]);
+
   const stats = useMemo(() => {
     const total = orders?.length || 0;
     const pending = orders?.filter(o => o.status === 'pending' || o.status === 'processing').length || 0;
@@ -65,15 +106,15 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
-      <header className="py-4">
+    <div className="flex flex-col w-full p-4 space-y-6 animate-in fade-in duration-700">
+      <header className="py-2">
         <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">My Wallet</h1>
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">
           HUB IDENTITY: {profile?.fullName || user?.email?.split('@')[0].toUpperCase()}
         </p>
       </header>
 
-      {/* PREMIUM DEBIT CARD MINI VERSION FOR WALLET OVERVIEW */}
+      {/* PREMIUM DEBIT CARD MINI VERSION */}
       <Link href="/wallet" className="block w-full">
         <div className="relative w-full aspect-[1.58/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-[0.98]">
           <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
@@ -87,7 +128,7 @@ export default function DashboardPage() {
               </div>
               <div className="bg-white/10 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-xl">
                  <Crown size={9} className="text-primary" />
-                 <span className="text-[8px] font-black uppercase text-white tracking-widest">{profile?.role?.toUpperCase() || 'USER'}</span>
+                 <span className="text-[8px] font-black uppercase text-white tracking-widest">{rankData.current.name}</span>
               </div>
             </div>
 
@@ -112,13 +153,63 @@ export default function DashboardPage() {
                   <span className="text-[7px] font-black text-white/30 uppercase tracking-widest">Identity</span>
                   <p className="text-xs font-black text-white uppercase tracking-tighter">{profile?.fullName || 'AATMA USER'}</p>
                </div>
-               <ArrowRight className="h-4 w-4 text-white/40 group-hover:text-primary transition-colors" />
+               <div className="flex items-center gap-2">
+                 {rankData.current.discount > 0 && <span className="text-[8px] font-black text-green-400 uppercase tracking-widest">{rankData.current.discount}% Discount</span>}
+                 <ArrowRight className="h-4 w-4 text-white/40 group-hover:text-primary transition-colors" />
+               </div>
             </div>
           </div>
           
           <div className="absolute inset-0 translate-x-[-100%] group-hover:translate-x-[150%] transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 z-20" />
         </div>
       </Link>
+
+      {/* RANK PROGRESSION SECTION */}
+      <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl">
+        <CardContent className="p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              <h3 className="text-xs font-headline font-black uppercase tracking-widest text-white/90">Rank Progression</h3>
+            </div>
+            <div className="bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-md">
+              <span className="text-[8px] font-black uppercase text-primary tracking-widest">{rankData.current.discount}% Discount Active</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pb-2">
+            <div className="space-y-0.5">
+              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Current Rank</p>
+              <p className="text-sm font-black text-white uppercase tracking-tight">{rankData.current.name}</p>
+            </div>
+            <div className="space-y-0.5 text-right">
+              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Lifetime Spend</p>
+              <p className="text-sm font-black text-primary tracking-tight">₹{lifetimeSpend.toLocaleString()}</p>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between items-end">
+              <span className="text-[9px] font-black text-white/50 uppercase tracking-widest">
+                {rankData.next ? `Next: ${rankData.next.name}` : 'Max Rank Reached'}
+              </span>
+              <span className="text-[9px] font-black text-primary uppercase tracking-widest">
+                {rankData.progress}%
+              </span>
+            </div>
+            <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+              <div 
+                className="absolute top-0 left-0 h-full bg-primary transition-all duration-1000 shadow-[0_0_10px_#DC2626]" 
+                style={{ width: `${rankData.progress}%` }} 
+              />
+            </div>
+            <div className="flex justify-between items-center text-[7px] font-black uppercase text-muted-foreground tracking-widest px-0.5">
+               <span>₹{lifetimeSpend.toLocaleString()} spent</span>
+               {rankData.next && <span>₹{rankData.next.threshold.toLocaleString()} required</span>}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-3 gap-4">
         {stats.map((stat, i) => (
