@@ -60,7 +60,13 @@ export default function ProfilePage() {
       setFullName(profile.fullName || '');
       setPhoneNumber(profile.phoneNumber || '');
     }
-  }, [profile]);
+    
+    // Performance: Prefetch security routes for instant navigation
+    if (user) {
+      router.prefetch('/profile/change-password');
+      router.prefetch('/profile/notifications');
+    }
+  }, [profile, user, router]);
 
   const rankInfo = useMemo(() => {
     return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
@@ -167,7 +173,7 @@ export default function ProfilePage() {
                 <ChevronRight size={16} className={cn("text-white/20 transition-transform", editing && "rotate-90")} />
               </button>
 
-              <Link href="/profile/change-password">
+              <Link href="/profile/change-password" prefetch={true}>
                 <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Key size={16} /></div>
@@ -177,7 +183,7 @@ export default function ProfilePage() {
                 </div>
               </Link>
 
-              <Link href="/profile/notifications">
+              <Link href="/profile/notifications" prefetch={true}>
                 <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><Bell size={16} /></div>

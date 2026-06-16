@@ -74,7 +74,7 @@ export default function NotificationSettingsPage() {
   };
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
+    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-200">
       <header className="flex items-center gap-4 py-4">
         <Button 
           variant="ghost" 
