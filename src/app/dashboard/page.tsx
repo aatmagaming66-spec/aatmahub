@@ -69,70 +69,60 @@ export default function DashboardPage() {
       border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]',
       chip: 'from-yellow-400 via-yellow-200 to-yellow-500',
       shine: 'via-white/30',
-      text: 'text-yellow-100'
     };
     if (name.includes('glory')) return {
       bg: 'bg-gradient-to-br from-red-700 via-zinc-950 to-red-900',
       border: 'border-yellow-600/40',
       chip: 'from-yellow-500 via-yellow-300 to-yellow-600',
       shine: 'via-white/20',
-      text: 'text-red-100'
     };
     if (name.includes('honor')) return {
       bg: 'bg-gradient-to-br from-orange-700 via-zinc-950 to-orange-900',
       border: 'border-orange-500/40',
       chip: 'from-orange-400 via-orange-200 to-orange-500',
       shine: 'via-white/15',
-      text: 'text-orange-100'
     };
     if (name.includes('mythic')) return {
       bg: 'bg-gradient-to-br from-red-800 via-zinc-950 to-red-950',
       border: 'border-red-500/40',
       chip: 'from-red-400 via-red-200 to-red-500',
       shine: 'via-white/15',
-      text: 'text-red-100'
     };
     if (name.includes('legend')) return {
       bg: 'bg-gradient-to-br from-yellow-700 via-zinc-950 to-yellow-900',
       border: 'border-yellow-500/40',
       chip: 'from-yellow-400 via-yellow-200 to-yellow-500',
       shine: 'via-white/15',
-      text: 'text-yellow-100'
     };
     if (name.includes('epic')) return {
       bg: 'bg-gradient-to-br from-pink-800 via-zinc-950 to-pink-900',
       border: 'border-pink-500/30',
       chip: 'from-pink-400 via-pink-200 to-pink-500',
       shine: 'via-white/10',
-      text: 'text-pink-100'
     };
     if (name.includes('grandmaster')) return {
       bg: 'bg-gradient-to-br from-purple-800 via-zinc-950 to-purple-900',
       border: 'border-purple-500/30',
       chip: 'from-purple-400 via-purple-200 to-purple-500',
       shine: 'via-white/10',
-      text: 'text-purple-100'
     };
     if (name.includes('master')) return {
       bg: 'bg-gradient-to-br from-blue-800 via-zinc-950 to-blue-900',
       border: 'border-blue-500/30',
       chip: 'from-blue-400 via-blue-200 to-blue-500',
       shine: 'via-white/10',
-      text: 'text-blue-100'
     };
     if (name.includes('elite')) return {
       bg: 'bg-gradient-to-br from-emerald-800 via-zinc-950 to-emerald-900',
       border: 'border-emerald-500/30',
       chip: 'from-emerald-400 via-emerald-200 to-emerald-500',
       shine: 'via-white/10',
-      text: 'text-emerald-100'
     };
     return { // Warrior default
       bg: 'bg-gradient-to-br from-zinc-800 via-zinc-950 to-zinc-700',
       border: 'border-zinc-500/30',
       chip: 'from-zinc-400 via-zinc-200 to-zinc-500',
       shine: 'via-white/5',
-      text: 'text-zinc-100'
     };
   };
 
@@ -165,7 +155,7 @@ export default function DashboardPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Wallet Hub</h1>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Wallet Hub</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Assets & Credits</p>
         </div>
       </header>
@@ -195,11 +185,10 @@ export default function DashboardPage() {
                   <span className="text-[5px] font-black text-white/50 uppercase tracking-[0.4em]">Digital Gaming Bank</span>
                 </div>
                 <div className={cn(
-                  "backdrop-blur-md border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xl transition-colors duration-500 bg-black/20 shrink-0",
-                  cardTheme.border,
-                  cardTheme.text
+                  "backdrop-blur-md border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xl transition-colors duration-500 bg-black/20 shrink-0 text-white",
+                  cardTheme.border
                 )}>
-                   <Crown size={8} className="fill-current/20" />
+                   <Crown size={8} className="fill-white/20 text-white" />
                    <span className="text-[8px] font-black uppercase tracking-widest">{rankInfo.name}</span>
                 </div>
               </div>
@@ -370,7 +359,7 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <div>
-                    <h4 className="text-sm font-black uppercase tracking-tight">{tx.type}</h4>
+                    <h4 className="text-sm font-black uppercase tracking-tight text-white">{tx.type}</h4>
                     <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">
                       {new Date(tx.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} • {tx.status}
                     </p>
