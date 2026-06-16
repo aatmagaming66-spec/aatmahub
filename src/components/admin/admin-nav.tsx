@@ -41,7 +41,7 @@ const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Intelligence', icon: BarChart3 },
   { href: '/admin/ranks', label: 'Rank Manager', icon: Trophy },
   { href: '/admin/images', label: 'Image Management', icon: Images },
-  { href: '/admin/media', label: 'Media Hub', icon: ImageIcon },
+  { href: '/admin/media', label: 'Media Manager', icon: ImageIcon },
   { href: '/admin/homepage', label: 'Home Control', icon: HomeIcon },
   { href: '/admin/games', label: 'Games Manager', icon: Gamepad2 },
   { href: '/admin/products', label: 'Catalog Hub', icon: Package },
