@@ -1,16 +1,15 @@
-
 {
   "placeholderImages": [
     {
       "id": "app-logo",
       "description": "AATMA HUB Premium Logo",
-      "imageUrl": "/logo.png",
+      "imageUrl": "https://picsum.photos/seed/aatma-logo/200/200",
       "imageHint": "brand logo"
     },
     {
       "id": "game-mlbb-india",
       "description": "Mobile Legends Bang Bang India Hero Art",
-      "imageUrl": "/images/mlbb-india.jpg",
+      "imageUrl": "https://picsum.photos/seed/mlbb_india/600/800",
       "imageHint": "mlbb character"
     },
     {

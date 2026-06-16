@@ -11,20 +11,21 @@ import { AnnouncementBar } from '@/components/navigation/announcement-bar';
 import { MaintenanceCheck } from '@/components/navigation/maintenance-check';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://aatmahub.com'),
   title: 'AATMA HUB - Premium Digital Solutions',
   description: 'Premium Digital Solutions for Gaming and Social Needs. Instant top-ups, OTT access, and social media growth.',
   keywords: ['MLBB Top up', 'Free Fire Diamonds', 'OTT Premium', 'Gaming India', 'Social Media Services'],
   authors: [{ name: 'AATMA OFFICIAL' }],
   icons: {
-    icon: '/logo.png', // Reference to the app-logo asset
-    apple: '/logo.png',
+    icon: 'https://picsum.photos/seed/aatma-logo/100/100',
+    apple: 'https://picsum.photos/seed/aatma-logo/100/100',
   },
   openGraph: {
     title: 'AATMA HUB - Premium Digital Marketplace',
     description: 'Instant Game Top-Ups, OTT Services, and Social Growth.',
     url: 'https://aatmahub.com',
     siteName: 'AATMA HUB',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630 }],
+    images: [{ url: 'https://picsum.photos/seed/aatma-og/1200/630', width: 1200, height: 630 }],
     locale: 'en_IN',
     type: 'website',
   },
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'AATMA HUB | Gaming & Social Solutions',
     description: 'India\'s fastest digital service hub.',
-    images: ['/twitter-image.jpg'],
+    images: ['https://picsum.photos/seed/aatma-twitter/1200/630'],
   },
 };
 
