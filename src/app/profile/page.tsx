@@ -65,6 +65,7 @@ export default function ProfilePage() {
       router.prefetch('/profile/change-password');
       router.prefetch('/profile/notifications');
       router.prefetch('/profile/security');
+      router.prefetch('/profile/linked-accounts');
     }
   }, [profile, user, router]);
 
@@ -202,13 +203,15 @@ export default function ProfilePage() {
                 </div>
               </Link>
 
-              <button className="w-full flex items-center justify-between p-5 hover:bg-white/5 group transition-colors text-left">
-                <div className="flex items-center gap-4">
-                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><LinkIcon size={16} /></div>
-                  <span className="text-xs font-bold text-white/90 uppercase">Linked Accounts</span>
+              <Link href="/profile/linked-accounts" prefetch={true}>
+                <div className="w-full flex items-center justify-between p-5 hover:bg-white/5 group transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><LinkIcon size={16} /></div>
+                    <span className="text-xs font-bold text-white/90 uppercase">Linked Accounts</span>
+                  </div>
+                  <ChevronRight size={16} className="text-white/20" />
                 </div>
-                <ChevronRight size={16} className="text-white/20" />
-              </button>
+              </Link>
             </CardContent>
           </Card>
         </section>
