@@ -29,7 +29,7 @@ import { useUser } from "@/firebase/auth/use-user";
 export function AppSidebar() {
   const { setOpenMobile } = useSidebar();
   const router = useRouter();
-  const { user } = useUser();
+  const { user, initialized } = useUser();
 
   // Prefetch critical routes for instant transition
   useEffect(() => {
@@ -98,6 +98,7 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                {/* Direct Resolution: Skip intermediary account page */}
                 <SidebarMenuButton onClick={() => navigateTo(user ? '/profile' : '/login')}>
                   <Settings className="h-4 w-4" />
                   <span className="font-bold text-sm">Account Settings</span>

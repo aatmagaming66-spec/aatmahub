@@ -12,17 +12,23 @@ export function BottomNav() {
   const router = useRouter();
   const { user, initialized } = useUser();
 
-  const NAV_ITEMS = useMemo(() => [
-    { label: "Home", icon: Home, href: "/" },
-    { label: "Wallet", icon: Wallet, href: "/wallet" },
-    { label: "Orders", icon: ClipboardList, href: "/orders" },
-    { 
-      // Optimistic label/icon: assume Account if not initialized to prevent jank
-      label: !initialized || user ? "Account" : "Login", 
-      icon: !initialized || user ? UserCircle : LogIn, 
-      href: !initialized || user ? "/profile" : "/login" 
-    },
-  ], [user, initialized]);
+  const NAV_ITEMS = useMemo(() => {
+    const isProfileActive = pathname === "/profile" || pathname === "/login";
+    
+    return [
+      { label: "Home", icon: Home, href: "/" },
+      { label: "Wallet", icon: Wallet, href: "/wallet" },
+      { label: "Orders", icon: ClipboardList, href: "/orders" },
+      { 
+        // Direct Resolution: Avoid intermediary account page
+        label: !initialized || user ? "Account" : "Login", 
+        icon: !initialized || user ? UserCircle : LogIn, 
+        // Point directly to the final destination based on auth state
+        href: initialized && !user ? "/login" : "/profile",
+        isActive: isProfileActive
+      },
+    ];
+  }, [user, initialized, pathname]);
 
   useEffect(() => {
     NAV_ITEMS.forEach((item) => {
@@ -38,7 +44,7 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border h-16 safe-area-bottom">
       <div className="flex h-full items-center justify-around px-2">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = item.isActive !== undefined ? item.isActive : pathname === item.href;
           
           return (
             <Link 

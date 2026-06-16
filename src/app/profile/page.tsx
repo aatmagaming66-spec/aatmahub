@@ -23,17 +23,21 @@ import {
   Copy, 
   ChevronRight, 
   User, 
-  ImagePlus, 
   Bell, 
   Lock, 
   Settings,
-  Shield
+  Shield,
+  LogIn
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
 import { getRankFromSpend } from '@/lib/ranks';
 import { Skeleton } from '@/components/ui/skeleton';
 
+/**
+ * Polymorphic Profile Page
+ * Handles both Authenticated and Guest (Login) states in one route to prevent flash.
+ */
 export default function ProfilePage() {
   const { user, profile, initialized } = useUser();
   const { ranks } = useGlobalSettings();
@@ -54,12 +58,6 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  useEffect(() => {
-    if (initialized && !user) {
-      router.replace('/login');
-    }
-  }, [user, initialized, router]);
-
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
 
@@ -78,20 +76,57 @@ export default function ProfilePage() {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
+  // SHARED SHELL WRAPPER - Prevents background flash
+  const PageShell = ({ children, headerIcon: HeaderIcon }: { children: React.ReactNode, headerIcon: any }) => (
+    <div className="flex flex-col w-full animate-in fade-in duration-300 pb-24">
+      <div className="relative p-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
+        <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12">
+          <HeaderIcon size={200} className="text-primary" />
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+
+  // GUEST STATE - Render Login Content directly to avoid redirect flicker
+  if (initialized && !user) {
+    return (
+      <PageShell headerIcon={Shield}>
+        <div className="flex flex-col items-center justify-center gap-6 py-10 relative z-10">
+          <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+            <User size={40} className="text-primary" />
+          </div>
+          <div className="text-center space-y-2">
+            <h2 className="text-2xl font-headline font-black uppercase tracking-tighter">Guest Protocol</h2>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Authentication required for Hub access</p>
+          </div>
+          <Link href="/login" className="w-full max-w-xs">
+            <Button className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 gap-3">
+              <LogIn size={18} /> Establish Connection
+            </Button>
+          </Link>
+          <Link href="/register" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors">
+            Initialize New Identity
+          </Link>
+        </div>
+      </PageShell>
+    );
+  }
+
+  // AUTHENTICATED STATE
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-500 pb-24">
-      {/* Instant Profile Header Shell */}
       <div className="relative p-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12"><Shield size={200} className="text-primary" /></div>
         <div className="flex items-center gap-6 relative z-10">
-          {!profile ? (
+          {!initialized ? (
              <div className="relative"><Skeleton className="h-24 w-24 rounded-full bg-white/5" /><div className="absolute inset-0 border-2 border-white/5 rounded-full" /></div>
           ) : (
             <RankAvatar src={`https://picsum.photos/seed/${user?.uid}/200/200`} rank={rankInfo.name} size="2xl" className="shadow-2xl" />
           )}
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-3">
-              {!profile ? (
+              {!initialized || !profile ? (
                 <Skeleton className="h-6 w-32 bg-white/5" />
               ) : (
                 <h2 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none truncate max-w-[160px]">{profile?.fullName || 'Aatma Member'}</h2>

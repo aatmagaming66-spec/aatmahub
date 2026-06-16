@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 
 /**
- * Silent Redirector
- * Orchestrates session routing without visual weight.
+ * Invisible Redirector
+ * This page is now a silent fallback for any legacy links to /account.
+ * Navigation components now resolve directly to /profile or /login.
  */
 export default function AccountRedirect() {
   const { user, initialized } = useUser();
@@ -18,6 +19,6 @@ export default function AccountRedirect() {
     }
   }, [user, initialized, router]);
 
-  // Empty shell to prevent flicker while routing
+  // Clean shell that matches app layout to prevent visual flash
   return <div className="min-h-screen bg-background" />;
 }

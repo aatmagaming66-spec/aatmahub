@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function LoginPage() {
@@ -20,16 +20,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   
   const auth = useAuth();
-  const { user, loading: userLoading } = useUser();
+  const { user, initialized } = useUser();
   const router = useRouter();
   const { toast } = useToast();
-
-  // Redirect if already logged in
-  useEffect(() => {
-    if (!userLoading && user) {
-      router.push('/profile');
-    }
-  }, [user, userLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +38,7 @@ export default function LoginPage() {
         title: "Access Granted",
         description: "Welcome back to AATMA HUB Premium.",
       });
-      router.push('/');
+      router.push('/profile');
     } catch (error: any) {
       console.error('Login Error:', error.message);
       toast({ 
@@ -59,52 +52,60 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4 animate-in fade-in duration-700">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 animate-in fade-in duration-500">
       <Card className="w-full max-w-md bg-card border-border rounded-3xl shadow-2xl overflow-hidden">
         <CardHeader className="p-8 text-center space-y-2">
           <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Welcome Back</CardTitle>
           <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Authenticate to AATMA HUB</CardDescription>
         </CardHeader>
         <CardContent className="p-8 pt-0 space-y-6">
-          {userLoading ? (
-            <div className="space-y-6">
-               <div className="space-y-2">
-                 <Skeleton className="h-4 w-20 bg-white/5" />
-                 <Skeleton className="h-12 w-full rounded-xl bg-white/5" />
+          {initialized && user ? (
+            // Already logged in state: Avoid flicker by showing quick redirect
+            <div className="text-center py-10 space-y-6 animate-in zoom-in-95">
+               <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20">
+                  <ShieldCheck size={40} className="text-primary" />
                </div>
-               <div className="space-y-2">
-                 <Skeleton className="h-4 w-20 bg-white/5" />
-                 <Skeleton className="h-12 w-full rounded-xl bg-white/5" />
+               <div className="space-y-1">
+                 <p className="text-sm font-black uppercase">Already Connected</p>
+                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest">You are currently in an active session.</p>
                </div>
-               <Skeleton className="h-14 w-full rounded-2xl bg-white/5" />
+               <Link href="/profile" className="block">
+                  <Button className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl gap-2">
+                    Enter Profile <ArrowRight size={14} />
+                  </Button>
+               </Link>
             </div>
           ) : (
             <>
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</Label>
-                  <Input 
-                    type="email"
-                    placeholder="john@example.com" 
-                    className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+                  {!initialized ? <Skeleton className="h-12 w-full rounded-xl bg-white/5" /> : (
+                    <Input 
+                      type="email"
+                      placeholder="john@example.com" 
+                      className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</Label>
-                  <Input 
-                    type="password"
-                    placeholder="Your password" 
-                    className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+                  {!initialized ? <Skeleton className="h-12 w-full rounded-xl bg-white/5" /> : (
+                    <Input 
+                      type="password"
+                      placeholder="Your password" 
+                      className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  )}
                 </div>
                 <Button 
                   type="submit" 
                   className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-primary/20"
-                  disabled={loading}
+                  disabled={loading || !initialized}
                 >
                   {loading ? (
                     <>
