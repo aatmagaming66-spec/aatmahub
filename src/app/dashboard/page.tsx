@@ -83,6 +83,19 @@ export default function DashboardPage() {
     return { current, next, progress, lifetimeSpend };
   }, [lifetimeSpend]);
 
+  const getRankColor = (rankName: string) => {
+    const name = rankName.toLowerCase();
+    if (name.includes('warrior')) return 'text-slate-400 border-slate-400/30 bg-slate-400/10';
+    if (name.includes('elite')) return 'text-slate-200 border-slate-200/30 bg-slate-200/10';
+    if (name.includes('master')) return 'text-orange-400 border-orange-400/30 bg-orange-400/10';
+    if (name.includes('grandmaster')) return 'text-cyan-400 border-cyan-400/30 bg-cyan-400/10';
+    if (name.includes('epic')) return 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10';
+    if (name.includes('legend')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
+    if (name.includes('mythical immortal')) return 'text-red-600 border-red-600/40 bg-red-600/20 shadow-[0_0_10px_rgba(220,38,38,0.2)]';
+    if (name.includes('mythic')) return 'text-red-500 border-red-500/30 bg-red-500/10';
+    return 'text-primary border-primary/20 bg-primary/10';
+  };
+
   const stats = useMemo(() => {
     const total = orders?.length || 0;
     const pending = orders?.filter(o => o.status === 'pending' || o.status === 'processing').length || 0;
@@ -114,56 +127,67 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      {/* PREMIUM DEBIT CARD COMPACT VERSION */}
-      <Link href="/wallet" className="block w-full">
+      {/* PREMIUM DEBIT CARD - REDESIGNED LAYOUT */}
+      <Link href="/wallet" className="block w-full mb-10">
         <div className="relative w-full aspect-[2.1/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-[0.98]">
           <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
           
-          <div className="relative h-full p-4 flex flex-col justify-between z-10">
+          <div className="relative h-full p-5 flex flex-col justify-between z-10">
+            {/* Top Row: Logo & Rank Badge */}
             <div className="flex justify-between items-start">
               <div className="flex flex-col">
-                <span className="font-headline font-black text-base tracking-tighter text-white/90 uppercase">AATMA HUB</span>
+                <span className="font-headline font-black text-sm tracking-tighter text-white/90 uppercase">AATMA HUB</span>
                 <span className="text-[5px] font-black text-primary uppercase tracking-[0.4em]">Digital Banking</span>
               </div>
-              <div className="bg-white/10 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-xl">
-                 <Crown size={8} className="text-primary" />
-                 <span className="text-[7px] font-black uppercase text-white tracking-widest">{rankData.current.name}</span>
+              <div className={cn(
+                "backdrop-blur-md border px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-xl transition-colors duration-500",
+                getRankColor(rankData.current.name)
+              )}>
+                 <Crown size={8} className="fill-current/20" />
+                 <span className="text-[7px] font-black uppercase tracking-widest">{rankData.current.name}</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-4">
-               <div className="h-7 w-10 bg-gradient-to-br from-yellow-600 to-yellow-200 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-400/50 shadow-inner shrink-0">
+            {/* Center Area: Chip (Left) and Balance (Center) */}
+            <div className="relative flex items-center justify-center">
+               <div className="absolute left-0 h-7 w-10 bg-gradient-to-br from-yellow-600 to-yellow-200 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-400/50 shadow-inner shrink-0 opacity-80">
                   <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-40">
                      {[...Array(9)].map((_, i) => <div key={i} className="border border-black/20" />)}
                   </div>
                   <Cpu className="absolute h-3 w-3 text-black/20" />
                </div>
                
-               <div className="space-y-0">
-                  <span className="text-[7px] font-black text-white/40 uppercase tracking-widest">Available Balance</span>
+               <div className="text-center space-y-0 translate-y-1">
+                  <span className="text-[7px] font-black text-white/40 uppercase tracking-widest block mb-0.5">Available Balance</span>
                   <h2 className="text-3xl font-black text-white tracking-tighter leading-none">
                     ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
                   </h2>
                </div>
             </div>
 
-            <div className="space-y-1.5">
+            {/* Bottom Section: Identity, Card Number, Arrow, and Strip */}
+            <div className="space-y-3">
                <div className="flex justify-between items-end">
                   <div className="space-y-0.5">
-                     <span className="text-[6px] font-black text-white/30 uppercase tracking-widest leading-none">Identity</span>
-                     <p className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">{profile?.fullName || 'AATMA USER'}</p>
+                     <span className="text-[6px] font-black text-white/30 uppercase tracking-widest leading-none">Card Holder</span>
+                     <p className="text-[9px] font-black text-white uppercase tracking-tighter leading-none">{profile?.fullName || 'AATMA USER'}</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {rankData.current.discount > 0 && <span className="text-[7px] font-black text-green-400 uppercase tracking-widest">{rankData.current.discount}% Discount</span>}
-                    <ArrowRight className="h-3 w-3 text-white/40 group-hover:text-primary transition-colors" />
+                  
+                  <div className="flex-1 text-center">
+                    <p className="text-[8px] font-mono font-black text-white/30 tracking-[0.2em]">**** **** **** 2047</p>
+                  </div>
+
+                  <div className="flex items-center">
+                    <ArrowRight className="h-3.5 w-3.5 text-white/40 group-hover:text-primary transition-colors" />
                   </div>
                </div>
                
-               <div className="flex justify-between items-center text-[5px] font-black uppercase text-white/20 tracking-widest pt-1 border-t border-white/5">
-                  <span>Rank: {rankData.current.name}</span>
-                  <span className="text-primary/50">Disc: {rankData.current.discount}%</span>
-                  <span>Spend: ₹{lifetimeSpend.toLocaleString()}</span>
+               {/* Bottom Info Strip Row */}
+               <div className="flex justify-between items-center text-[6px] font-black uppercase text-white/20 tracking-widest pt-2 border-t border-white/5">
+                  <span className="flex items-center gap-1">Rank: <span className="text-white/40">{rankData.current.name}</span></span>
+                  <span className="flex items-center gap-1">Discount: <span className="text-green-500/60">{rankData.current.discount}% OFF</span></span>
+                  <span className="flex items-center gap-1">Spend: <span className="text-primary/60">₹{lifetimeSpend.toLocaleString()}</span></span>
                </div>
             </div>
           </div>

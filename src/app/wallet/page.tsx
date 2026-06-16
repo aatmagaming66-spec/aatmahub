@@ -80,6 +80,19 @@ export default function WalletDashboard() {
     return { ...current, next: next?.name || 'MAX RANK', nextThreshold: next?.threshold || current.threshold, progress };
   }, [lifetimeSpend]);
 
+  const getRankColor = (rankName: string) => {
+    const name = rankName.toLowerCase();
+    if (name.includes('warrior')) return 'text-slate-400 border-slate-400/30 bg-slate-400/10';
+    if (name.includes('elite')) return 'text-slate-200 border-slate-200/30 bg-slate-200/10';
+    if (name.includes('master')) return 'text-orange-400 border-orange-400/30 bg-orange-400/10';
+    if (name.includes('grandmaster')) return 'text-cyan-400 border-cyan-400/30 bg-cyan-400/10';
+    if (name.includes('epic')) return 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10';
+    if (name.includes('legend')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
+    if (name.includes('mythical immortal')) return 'text-red-600 border-red-600/40 bg-red-600/20 shadow-[0_0_10px_rgba(220,38,38,0.2)]';
+    if (name.includes('mythic')) return 'text-red-500 border-red-500/30 bg-red-500/10';
+    return 'text-primary border-primary/20 bg-primary/10';
+  };
+
   if (userLoading || walletLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
@@ -112,65 +125,72 @@ export default function WalletDashboard() {
         </div>
       </header>
 
-      {/* PREMIUM DEBIT CARD - COMPACT REFINEMENT */}
-      <div className="relative w-full aspect-[2.1/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-95">
+      {/* PREMIUM DEBIT CARD - REDESIGNED LAYOUT */}
+      <div className="relative w-full aspect-[2.1/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-95 mb-10">
         {/* Background Layers */}
         <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-10" />
         
         {/* Card Elements */}
-        <div className="relative h-full p-4 flex flex-col justify-between z-10">
-          {/* Top Section */}
+        <div className="relative h-full p-5 flex flex-col justify-between z-10">
+          {/* Top Row: Logo & Rank Badge */}
           <div className="flex justify-between items-start">
             <div className="flex flex-col">
-              <span className="font-headline font-black text-base tracking-tighter text-white/90">AATMA HUB</span>
+              <span className="font-headline font-black text-sm tracking-tighter text-white/90">AATMA HUB</span>
               <span className="text-[5px] font-black text-primary uppercase tracking-[0.4em]">Digital Banking Layer</span>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-2xl">
-               <Crown size={8} className="text-primary fill-primary/20" />
-               <span className="text-[7px] font-black uppercase text-white tracking-widest">{rankInfo.name}</span>
+            <div className={cn(
+                "backdrop-blur-md border px-2 py-0.5 rounded-lg flex items-center gap-1.5 shadow-2xl transition-colors duration-500",
+                getRankColor(rankInfo.name)
+              )}>
+               <Crown size={8} className="fill-current/20" />
+               <span className="text-[7px] font-black uppercase tracking-widest">{rankInfo.name}</span>
             </div>
           </div>
 
-          {/* Center Section: Chip & Balance */}
-          <div className="flex items-center gap-4">
-             <div className="h-7 w-10 bg-gradient-to-br from-yellow-600 via-yellow-400 to-yellow-700 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-200/30 shadow-inner shrink-0">
+          {/* Center Area: Chip (Left) and Balance (Center) */}
+          <div className="relative flex items-center justify-center">
+             <div className="absolute left-0 h-7 w-10 bg-gradient-to-br from-yellow-600 via-yellow-400 to-yellow-700 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-200/30 shadow-inner shrink-0 opacity-80">
                 <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-20">
                    {[...Array(9)].map((_, i) => <div key={i} className="border border-black/40 rounded-sm" />)}
                 </div>
                 <Cpu className="absolute h-4 w-4 text-black/20" />
              </div>
              
-             <div className="space-y-0">
-                <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em]">Available Credits</span>
+             <div className="text-center space-y-0 translate-y-1">
+                <span className="text-[7px] font-black text-white/40 uppercase tracking-[0.2em] block mb-0.5">Available Credits</span>
                 <h2 className="text-3xl font-black text-white tracking-tighter leading-none">
                   ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
                 </h2>
              </div>
           </div>
 
-          {/* Bottom Section - Identity & Compact Stats */}
-          <div className="space-y-2">
+          {/* Bottom Section: Identity, Card Number, and Strip */}
+          <div className="space-y-3">
             <div className="flex justify-between items-end">
                <div className="space-y-0.5">
-                  <span className="text-[7px] font-black text-white/30 uppercase tracking-widest leading-none">Card Holder</span>
-                  <p className="text-xs font-black text-white uppercase tracking-tight leading-none">{profile?.fullName || 'AATMA OPERATOR'}</p>
+                  <span className="text-[6px] font-black text-white/30 uppercase tracking-widest leading-none">Card Holder</span>
+                  <p className="text-[9px] font-black text-white uppercase tracking-tight leading-none">{profile?.fullName || 'AATMA OPERATOR'}</p>
                </div>
+
+               <div className="flex-1 text-center">
+                  <p className="text-[8px] font-mono font-black text-white/30 tracking-[0.2em]">**** **** **** 2047</p>
+               </div>
+
                <div className="text-right space-y-0.5">
-                  <span className="text-[7px] font-black text-white/30 uppercase tracking-widest leading-none">Member Since</span>
-                  <p className="text-xs font-black text-white uppercase tracking-tight leading-none">
+                  <span className="text-[6px] font-black text-white/30 uppercase tracking-widest leading-none">Member Since</span>
+                  <p className="text-[9px] font-black text-white uppercase tracking-tight leading-none">
                     {new Date(profile?.createdAt || Date.now()).getFullYear()}
                   </p>
                </div>
             </div>
             
-            {/* Compact Info Row */}
-            <div className="flex justify-between items-center text-[6px] font-black uppercase text-white/20 tracking-widest pt-1.5 border-t border-white/5">
-               <span>Rank: {rankInfo.name}</span>
-               <span className="text-primary/60">Disc: {rankInfo.discount}%</span>
-               <span>Spend: ₹{lifetimeSpend.toLocaleString()}</span>
+            {/* Bottom Info Strip Row */}
+            <div className="flex justify-between items-center text-[6px] font-black uppercase text-white/20 tracking-widest pt-2 border-t border-white/5">
+               <span className="flex items-center gap-1">Rank: <span className="text-white/40">{rankInfo.name}</span></span>
+               <span className="flex items-center gap-1">Discount: <span className="text-green-500/60">{rankInfo.discount}% OFF</span></span>
+               <span className="flex items-center gap-1">Lifetime Spend: <span className="text-primary/60">₹{lifetimeSpend.toLocaleString()}</span></span>
             </div>
           </div>
         </div>
