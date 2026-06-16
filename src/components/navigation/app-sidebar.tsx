@@ -1,4 +1,3 @@
-
 "use client"
 
 import { 
@@ -26,10 +25,12 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useCallback } from "react";
+import { useUser } from "@/firebase/auth/use-user";
 
 export function AppSidebar() {
   const { setOpenMobile } = useSidebar();
   const router = useRouter();
+  const { user } = useUser();
 
   // Prefetch critical routes for instant transition
   useEffect(() => {
@@ -38,16 +39,15 @@ export function AppSidebar() {
     router.prefetch('/ott-services');
     router.prefetch('/social-services');
     router.prefetch('/orders');
-    router.prefetch('/account');
+    router.prefetch('/profile');
+    router.prefetch('/login');
     router.prefetch('/contact');
     router.prefetch('/terms');
     router.prefetch('/privacy');
   }, [router]);
 
   const navigateTo = useCallback((href: string) => {
-    // 1. Instant sidebar close (UI State)
     setOpenMobile(false);
-    // 2. Immediate route transition (Next.js Client Navigation)
     router.push(href);
   }, [router, setOpenMobile]);
 
@@ -99,7 +99,7 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo('/account')}>
+                <SidebarMenuButton onClick={() => navigateTo(user ? '/profile' : '/login')}>
                   <Settings className="h-4 w-4" />
                   <span className="font-bold text-sm">Account Settings</span>
                 </SidebarMenuButton>
@@ -128,12 +128,6 @@ export function AppSidebar() {
                 <SidebarMenuButton onClick={() => navigateTo('/privacy')}>
                   <ShieldCheck className="h-4 w-4" />
                   <span className="font-bold text-sm">Privacy Policy</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton className="text-destructive hover:text-destructive" onClick={() => setOpenMobile(false)}>
-                  <LogOut className="h-4 w-4" />
-                  <span className="font-bold text-sm">Logout</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

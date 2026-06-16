@@ -45,67 +45,44 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
+  // 1. Auth Listener - Resolved Identity
   useEffect(() => {
-    console.log('[PERF_HUB] Auth Listener Initializing...');
+    console.log('[AUTH_AUDIT] Initializing Auth Listener...');
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      console.log('[PERF_HUB] Auth State Resolved:', firebaseUser ? `UID: ${firebaseUser.uid}` : 'Guest Session');
-      
+      console.log('[AUTH_AUDIT] Auth Resolved:', firebaseUser ? `UID: ${firebaseUser.uid}` : 'Guest');
       setUser(firebaseUser);
+      setInitialized(true); // identity is known immediately
       
-      // CRITICAL FIX: Resolve loading/initialized as soon as Auth is confirmed.
-      // This prevents the UI from hanging while waiting for the profile fetch.
       if (!firebaseUser) {
         setProfile(null);
         setLoading(false);
-        setInitialized(true);
-      } else {
-        // We have a user, but profile is still fetching. 
-        // We set initialized true so the UI can render the 'Account' state.
-        setInitialized(true);
       }
     });
 
     return () => unsubscribeAuth();
   }, [auth]);
 
+  // 2. Profile Listener - Hydrates Data in Background
   useEffect(() => {
     if (!user) return;
 
-    console.log('[PERF_HUB] Profile Listener Initializing for:', user.uid);
+    console.log('[AUTH_AUDIT] Hydrating Profile for:', user.uid);
     const userDocRef = doc(db, 'users', user.uid);
     
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
-      console.log('[PERF_HUB] Profile Snapshot Received');
-      
       if (docSnap.exists()) {
+        console.log('[AUTH_AUDIT] Profile Data Received');
         const data = docSnap.data() as UserProfile;
+        
+        // Handle Super Admin & Schema Sync
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
-        
-        const updatePayload: Partial<UserProfile> = {};
-        let needsUpdate = false;
-
         if (isSuperAdminTarget && data.role !== 'super_admin') {
-           updatePayload.role = 'super_admin';
-           updatePayload.active = true;
-           updatePayload.permissions = ['all'];
-           needsUpdate = true;
+           updateDoc(userDocRef, { role: 'super_admin', active: true, permissions: ['all'] }).catch(e => console.error('Role sync error', e));
         }
 
-        if (data.lifetimeSpend === undefined || data.currentRank === undefined || data.rankId === undefined) {
-           updatePayload.lifetimeSpend = data.lifetimeSpend ?? 0;
-           updatePayload.currentRank = data.currentRank ?? 'Warrior';
-           updatePayload.rankId = data.rankId ?? 'warrior';
-           needsUpdate = true;
-        }
-
-        if (needsUpdate) {
-          console.log('[PERF_HUB] Syncing Profile Schema Defaults...');
-          updateDoc(userDocRef, updatePayload).catch(e => console.error('Silent update failure', e));
-        }
-        
-        setProfile({ ...data, ...updatePayload });
+        setProfile(data);
       } else {
-        console.log('[PERF_HUB] Creating New User Profile...');
+        console.log('[AUTH_AUDIT] No Profile Found, Creating Default...');
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         const newProfile: UserProfile = {
           uid: user.uid,
@@ -119,15 +96,14 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           rankId: 'warrior',
           createdAt: new Date().toISOString(),
         };
-        setDoc(userDocRef, newProfile).catch(e => console.error('Silent create failure', e));
+        setDoc(userDocRef, newProfile).catch(e => console.error('Profile creation error', e));
       }
       
       setLoading(false);
-      setInitialized(true);
+      console.log('[AUTH_AUDIT] Loading Complete (Profile Ready)');
     }, (error) => {
-      console.error(`[PERF_HUB] Profile Read Error:`, error);
-      setLoading(false);
-      setInitialized(true);
+      console.error('[AUTH_AUDIT] Profile Listener Error:', error);
+      setLoading(false); // don't block UI if listener fails
     });
 
     return () => unsubscribeProfile();
