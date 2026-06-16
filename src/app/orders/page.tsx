@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -12,12 +11,21 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from 'next/navigation';
 
 export default function OrdersPage() {
   const { user, initialized } = useUser();
   const db = useFirestore();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+
+  // REDIRECT GATING
+  useEffect(() => {
+    if (initialized && !user) {
+      router.push('/login');
+    }
+  }, [user, initialized, router]);
 
   const ordersQuery = useMemo(() => {
     if (!user) return null;
@@ -53,22 +61,6 @@ export default function OrdersPage() {
     }
   };
 
-  // Immediate Shell Render
-  if (!initialized) return <div className="flex h-[80vh] items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
-
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[70vh] p-6 text-center">
-        <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-          <Hash className="h-10 w-10 text-primary" />
-        </div>
-        <h2 className="text-2xl font-black uppercase tracking-tighter mb-2">Access Denied</h2>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60 mb-8">Login to view orders</p>
-        <Link href="/login"><Button className="bg-primary px-8 rounded-2xl font-black uppercase text-xs h-14">Sign In</Button></Link>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-500">
       <header className="py-4">
@@ -94,7 +86,7 @@ export default function OrdersPage() {
         </TabsList>
 
         <TabsContent value={activeTab} className="space-y-4">
-          {ordersLoading ? (
+          {ordersLoading || !initialized ? (
             Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-[2rem] bg-card" />)
           ) : filteredOrders.length === 0 ? (
             <div className="py-20 text-center space-y-4 bg-card/20 rounded-[2.5rem] border border-dashed border-border">

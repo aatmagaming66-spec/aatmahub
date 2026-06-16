@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 import { AdminNav } from '@/components/admin/admin-nav';
 import { Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, loading } = useUser();
+  const { user, profile, loading, initialized } = useUser();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -18,19 +19,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const hasAdminAccess = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   useEffect(() => {
-    if (!loading && isMounted) {
+    if (initialized && isMounted) {
       if (!user || !hasAdminAccess) {
         router.push('/');
       }
     }
-  }, [user, profile, loading, hasAdminAccess, router, isMounted]);
+  }, [user, profile, initialized, hasAdminAccess, router, isMounted]);
 
-  if (!isMounted || loading) {
+  // Render Skeleton Shell for Admin
+  if (!isMounted || !initialized) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-10 w-10 text-primary animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">Synchronizing Admin Session...</p>
+      <div className="flex h-screen bg-background">
+        <aside className="hidden lg:flex w-64 border-r border-border flex-col bg-background/50">
+          <div className="h-14 flex items-center px-6 border-b border-border">
+             <Skeleton className="h-6 w-32 bg-white/5" />
+          </div>
+          <div className="p-4 space-y-4">
+             {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-xl bg-white/5" />)}
+          </div>
+        </aside>
+        <div className="flex-1 flex flex-col">
+          <header className="h-14 border-b border-border bg-background/50" />
+          <main className="flex-1 p-8">
+             <div className="flex flex-col items-center justify-center h-full gap-4">
+                <Loader2 className="h-8 w-8 text-primary animate-spin" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-primary animate-pulse">Syncing Admin Session...</p>
+             </div>
+          </main>
         </div>
       </div>
     );
