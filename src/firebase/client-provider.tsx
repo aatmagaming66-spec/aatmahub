@@ -1,8 +1,11 @@
+
 'use client';
 
 import React, { useMemo } from 'react';
 import { initializeFirebase } from './init';
 import { FirebaseProvider } from './provider';
+import { ProfileProvider } from './auth/use-user';
+import { SettingsProvider } from './settings-context';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener';
 
 export function FirebaseClientProvider({ children }: { children: React.ReactNode }) {
@@ -10,8 +13,12 @@ export function FirebaseClientProvider({ children }: { children: React.ReactNode
 
   return (
     <FirebaseProvider app={app} auth={auth} db={db}>
-      <FirebaseErrorListener />
-      {children}
+      <SettingsProvider>
+        <ProfileProvider>
+          <FirebaseErrorListener />
+          {children}
+        </ProfileProvider>
+      </SettingsProvider>
     </FirebaseProvider>
   );
 }

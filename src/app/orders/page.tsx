@@ -3,7 +3,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, CheckCircle2, XCircle, Search, Hash, AlertCircle, Loader2, ArrowRight } from "lucide-react";
+import { Clock, CheckCircle2, XCircle, Search, Hash, AlertCircle, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
@@ -11,20 +11,13 @@ import { collection, query, where } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function OrdersPage() {
-  const { user, loading: userLoading } = useUser();
+  const { user, initialized } = useUser();
   const db = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    if (window.__nav_click_time) {
-      console.log(`[NAV_TRACE] Route "/orders" mounted in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
-    }
-  }, []);
 
   const ordersQuery = useMemo(() => {
     if (!user) return null;
@@ -34,29 +27,19 @@ export default function OrdersPage() {
     );
   }, [user, db]);
 
-  const { data: rawOrders, loading: ordersLoading, error } = useCollection(ordersQuery);
-
-  useEffect(() => {
-    if (!ordersLoading && isMounted) {
-      if (window.__nav_click_time) {
-        console.log(`[NAV_TRACE] Orders data ready in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
-        window.__nav_click_time = undefined;
-      }
-    }
-  }, [ordersLoading, isMounted]);
+  const { data: rawOrders, loading: ordersLoading } = useCollection(ordersQuery);
 
   const filteredOrders = useMemo(() => {
     if (!rawOrders) return [];
-    const sorted = [...rawOrders].sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-    return sorted.filter(order => {
-      const productName = order.items?.[0]?.name || '';
-      const matchesSearch = order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           productName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesTab = activeTab === 'all' || order.status.toLowerCase() === activeTab.toLowerCase();
-      return matchesSearch && matchesTab;
-    });
+    return [...rawOrders]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .filter(order => {
+        const productName = order.items?.[0]?.name || '';
+        const matchesSearch = order.orderId.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                             productName.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesTab = activeTab === 'all' || order.status.toLowerCase() === activeTab.toLowerCase();
+        return matchesSearch && matchesTab;
+      });
   }, [rawOrders, searchQuery, activeTab]);
 
   const getStatusIcon = (status: string) => {
@@ -70,101 +53,84 @@ export default function OrdersPage() {
     }
   };
 
-  if (userLoading || ordersLoading) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
-      </div>
-    );
-  }
+  // Immediate Shell Render
+  if (!initialized) return <div className="flex h-[80vh] items-center justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] p-6 text-center animate-in fade-in">
+      <div className="flex flex-col items-center justify-center h-[70vh] p-6 text-center">
         <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
           <Hash className="h-10 w-10 text-primary" />
         </div>
         <h2 className="text-2xl font-black uppercase tracking-tighter mb-2">Access Denied</h2>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60 mb-8">
-          Please login to view your orders
-        </p>
-        <Link href="/login">
-          <Button className="bg-primary hover:bg-secondary h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-xs">
-            Sign In
-          </Button>
-        </Link>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60 mb-8">Login to view orders</p>
+        <Link href="/login"><Button className="bg-primary px-8 rounded-2xl font-black uppercase text-xs h-14">Sign In</Button></Link>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
+    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-500">
       <header className="py-4">
         <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">My Orders</h1>
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Asset Tracking</p>
       </header>
 
       <div className="relative group">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
           placeholder="Search by Order ID or Product..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-card border-border pl-12 h-14 rounded-2xl text-sm font-bold placeholder:text-muted-foreground focus:border-primary transition-all shadow-xl"
+          className="bg-card border-border pl-12 h-14 rounded-2xl text-sm font-bold shadow-xl"
         />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-2xl overflow-x-auto no-scrollbar justify-start mb-8">
-          <TabsTrigger value="all" className="flex-shrink-0 text-[10px] font-black uppercase px-6 data-[state=active]:bg-primary rounded-xl">All</TabsTrigger>
-          <TabsTrigger value="pending" className="flex-shrink-0 text-[10px] font-black uppercase px-6 data-[state=active]:bg-primary rounded-xl">Pending</TabsTrigger>
-          <TabsTrigger value="processing" className="flex-shrink-0 text-[10px] font-black uppercase px-6 data-[state=active]:bg-primary rounded-xl">Processing</TabsTrigger>
-          <TabsTrigger value="completed" className="flex-shrink-0 text-[10px] font-black uppercase px-6 data-[state=active]:bg-primary rounded-xl">Done</TabsTrigger>
+        <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-2xl mb-8">
+          {['all', 'pending', 'processing', 'completed'].map(t => (
+            <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-xl data-[state=active]:bg-primary">{t}</TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value={activeTab} className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-          {filteredOrders.length === 0 ? (
+        <TabsContent value={activeTab} className="space-y-4">
+          {ordersLoading ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-[2rem] bg-card" />)
+          ) : filteredOrders.length === 0 ? (
             <div className="py-20 text-center space-y-4 bg-card/20 rounded-[2.5rem] border border-dashed border-border">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-                {error ? 'Firestore Protocol Violation Detected' : 'No orders matching your criteria'}
-              </p>
-              <Link href="/" className="inline-block">
-                <Button variant="link" className="text-primary font-black uppercase text-[10px] tracking-widest">Start Shopping</Button>
-              </Link>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">No orders found</p>
+              <Link href="/"><Button variant="link" className="text-primary font-black uppercase text-[10px]">Start Shopping</Button></Link>
             </div>
           ) : (
             filteredOrders.map((order) => {
-              const firstItem = order.items?.[0] || { name: 'Unknown Item', region: 'Global', price: 0 };
-              const statusStyle = getStatusIcon(order.status);
-              const StatusIcon = statusStyle.icon;
+              const firstItem = order.items?.[0] || { name: 'Digital Asset', region: 'Global' };
+              const s = getStatusIcon(order.status);
+              const StatusIcon = s.icon;
 
               return (
                 <Link key={order.orderId} href={`/orders/${order.orderId}`} className="block">
-                  <div className="bg-card border border-border p-6 rounded-[2rem] space-y-5 shadow-xl group hover:border-primary/40 transition-all active:scale-[0.98]">
+                  <div className="bg-card border border-border p-6 rounded-[2rem] space-y-5 shadow-xl hover:border-primary/40 transition-all active:scale-[0.98]">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5 text-primary">
                           <Hash size={10} className="stroke-[3]" />
-                          <span className="text-[10px] font-black uppercase tracking-widest leading-none">
-                            {order.orderId.replace('AH-2026-', '')}
-                          </span>
+                          <span className="text-[10px] font-black uppercase tracking-widest">{order.orderId.replace('AH-2026-', '')}</span>
                         </div>
                         <h4 className="text-base font-black uppercase tracking-tight">{firstItem.name}</h4>
                       </div>
-                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${statusStyle.bg} border border-white/5`}>
-                        <StatusIcon size={12} className={`${statusStyle.color} ${statusStyle.animate || ''}`} />
-                        <span className={`text-[9px] font-black uppercase tracking-[0.1em] ${statusStyle.color}`}>{order.status}</span>
+                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${s.bg} border border-white/5`}>
+                        <StatusIcon size={12} className={`${s.color} ${s.animate || ''}`} />
+                        <span className={`text-[9px] font-black uppercase tracking-[0.1em] ${s.color}`}>{order.status}</span>
                       </div>
                     </div>
-                    
                     <div className="pt-5 border-t border-border flex justify-between items-center">
                       <div className="flex flex-col gap-1">
-                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">Category</span>
-                        <span className="text-xs font-black uppercase">{firstItem.region || 'Global'}</span>
+                        <span className="text-[9px] font-black text-white/30 uppercase">Category</span>
+                        <span className="text-xs font-black uppercase">{firstItem.region}</span>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest leading-none">Total Paid</span>
-                        <span className="text-lg font-black text-white tracking-tighter leading-none">₹{order.totalAmount}</span>
+                        <span className="text-[9px] font-black text-white/30 uppercase">Total Paid</span>
+                        <span className="text-lg font-black text-white">₹{order.totalAmount}</span>
                       </div>
                     </div>
                   </div>
