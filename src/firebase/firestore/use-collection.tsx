@@ -5,17 +5,10 @@ import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
-/**
- * useCollection Hook
- * Optimized to prevent infinite render loops by stabilizing state updates
- * and ensuring subscription cleanup.
- */
 export function useCollection<T = any>(query: Query | null) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | null>(null);
-  
-  // Track the active subscription to prevent overlapping effects
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -25,20 +18,22 @@ export function useCollection<T = any>(query: Query | null) {
       setData([]);
       setLoading(false);
       setError(null);
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-        unsubscribeRef.current = null;
-      }
       return;
     }
 
-    // Only trigger loading if we aren't already in a loading state for this query
+    const startTime = performance.now();
+    const queryPath = (query as any)._query?.path?.toString() || 'unknown';
+    console.log(`[PERF] Firestore Query Started: ${queryPath}`);
+
     setLoading(true);
 
     const unsubscribe = onSnapshot(
       query,
       (snapshot) => {
         if (!isMounted) return;
+        
+        const fetchTime = performance.now() - startTime;
+        console.log(`[PERF] Query Result: ${queryPath} returned ${snapshot.docs.length} docs in ${fetchTime.toFixed(2)}ms`);
         
         const results = snapshot.docs.map((doc) => ({
           id: doc.id,
@@ -51,15 +46,12 @@ export function useCollection<T = any>(query: Query | null) {
       },
       async (err) => {
         if (!isMounted) return;
-        
         if (err.code === 'permission-denied') {
-          const permissionError = new FirestorePermissionError({
-            path: (query as any)._query?.path?.toString() || 'unknown collection',
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: queryPath,
             operation: 'list',
-          });
-          errorEmitter.emit('permission-error', permissionError);
+          }));
         }
-        
         setError(err);
         setLoading(false);
       }
@@ -74,7 +66,7 @@ export function useCollection<T = any>(query: Query | null) {
         unsubscribeRef.current = null;
       }
     };
-  }, [query]); // Dependency strictly on the query object reference
+  }, [query]);
 
   return { data, loading, error };
 }
