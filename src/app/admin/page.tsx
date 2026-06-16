@@ -88,7 +88,7 @@ export default function AdminDashboard() {
     { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Global grid settings' },
     { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Gateway configuration' },
     { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Kernel & Core logic' },
-    { label: 'Backup Management', href: '/admin/backups', icon: Database, desc: 'Vault archives' },
+    { label: 'Backup Management', href: '/admin/backups', icon: Database, desc: 'Database backups & restore' },
   ];
 
   if (!isMounted) return null;
@@ -137,18 +137,19 @@ export default function AdminDashboard() {
               <ShieldCheck className="h-3 w-3 text-primary" />
               <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Super Admin Command Center</h2>
            </div>
-           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+           <div className="flex flex-col gap-2">
               {superModules.map((mod, i) => (
                 <Link key={i} href={mod.href}>
-                  <Card className="bg-card border-border h-[75px] rounded-2xl hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl">
-                    <div className="flex items-center gap-3 w-full">
-                      <div className="h-9 w-9 flex-shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
-                        <mod.icon size={18} />
+                  <Card className="bg-card border-border h-[72px] rounded-2xl hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl">
+                    <div className="flex items-center gap-4 w-full">
+                      <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+                        <mod.icon size={20} />
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="text-[10px] font-black uppercase tracking-tight truncate leading-tight">{mod.label}</h4>
-                        <p className="text-[7px] text-muted-foreground uppercase font-bold tracking-widest truncate">{mod.desc}</p>
+                      <div className="flex-1">
+                        <h4 className="text-xs font-black uppercase tracking-tight leading-tight">{mod.label}</h4>
+                        <p className="text-[8px] text-muted-foreground uppercase font-bold tracking-widest leading-none mt-1">{mod.desc}</p>
                       </div>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
                     </div>
                   </Card>
                 </Link>
