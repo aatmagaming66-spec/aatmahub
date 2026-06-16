@@ -60,7 +60,7 @@ export default function ProfilePage() {
       setPhoneNumber(profile.phoneNumber || '');
     }
     
-    // Performance: Prefetch security routes for instant navigation
+    // Performance: Prefetch inner settings routes for instant navigation
     if (user) {
       router.prefetch('/profile/change-password');
       router.prefetch('/profile/notifications');
@@ -126,7 +126,7 @@ export default function ProfilePage() {
               {!initialized || !profile ? (
                 <Skeleton className="h-6 w-32 bg-white/5" />
               ) : (
-                <h2 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none truncate max-w-[160px]">{profile?.fullName || 'Aatma Member'}</h2>
+                <h2 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none truncate max-w-[160px] text-white">{profile?.fullName || 'Aatma Member'}</h2>
               )}
               {profile && (
                 <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-lg flex items-center gap-1.5 shadow-lg">
@@ -220,11 +220,11 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-[9px] uppercase font-black opacity-60">Legal Full Name</Label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-background border-border h-12 rounded-xl focus:border-primary font-bold" />
+                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-background border-border h-12 rounded-xl focus:border-primary font-bold text-white" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[9px] uppercase font-black opacity-60">Active Phone Contact</Label>
-                <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-background border-border h-12 rounded-xl focus:border-primary font-bold" />
+                <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-background border-border h-12 rounded-xl focus:border-primary font-bold text-white" />
               </div>
               <Button 
                 onClick={async () => { 

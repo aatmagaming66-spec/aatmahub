@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,6 +21,10 @@ import {
   ShieldAlert
 } from 'lucide-react';
 
+/**
+ * Broadcast Sector (Notification Settings)
+ * Optimized for 0ms render-blocking and instant shell visibility.
+ */
 export default function NotificationSettingsPage() {
   const { user, profile, initialized } = useUser();
   const db = useFirestore();
@@ -36,6 +39,7 @@ export default function NotificationSettingsPage() {
     securityAlerts: true
   });
 
+  // Background hydration: Update state when profile data arrives
   useEffect(() => {
     if (profile?.notifications) {
       setSettings(profile.notifications);
@@ -47,9 +51,12 @@ export default function NotificationSettingsPage() {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user) {
+      toast({ variant: 'destructive', title: 'Session Lost', description: 'Please login to save preferences.' });
+      return;
+    }
+    
     setSaving(true);
-
     try {
       const userRef = doc(db, 'users', user.uid);
       await updateDoc(userRef, {
@@ -85,7 +92,7 @@ export default function NotificationSettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none">Broadcast Sector</h1>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none text-white">Broadcast Sector</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Communication Protocols</p>
         </div>
       </header>
@@ -95,7 +102,7 @@ export default function NotificationSettingsPage() {
           <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
             <Bell size={30} className="text-primary" />
           </div>
-          <CardTitle className="text-xl font-black uppercase tracking-tighter">Alert Matrix</CardTitle>
+          <CardTitle className="text-xl font-black uppercase tracking-tighter text-white">Alert Matrix</CardTitle>
           <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Configure global system notifications</CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-6">
@@ -173,8 +180,8 @@ function NotificationToggle({ icon: Icon, color, title, description, checked, on
         <div className={`h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center ${color}`}>
           <Icon size={18} />
         </div>
-        <div className="space-y-0.5">
-          <Label className="text-xs font-black uppercase tracking-tight text-white/90">{title}</Label>
+        <div className="space-y-0.5 text-left">
+          <Label className="text-xs font-black uppercase tracking-tight text-white/90 cursor-pointer">{title}</Label>
           <p className="text-[8px] text-muted-foreground uppercase font-black">{description}</p>
         </div>
       </div>
