@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 
 /**
- * Account Utility Redirector
- * Refactored to render a silent shell while executing redirect logic.
- * This prevents the "Hard Spinner" flicker during navigation.
+ * Silent Redirector
+ * Orchestrates session routing without visual weight.
  */
 export default function AccountRedirect() {
   const { user, initialized } = useUser();
@@ -15,21 +14,10 @@ export default function AccountRedirect() {
 
   useEffect(() => {
     if (initialized) {
-      if (user) {
-        router.push('/profile');
-      } else {
-        router.push('/login');
-      }
+      router.replace(user ? '/profile' : '/login');
     }
   }, [user, initialized, router]);
 
-  // Render a minimal empty shell that matches the app layout
-  // to prevent a "flash of white" or blocking spinner.
-  return (
-    <div className="flex h-[80vh] items-center justify-center">
-      <div className="relative flex flex-col items-center gap-4">
-         <div className="h-10 w-10 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
-      </div>
-    </div>
-  );
+  // Empty shell to prevent flicker while routing
+  return <div className="min-h-screen bg-background" />;
 }

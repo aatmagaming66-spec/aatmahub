@@ -18,7 +18,6 @@ import {
   Share2, 
   HelpCircle, 
   Settings, 
-  LogOut, 
   FileText, 
   ShieldCheck,
   Package

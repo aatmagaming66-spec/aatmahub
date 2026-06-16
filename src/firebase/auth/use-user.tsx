@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { useAuth, useFirestore } from '../provider';
 import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
@@ -45,30 +45,22 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
-  // 1. Auth Listener - Resolved Identity DETERMINES INITIALIZED STATE
   useEffect(() => {
-    console.log('[PERF_HUB] Auth Listener Initializing...');
-    
-    // Fail-safe timeout to prevent UI freeze
+    // Hard fail-safe timeout to prevent UI hang in extreme network cases
     const failSafe = setTimeout(() => {
-      setLoading(false);
       setInitialized(true);
+      setLoading(false);
     }, 3000);
 
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       clearTimeout(failSafe);
-      console.log('[PERF_HUB] Auth Resolved:', firebaseUser ? `UID: ${firebaseUser.uid}` : 'Guest');
       
       setUser(firebaseUser);
-      setInitialized(true); 
+      // Identity is determined - reveal the shell
+      setInitialized(true);
       
-      // If no user, we are done loading immediately
       if (!firebaseUser) {
         setProfile(null);
-        setLoading(false);
-      } else {
-        // If user exists, we set loading to false so UI shows "ACCOUNT"
-        // Profile will hydrate in the background
         setLoading(false);
       }
     });
@@ -79,26 +71,19 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     };
   }, [auth]);
 
-  // 2. Profile Listener - Hydrates Data in Background ASYNCHRONOUSLY
   useEffect(() => {
     if (!user) return;
 
-    console.log('[PERF_HUB] Background Profile Hydration Started:', user.uid);
     const userDocRef = doc(db, 'users', user.uid);
-    
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
-        
-        // Handle Admin Sync logic silently
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         if (isSuperAdminTarget && data.role !== 'super_admin') {
            updateDoc(userDocRef, { role: 'super_admin', active: true, permissions: ['all'] }).catch(() => {});
         }
-
         setProfile(data);
       } else {
-        // Create profile if missing, but don't block UI
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         const newProfile: UserProfile = {
           uid: user.uid,
@@ -114,15 +99,19 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         };
         setDoc(userDocRef, newProfile).catch(() => {});
       }
+      setLoading(false);
     }, (error) => {
-      console.error('[PERF_HUB] Profile background sync error:', error);
+      console.error('[PROFILE] background sync error:', error);
+      setLoading(false);
     });
 
     return () => unsubscribeProfile();
   }, [user, db]);
 
+  const value = useMemo(() => ({ user, profile, loading, initialized }), [user, profile, loading, initialized]);
+
   return (
-    <ProfileContext.Provider value={{ user, profile, loading, initialized }}>
+    <ProfileContext.Provider value={value}>
       {children}
     </ProfileContext.Provider>
   );

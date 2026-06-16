@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect } from "react";
-import { Home, Wallet, ClipboardList, UserCircle, LogIn, Loader2 } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { Home, Wallet, ClipboardList, UserCircle, LogIn } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -12,22 +12,23 @@ export function BottomNav() {
   const router = useRouter();
   const { user, initialized } = useUser();
 
-  const NAV_ITEMS = [
+  const NAV_ITEMS = useMemo(() => [
     { label: "Home", icon: Home, href: "/" },
     { label: "Wallet", icon: Wallet, href: "/wallet" },
     { label: "Orders", icon: ClipboardList, href: "/orders" },
     { 
-      label: user ? "Account" : "Login", 
-      icon: user ? UserCircle : LogIn, 
-      href: user ? "/profile" : "/login" 
+      // Optimistic label/icon: assume Account if not initialized to prevent jank
+      label: !initialized || user ? "Account" : "Login", 
+      icon: !initialized || user ? UserCircle : LogIn, 
+      href: !initialized || user ? "/profile" : "/login" 
     },
-  ];
+  ], [user, initialized]);
 
   useEffect(() => {
     NAV_ITEMS.forEach((item) => {
       router.prefetch(item.href);
     });
-  }, [router]);
+  }, [NAV_ITEMS, router]);
 
   const handleTrackClick = (href: string) => {
     window.__nav_click_time = performance.now();
@@ -54,7 +55,7 @@ export function BottomNav() {
                 isActive && "fill-primary/10"
               )} />
               <span className="text-[10px] font-bold uppercase tracking-wider">
-                {!initialized ? "..." : item.label}
+                {item.label}
               </span>
               {isActive && (
                 <div className="absolute bottom-1 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_#DC2626]" />
