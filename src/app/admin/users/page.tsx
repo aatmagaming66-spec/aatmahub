@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, memo } from 'react';
@@ -30,11 +29,11 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Search, Shield, User, Mail, MoreVertical, Crown, Loader2, Wallet, Ban, CheckCircle2 } from 'lucide-react';
+import { Search, Shield, MoreVertical, Crown, Loader2, Wallet, Ban, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { RankAvatar } from '@/components/ui/rank-avatar';
 
 export default function AdminUsersPage() {
   const db = useFirestore();
@@ -208,12 +207,12 @@ const UserRow = memo(function UserRow({ user, updateRole, toggleBan, setAdjustin
     <TableRow className={cn("border-border hover:bg-white/5 transition-colors", user.banned && "bg-primary/5 opacity-60")}>
       <TableCell className="py-6 px-6">
         <div className="flex items-center gap-4">
-          <Avatar className="h-10 w-10 border-2 border-primary/20">
-            <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100/100`} />
-            <AvatarFallback className="bg-primary/10 text-primary font-black text-xs">
-              {user.fullName?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          <RankAvatar 
+            src={`https://picsum.photos/seed/${user.uid}/100/100`}
+            rank={user.rank || 'Warrior'}
+            size="md"
+            fallback={user.fullName?.charAt(0)}
+          />
           <div className="space-y-1">
             <p className="text-sm font-black uppercase tracking-tight leading-none">{user.fullName}</p>
             <p className="text-[9px] text-muted-foreground font-bold flex items-center gap-1.5 uppercase">

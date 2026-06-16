@@ -1,4 +1,3 @@
-
 "use client"
 
 import { ShoppingBag, Bell, Menu } from "lucide-react";
@@ -8,11 +7,28 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { RankAvatar } from "@/components/ui/rank-avatar";
+import { useUser } from "@/firebase/auth/use-user";
+import { useFirestore } from "@/firebase/provider";
+import { useDoc } from "@/firebase/firestore/use-doc";
+import { doc } from "firebase/firestore";
+import { useMemo } from "react";
+import { getRankFromSpend } from "@/lib/ranks";
 
 export function TopHeader() {
   const { totalCount } = useCart();
   const { toggleSidebar } = useSidebar();
+  const { user, profile } = useUser();
+  const db = useFirestore();
+  
   const logo = PlaceHolderImages.find(img => img.id === 'app-logo');
+
+  const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
+  const { data: wallet } = useDoc(walletRef);
+
+  const rankInfo = useMemo(() => {
+    return getRankFromSpend(wallet?.balance || 0);
+  }, [wallet]);
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b border-border h-14">
@@ -37,6 +53,17 @@ export function TopHeader() {
         
         {/* Right Side: Actions & Menu */}
         <div className="flex items-center gap-1">
+          {user && (
+            <Link href="/profile" className="mr-1">
+              <RankAvatar 
+                src={`https://picsum.photos/seed/${user.uid}/50/50`}
+                rank={rankInfo.name}
+                size="xs"
+                className="hover:scale-110 transition-transform"
+              />
+            </Link>
+          )}
+
           <Link href="/cart">
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full relative hover:bg-white/5">
               <ShoppingBag className="h-5 w-5 text-foreground" />
@@ -52,7 +79,6 @@ export function TopHeader() {
             <Bell className="h-5 w-5 text-foreground" />
           </Button>
 
-          {/* New Sidebar Hamburger Menu */}
           <Button 
             variant="ghost" 
             size="icon" 

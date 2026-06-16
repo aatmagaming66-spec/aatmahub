@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -12,12 +11,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, User, Phone, Mail, Calendar, Crown, Shield, Loader2, Wallet, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { LogOut, ArrowRight, ShieldCheck, Wallet, Loader2, Crown, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
+import { RankAvatar } from '@/components/ui/rank-avatar';
+import { getRankFromSpend } from '@/lib/ranks';
 
 export default function ProfilePage() {
   const { user, profile, loading: userLoading } = useUser();
@@ -30,17 +30,13 @@ export default function ProfilePage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    if (window.__nav_click_time) {
-      console.log(`[NAV_TRACE] Route "/profile" mounted in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
-    }
-  }, []);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet } = useDoc(walletRef);
+
+  const rankInfo = useMemo(() => {
+    return getRankFromSpend(wallet?.balance || 0);
+  }, [wallet]);
 
   useEffect(() => {
     if (profile) {
@@ -48,15 +44,6 @@ export default function ProfilePage() {
       setPhoneNumber(profile.phoneNumber || '');
     }
   }, [profile]);
-
-  useEffect(() => {
-    if (!userLoading && isMounted) {
-      if (window.__nav_click_time) {
-        console.log(`[NAV_TRACE] Profile data ready in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
-        window.__nav_click_time = undefined;
-      }
-    }
-  }, [userLoading, isMounted]);
 
   useEffect(() => {
     if (!userLoading && !user) {
@@ -114,21 +101,20 @@ export default function ProfilePage() {
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <div className="p-8 bg-gradient-to-b from-primary/10 via-primary/5 to-transparent border-b border-border">
         <div className="flex items-center gap-6">
-          <div className="relative">
-            <Avatar className={`h-20 w-20 border-4 ${isSuperAdmin ? 'border-primary' : (isAdmin ? 'border-accent' : 'border-primary')} shadow-2xl relative z-10`}>
-              <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100/100`} />
-              <AvatarFallback className="bg-primary text-white font-black text-xl">{fullName.charAt(0) || 'U'}</AvatarFallback>
-            </Avatar>
-            <div className={`absolute -bottom-1 -right-1 z-20 ${isSuperAdmin ? 'bg-primary' : (isAdmin ? 'bg-accent' : 'bg-primary')} p-1.5 rounded-full border-2 border-background shadow-lg`}>
-              {isSuperAdmin ? <Zap className="h-3 w-3 text-white" /> : <Crown className="h-3 w-3 text-white" />}
-            </div>
-          </div>
+          <RankAvatar 
+            src={`https://picsum.photos/seed/${user.uid}/200/200`}
+            rank={rankInfo.name}
+            size="xl"
+          />
           <div>
             <h2 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none mb-1">{profile?.fullName || 'Aatma Member'}</h2>
             <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">HUB ID: {user.uid.substring(0, 10).toUpperCase()}</p>
-            <div className="mt-3">
+            <div className="mt-3 flex items-center gap-2">
               <span className={`${isSuperAdmin ? 'bg-primary text-white' : 'bg-primary/20 text-primary'} text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-primary/20`}>
                 {profile?.role?.replace('_', ' ') || 'User'} Member
+              </span>
+              <span className="bg-white/5 text-white/40 text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-white/5">
+                {rankInfo.name} Rank
               </span>
             </div>
           </div>
@@ -140,7 +126,7 @@ export default function ProfilePage() {
           <Link href="/admin">
             <Button className="w-full h-16 bg-primary hover:bg-secondary font-black text-[11px] uppercase tracking-[0.2em] gap-3 rounded-2xl shadow-2xl shadow-primary/20 transition-all active:scale-[0.98] group">
               <ShieldCheck size={20} className="group-hover:scale-110 transition-transform" />
-              Open Super Admin Center
+              Open Admin Command Center
               <ArrowRight size={16} />
             </Button>
           </Link>
