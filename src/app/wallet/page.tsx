@@ -23,6 +23,14 @@ export default function WalletDashboard() {
   const router = useRouter();
   const [isFlipped, setIsFlipped] = useState(false);
 
+  // Performance Trace
+  useEffect(() => {
+    if (window.__nav_click_time) {
+      console.log(`[NAV_TRACE] Route "/wallet" loaded in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
+      window.__nav_click_time = undefined;
+    }
+  }, []);
+
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
 
@@ -35,11 +43,6 @@ export default function WalletDashboard() {
   }, [user, db]);
 
   const { data: rawTransactions, loading: transactionsLoading } = useCollection(transactionsQuery);
-
-  // Dynamic Ranks from Admin
-  const ranksQuery = useMemo(() => query(collection(db, 'ranks'), orderBy('sortOrder', 'asc')), [db]);
-  const { data: dbRanks } = useCollection<RankDefinition>(ranksQuery);
-  const activeRanks = dbRanks && dbRanks.length > 0 ? dbRanks : DEFAULT_RANKS;
 
   const recentTransactions = useMemo(() => {
     if (!rawTransactions) return [];
@@ -54,6 +57,11 @@ export default function WalletDashboard() {
       .filter(tx => tx.type === 'purchase' && tx.status === 'success')
       .reduce((sum, tx) => sum + (tx.amount || 0), 0);
   }, [rawTransactions]);
+
+  // Dynamic Ranks from Admin (Fallback to Default)
+  const ranksQuery = useMemo(() => query(collection(db, 'ranks'), orderBy('sortOrder', 'asc')), [db]);
+  const { data: dbRanks } = useCollection<RankDefinition>(ranksQuery);
+  const activeRanks = dbRanks && dbRanks.length > 0 ? dbRanks : DEFAULT_RANKS;
 
   const rankInfo = useMemo(() => {
     return getRankFromSpend(lifetimeSpend, activeRanks);
@@ -70,9 +78,17 @@ export default function WalletDashboard() {
       shine: 'via-white/30',
     };
     
+    // Warrior logic
+    if (name.includes('warrior')) return {
+      bg: baseAatmaBg,
+      border: 'border-slate-400/40',
+      chip: 'from-slate-400 via-slate-200 to-slate-500',
+      shine: 'via-white/5',
+    };
+
     return {
       bg: baseAatmaBg,
-      border: 'border-zinc-500/40',
+      border: `border-[${rankInfo.color}]/40 shadow-[0_0_10px_${rankInfo.color}33]`,
       chip: 'from-zinc-400 via-zinc-200 to-zinc-500',
       shine: 'via-white/5',
     };
@@ -96,7 +112,7 @@ export default function WalletDashboard() {
   const balance = wallet?.balance || 0;
 
   return (
-    <div id="rank-center" className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
+    <div id="rank-center" className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700 pb-20">
       <header className="flex items-center gap-4 py-4">
         <Button 
           variant="ghost" 
@@ -174,8 +190,9 @@ export default function WalletDashboard() {
                     </div>
                  </div>
                  <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-2.5 gap-2">
-                   <span className="truncate">Rank: <span className="text-white/60">{rankInfo.name}</span></span>
+                   <span className="truncate">Tier: <span className="text-white/60">{rankInfo.name}</span></span>
                    <span className="shrink-0">Reward: <span className="text-green-500/60">{rankInfo.discount}% OFF</span></span>
+                   <span className="shrink-0">Spent: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
                  </div>
               </div>
             </div>
@@ -199,7 +216,7 @@ export default function WalletDashboard() {
               </div>
               <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest mt-auto">
                  <span>Member ID: {user.uid.slice(-8).toUpperCase()}</span>
-                 <span>Spent: ₹{lifetimeSpend.toLocaleString()}</span>
+                 <span>Total Volume: ₹{lifetimeSpend.toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -219,10 +236,11 @@ export default function WalletDashboard() {
         </Link>
       </div>
 
-      {/* Advanced Rank Progression Slider */}
+      {/* Advanced Rank Progression Slider (Horizontal Swipe) */}
       <RankProgressionSlider lifetimeSpend={lifetimeSpend} ranks={activeRanks} />
 
-      <div className="space-y-5 pb-10">
+      {/* Activity Logs */}
+      <div className="space-y-5">
         <div className="flex justify-between items-end px-2">
           <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Activity Logs</h3>
           <Link href="/wallet/history">
@@ -230,7 +248,7 @@ export default function WalletDashboard() {
           </Link>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-3 pb-10">
           {transactionsLoading ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 text-primary animate-spin" /></div>
           ) : recentTransactions.length === 0 ? (
@@ -239,7 +257,7 @@ export default function WalletDashboard() {
             </div>
           ) : (
             recentTransactions.map((tx) => (
-              <div key={tx.transactionId} className="bg-card border border-border p-5 rounded-3xl flex items-center justify-between shadow-lg">
+              <div key={tx.transactionId} className="bg-card border border-border p-5 rounded-3xl flex items-center justify-between shadow-lg hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-4">
                   <div className={cn(
                     "h-12 w-12 rounded-2xl flex items-center justify-center border",

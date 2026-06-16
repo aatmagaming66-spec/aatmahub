@@ -1,6 +1,6 @@
 /**
  * Global Rank Configuration & Thresholds
- * Updated for the Advanced Rank Progression Center
+ * Optimized for the Advanced Swipeable Progression Center
  */
 
 export interface RankDefinition {
@@ -29,7 +29,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 1000, 
     discount: 1, 
     color: '#10b981', 
-    benefits: ['1% Purchase Discount', 'Priority Order Queue'],
+    benefits: ['1% Purchase Discount', 'Priority Order Processing'],
     sortOrder: 1
   },
   { 
@@ -38,13 +38,13 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 5000, 
     discount: 2, 
     color: '#3b82f6', 
-    benefits: ['2% Purchase Discount', 'Faster Order Processing'],
+    benefits: ['2% Purchase Discount', 'Faster Order Queue'],
     sortOrder: 2
   },
   { 
     id: 'epic',
     name: 'Epic', 
-    threshold: 15000, 
+    threshold: 10000, 
     discount: 3, 
     color: '#a855f7', 
     benefits: ['3% Purchase Discount', 'Premium Profile Badge'],
@@ -70,8 +70,8 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   },
   { 
     id: 'immortal',
-    name: 'Mythical Immortal', 
-    threshold: 250000, 
+    name: 'Immortal', 
+    threshold: 500000, 
     discount: 10, 
     color: '#fbbf24', 
     benefits: ['10% Purchase Discount', 'Highest Order Priority', 'Exclusive Immortal Benefits'],
