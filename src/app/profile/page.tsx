@@ -39,7 +39,7 @@ import { cn } from '@/lib/utils';
 
 /**
  * AATMA HUB Simplified Profile Hub
- * Focused exclusively on account management and security.
+ * Optimized for high-speed navigation and proactive prefetching.
  */
 export default function ProfilePage() {
   const { user, profile, initialized } = useUser();
@@ -60,10 +60,11 @@ export default function ProfilePage() {
       setPhoneNumber(profile.phoneNumber || '');
     }
     
-    // Performance: Prefetch inner settings routes for instant navigation
+    // Performance: Prefetch optimized routes for instant navigation
     if (user) {
       router.prefetch('/profile/change-password');
       router.prefetch('/profile/notifications');
+      router.prefetch('/profile/security');
     }
   }, [profile, user, router]);
 
@@ -130,7 +131,6 @@ export default function ProfilePage() {
               )}
               {profile && (
                 <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-lg flex items-center gap-1.5 shadow-lg">
-                  <Crown size={10} className="text-primary fill-primary" />
                   <span className="text-[8px] font-black uppercase text-primary tracking-widest">{rankInfo.name}</span>
                 </div>
               )}
@@ -192,13 +192,15 @@ export default function ProfilePage() {
                 </div>
               </Link>
 
-              <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors text-left">
-                <div className="flex items-center gap-4">
-                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Fingerprint size={16} /></div>
-                  <span className="text-xs font-bold text-white/90 uppercase">Security Settings</span>
+              <Link href="/profile/security" prefetch={true}>
+                <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Fingerprint size={16} /></div>
+                    <span className="text-xs font-bold text-white/90 uppercase">Security Settings</span>
+                  </div>
+                  <ChevronRight size={16} className="text-white/20" />
                 </div>
-                <ChevronRight size={16} className="text-white/20" />
-              </button>
+              </Link>
 
               <button className="w-full flex items-center justify-between p-5 hover:bg-white/5 group transition-colors text-left">
                 <div className="flex items-center gap-4">
@@ -215,7 +217,7 @@ export default function ProfilePage() {
           <Card className="bg-card border-border rounded-3xl p-6 space-y-4 animate-in slide-in-from-top-4">
             <div className="flex justify-between items-center">
               <h4 className="text-xs font-black uppercase text-primary">Identity Protocol</h4>
-              <Button variant="ghost" className="text-[9px] uppercase h-8" onClick={() => setEditing(false)}>Cancel</Button>
+              <button className="text-[9px] uppercase h-8 font-black text-muted-foreground" onClick={() => setEditing(false)}>Cancel</button>
             </div>
             <div className="space-y-4">
               <div className="space-y-2">
