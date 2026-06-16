@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -51,6 +52,14 @@ export default function ProfilePage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [mountTime] = useState(performance.now());
+
+  useEffect(() => {
+    if (!userLoading && profile) {
+      const duration = performance.now() - mountTime;
+      console.log(`[PERF_HUB] Profile Data Ready: ${duration.toFixed(2)}ms ${duration > 1000 ? '⚠️ SLOW' : '✅ OK'}`);
+    }
+  }, [userLoading, profile, mountTime]);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet } = useDoc(walletRef);
@@ -246,7 +255,6 @@ export default function ProfilePage() {
           </Card>
         </section>
 
-        {/* HUB IDENTITY (OLD SECTION UPDATED) */}
         {editing && (
           <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl animate-in slide-in-from-top-4 duration-500">
             <CardHeader className="p-6 border-b border-border bg-white/5">

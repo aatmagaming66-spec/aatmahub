@@ -19,9 +19,12 @@ export function LiveActivity() {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    const startTime = performance.now();
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % RECENT_ACTIVITY.length);
     }, 4000);
+    const duration = performance.now() - startTime;
+    console.log(`[PERF_HUB] Live Activity Feed Init: ${duration.toFixed(2)}ms ${duration > 1000 ? '⚠️ SLOW' : '✅ OK'}`);
     return () => clearInterval(timer);
   }, []);
 
@@ -40,15 +43,10 @@ export function LiveActivity() {
         <div className="relative h-[44px] overflow-hidden">
           {RECENT_ACTIVITY.map((activity, i) => {
             // Calculate relative position with circular wrapping logic
-            // Target slots: -1 (Exit), 0 (Top Visible), 1 (Bottom Visible), 2 (Ready to Enter)
             let position = i - index;
             if (position < -1) position += RECENT_ACTIVITY.length;
             if (position > RECENT_ACTIVITY.length - 2) position -= RECENT_ACTIVITY.length;
 
-            // Sequential animation timing to ensure items move one-by-one
-            // Slot -1 (Exiting): starts at 0ms
-            // Slot 0 (Shifting Up): starts at 600ms
-            // Slot 1 (Entering): starts at 1200ms
             const delay = position === 0 ? "600ms" : position === 1 ? "1200ms" : "0ms";
             const isVisible = position === 0 || position === 1;
 

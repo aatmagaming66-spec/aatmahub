@@ -25,12 +25,21 @@ const SOCIAL_SERVICES = [
   { id: "yt-serv", name: "YouTube", imgId: "ott-yt" },
 ];
 
+declare global {
+  interface Window {
+    __nav_click_time?: number;
+  }
+}
+
 export default function Home() {
   useEffect(() => {
     const mountTime = performance.now();
     if (window.__nav_click_time) {
-      console.log(`[NAV_TRACE] Route "/" loaded in ${(mountTime - window.__nav_click_time).toFixed(2)}ms`);
+      const duration = mountTime - window.__nav_click_time;
+      console.log(`[PERF_HUB] Homepage Navigation Load: ${duration.toFixed(2)}ms ${duration > 1000 ? '⚠️ SLOW' : '✅ OK'}`);
       window.__nav_click_time = undefined;
+    } else {
+      console.log(`[PERF_HUB] Homepage Direct Mount: ${mountTime.toFixed(2)}ms`);
     }
   }, []);
 

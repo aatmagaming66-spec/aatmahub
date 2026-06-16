@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from '@/firebase/auth/use-user';
@@ -22,14 +23,7 @@ export default function WalletDashboard() {
   const db = useFirestore();
   const router = useRouter();
   const [isFlipped, setIsFlipped] = useState(false);
-
-  // Performance Trace
-  useEffect(() => {
-    if (window.__nav_click_time) {
-      console.log(`[NAV_TRACE] Route "/wallet" loaded in ${(performance.now() - window.__nav_click_time).toFixed(2)}ms`);
-      window.__nav_click_time = undefined;
-    }
-  }, []);
+  const [mountTime] = useState(performance.now());
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
@@ -44,6 +38,26 @@ export default function WalletDashboard() {
 
   const { data: rawTransactions, loading: transactionsLoading } = useCollection(transactionsQuery);
 
+  // Dynamic Ranks from Admin (Fallback to Default)
+  const ranksQuery = useMemo(() => query(collection(db, 'ranks'), orderBy('sortOrder', 'asc')), [db]);
+  const { data: dbRanks, loading: ranksLoading } = useCollection<RankDefinition>(ranksQuery);
+  const activeRanks = dbRanks && dbRanks.length > 0 ? dbRanks : DEFAULT_RANKS;
+
+  useEffect(() => {
+    if (!walletLoading && !ranksLoading && !userLoading && wallet && activeRanks) {
+      const duration = performance.now() - mountTime;
+      console.log(`[PERF_HUB] Wallet & Membership Load: ${duration.toFixed(2)}ms ${duration > 1000 ? '⚠️ SLOW' : '✅ OK'}`);
+    }
+  }, [walletLoading, ranksLoading, userLoading, wallet, activeRanks, mountTime]);
+
+  useEffect(() => {
+    if (window.__nav_click_time) {
+      const duration = performance.now() - window.__nav_click_time;
+      console.log(`[PERF_HUB] Wallet Navigation Sync: ${duration.toFixed(2)}ms`);
+      window.__nav_click_time = undefined;
+    }
+  }, []);
+
   const recentTransactions = useMemo(() => {
     if (!rawTransactions) return [];
     return [...rawTransactions]
@@ -57,11 +71,6 @@ export default function WalletDashboard() {
       .filter(tx => tx.type === 'purchase' && tx.status === 'success')
       .reduce((sum, tx) => sum + (tx.amount || 0), 0);
   }, [rawTransactions]);
-
-  // Dynamic Ranks from Admin (Fallback to Default)
-  const ranksQuery = useMemo(() => query(collection(db, 'ranks'), orderBy('sortOrder', 'asc')), [db]);
-  const { data: dbRanks } = useCollection<RankDefinition>(ranksQuery);
-  const activeRanks = dbRanks && dbRanks.length > 0 ? dbRanks : DEFAULT_RANKS;
 
   const rankInfo = useMemo(() => {
     return getRankFromSpend(lifetimeSpend, activeRanks);

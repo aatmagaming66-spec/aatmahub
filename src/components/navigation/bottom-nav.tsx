@@ -15,7 +15,7 @@ export function BottomNav() {
 
   const NAV_ITEMS = [
     { label: "Home", icon: Home, href: "/" },
-    { label: "Wallet", icon: Wallet, href: "/dashboard" },
+    { label: "Wallet", icon: Wallet, href: "/wallet" },
     { label: "Orders", icon: ClipboardList, href: "/orders" },
     { 
       label: loading ? "Loading" : (user ? "Account" : "Login"), 
@@ -32,7 +32,7 @@ export function BottomNav() {
 
   const handleTrackClick = (href: string) => {
     window.__nav_click_time = performance.now();
-    console.log(`[NAV_TRACE] Clicked ${href} at ${window.__nav_click_time.toFixed(2)}ms`);
+    console.log(`[PERF_HUB] Navigation Triggered for ${href} at ${window.__nav_click_time.toFixed(2)}ms`);
   };
 
   return (
