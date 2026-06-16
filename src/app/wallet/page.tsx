@@ -176,7 +176,7 @@ export default function WalletDashboard() {
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <div className={cn(
-          "relative w-full aspect-[2.1/1] transition-all duration-700 [transform-style:preserve-3d]",
+          "relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
           
@@ -188,14 +188,14 @@ export default function WalletDashboard() {
           )}>
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
             
-            <div className="relative h-full p-5 flex flex-col justify-between z-10">
-              <div className="flex justify-between items-start">
-                <div className="flex flex-col">
-                  <span className="font-headline font-black text-sm tracking-tighter text-white/90 uppercase">AATMA HUB</span>
+            <div className="relative h-full p-6 flex flex-col justify-between z-10">
+              <div className="flex justify-between items-start gap-4">
+                <div className="flex flex-col min-w-0">
+                  <span className="font-headline font-black text-sm sm:text-base tracking-tighter text-white/90 uppercase truncate">AATMA HUB</span>
                   <span className="text-[5px] font-black text-white/50 uppercase tracking-[0.4em]">Digital Gaming Bank</span>
                 </div>
                 <div className={cn(
-                  "backdrop-blur-md border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xl transition-colors duration-500 bg-black/20",
+                  "backdrop-blur-md border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xl transition-colors duration-500 bg-black/20 shrink-0",
                   cardTheme.border,
                   cardTheme.text
                 )}>
@@ -204,9 +204,9 @@ export default function WalletDashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 py-4">
                 <div className={cn(
-                  "h-8 w-11 bg-gradient-to-br rounded-md relative overflow-hidden flex items-center justify-center border border-white/20 shadow-inner",
+                  "h-8 w-11 bg-gradient-to-br rounded-md relative overflow-hidden flex items-center justify-center border border-white/20 shadow-inner shrink-0",
                   cardTheme.chip
                 )}>
                    <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-20">
@@ -215,7 +215,6 @@ export default function WalletDashboard() {
                    <Cpu className="absolute h-4 w-4 text-black/20" />
                 </div>
                 
-                {/* User Identity Avatar on Card */}
                 <RankAvatar 
                    src={`https://picsum.photos/seed/${user.uid}/100/100`}
                    rank={rankInfo.name}
@@ -223,22 +222,22 @@ export default function WalletDashboard() {
                 />
               </div>
 
-              <div className="space-y-2">
-                 <div className="flex justify-between items-end">
-                    <div className="space-y-0.5">
+              <div className="mt-auto space-y-3">
+                 <div className="flex justify-between items-end gap-4">
+                    <div className="space-y-1 min-w-0">
                        <span className="text-[7px] font-black text-white/30 uppercase tracking-widest leading-none">Card Holder</span>
-                       <p className="text-[10px] font-black text-white uppercase tracking-tight leading-none">{profile?.fullName || 'AATMA OPERATOR'}</p>
+                       <p className="text-[10px] font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
                     </div>
                     
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <p className="text-[9px] font-mono font-black text-white/40 tracking-[0.2em]">**** **** **** 2047</p>
                     </div>
                  </div>
                  
-                 <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-2">
-                   <span>Rank: <span className="text-white/60">{rankInfo.name}</span></span>
-                   <span>Discount: <span className="text-green-500/60">{rankInfo.discount}%</span></span>
-                   <span>Lifetime: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
+                 <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-2.5 gap-2 overflow-hidden">
+                   <span className="truncate">Rank: <span className="text-white/60">{rankInfo.name}</span></span>
+                   <span className="shrink-0">Discount: <span className="text-green-500/60">{rankInfo.discount}%</span></span>
+                   <span className="shrink-0">Total: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
                  </div>
               </div>
             </div>
@@ -255,28 +254,28 @@ export default function WalletDashboard() {
             cardTheme.border
           )}>
             <div className="relative h-full flex flex-col z-10">
-              <div className="w-full h-10 bg-black/60 mt-6 shadow-inner" />
+              <div className="w-full h-10 bg-black/60 mt-6 shadow-inner shrink-0" />
               
-              <div className="flex-1 p-6 flex flex-col justify-center">
-                 <div className="flex items-center gap-4 mb-3">
-                    <div className="flex-1 h-6 bg-white/10 rounded flex items-center px-3 border border-white/5">
-                       <span className="text-[6px] font-black text-white/20 uppercase">Signature Area</span>
+              <div className="flex-1 px-6 flex flex-col justify-center gap-4">
+                 <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex-1 h-6 bg-white/10 rounded flex items-center px-3 border border-white/5 overflow-hidden">
+                       <span className="text-[6px] font-black text-white/20 uppercase truncate">Signature Area Unauthorized Copy Prohibited</span>
                     </div>
-                    <div className="bg-white/5 border border-white/10 px-2 py-1 rounded text-[8px] font-black text-white/60">247</div>
+                    <div className="bg-white/5 border border-white/10 px-2.5 py-1 rounded text-[8px] font-black text-white/60 shrink-0">247</div>
                  </div>
 
-                 <div className="text-center space-y-2 py-2">
+                 <div className="text-center space-y-1.5 py-2">
                     <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Credits</span>
-                    <h2 className="text-3xl font-black text-white tracking-tighter leading-none truncate px-4">
+                    <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-none truncate px-2">
                       ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
                     </h2>
                  </div>
               </div>
 
-              <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest">
-                 <span>Tier: <span className="text-white/60">{rankInfo.name}</span></span>
-                 <span>Rewards: <span className="text-green-500/60">{rankInfo.discount}%</span></span>
-                 <span>Lifetime: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
+              <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest mt-auto gap-2">
+                 <span className="truncate">Tier: <span className="text-white/60">{rankInfo.name}</span></span>
+                 <span className="shrink-0">Rewards: <span className="text-green-500/60">{rankInfo.discount}%</span></span>
+                 <span className="shrink-0">Lifetime: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
               </div>
             </div>
           </div>
