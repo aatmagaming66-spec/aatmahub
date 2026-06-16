@@ -41,7 +41,13 @@ export default function GameManagementPage() {
     sortOrder: 0
   });
 
-  const { data: games, loading } = useCollection(query(collection(db, 'games'), orderBy('sortOrder', 'asc')));
+  // MEMOIZE QUERY TO PREVENT INFINITE LOOPS
+  const gamesQuery = useMemo(() => query(
+    collection(db, 'games'), 
+    orderBy('sortOrder', 'asc')
+  ), [db]);
+
+  const { data: games, loading } = useCollection(gamesQuery);
 
   const filteredGames = useMemo(() => {
     if (!games) return [];
@@ -111,14 +117,19 @@ export default function GameManagementPage() {
 
       {loading ? (
         <div className="flex h-64 items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>
+      ) : filteredGames.length === 0 ? (
+        <div className="bg-card border border-dashed border-border rounded-[2rem] p-20 text-center">
+          <Gamepad2 className="mx-auto h-10 w-10 text-muted-foreground opacity-20 mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No Games in Registry</p>
+        </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredGames.map((game) => (
             <Card key={game.id} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl relative group hover:border-primary/20 transition-all">
               <CardContent className="p-6 space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner overflow-hidden">
-                    {game.icon ? <Image src={game.icon} alt={game.name} width={64} height={64} className="object-cover" /> : <Gamepad2 size={24} className="text-primary" />}
+                  <div className="h-16 w-16 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner overflow-hidden relative">
+                    {game.icon ? <Image src={game.icon} alt={game.name} fill className="object-cover" /> : <Gamepad2 size={24} className="text-primary" />}
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-black uppercase tracking-tight">{game.name}</h3>

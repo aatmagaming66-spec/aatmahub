@@ -35,7 +35,13 @@ export default function TabManagementPage() {
     sortOrder: 0
   });
 
-  const { data: tabs, loading } = useCollection(query(collection(db, 'tabs'), orderBy('sortOrder', 'asc')));
+  // MEMOIZE QUERY TO PREVENT INFINITE LOOPS
+  const tabsQuery = useMemo(() => query(
+    collection(db, 'tabs'), 
+    orderBy('sortOrder', 'asc')
+  ), [db]);
+
+  const { data: tabs, loading } = useCollection(tabsQuery);
 
   const filteredTabs = useMemo(() => {
     if (!tabs) return [];
@@ -104,6 +110,11 @@ export default function TabManagementPage() {
 
       {loading ? (
         <div className="flex h-64 items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>
+      ) : filteredTabs.length === 0 ? (
+        <div className="bg-card border border-dashed border-border rounded-[2rem] p-20 text-center">
+          <Layers className="mx-auto h-10 w-10 text-muted-foreground opacity-20 mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No Catalog Tabs Defined</p>
+        </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTabs.map((tab) => (

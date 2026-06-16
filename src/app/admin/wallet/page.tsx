@@ -27,7 +27,9 @@ export default function AdminWalletRegistryPage() {
   const [adjustAmount, setAdjustAmount] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const { data: wallets, loading } = useCollection(collection(db, 'wallets'));
+  // MEMOIZE COLLECTION TO PREVENT LOOPS
+  const walletsRef = useMemo(() => collection(db, 'wallets'), [db]);
+  const { data: wallets, loading } = useCollection(walletsRef);
 
   const filteredWallets = useMemo(() => {
     if (!wallets) return [];
@@ -72,6 +74,11 @@ export default function AdminWalletRegistryPage() {
 
       {loading ? (
         <div className="flex h-64 items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>
+      ) : filteredWallets.length === 0 ? (
+        <div className="bg-card border border-dashed border-border rounded-[2rem] p-20 text-center">
+          <Wallet className="mx-auto h-10 w-10 text-muted-foreground opacity-20 mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No Wallets Found</p>
+        </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWallets.map((w) => (

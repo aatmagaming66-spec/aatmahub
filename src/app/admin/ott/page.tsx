@@ -37,7 +37,13 @@ export default function OttManagementPage() {
     sortOrder: 0
   });
 
-  const { data: items, loading } = useCollection(query(collection(db, 'ott_services'), orderBy('sortOrder', 'asc')));
+  // MEMOIZE QUERY TO PREVENT INFINITE LOOPS
+  const ottQuery = useMemo(() => query(
+    collection(db, 'ott_services'), 
+    orderBy('sortOrder', 'asc')
+  ), [db]);
+
+  const { data: items, loading } = useCollection(ottQuery);
 
   const filteredItems = useMemo(() => {
     if (!items) return [];
@@ -106,6 +112,11 @@ export default function OttManagementPage() {
 
       {loading ? (
         <div className="flex h-64 items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>
+      ) : filteredItems.length === 0 ? (
+        <div className="bg-card border border-dashed border-border rounded-[2rem] p-20 text-center">
+          <Tv className="mx-auto h-10 w-10 text-muted-foreground opacity-20 mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No OTT Services Found</p>
+        </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item) => (
