@@ -2,7 +2,7 @@
 
 import { useState, useMemo, memo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, updateDoc, doc, orderBy, query, increment } from 'firebase/firestore';
+import { collection, updateDoc, doc, orderBy, query, increment, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { RankAvatar } from '@/components/ui/rank-avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminUsersPage() {
   const db = useFirestore();
@@ -44,10 +45,11 @@ export default function AdminUsersPage() {
   const [adjustAmount, setAdjustAmount] = useState('');
   const [isAdjusting, setIsAdjusting] = useState(false);
 
-  // MEMOIZE QUERY
+  // OPTIMIZATION: Memoized query with limit to ensure < 2s load time
   const usersQuery = useMemo(() => query(
     collection(db, 'users'), 
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
+    limit(20) // Initial batch optimization
   ), [db]);
 
   const { data: users, loading } = useCollection(usersQuery);
@@ -132,14 +134,22 @@ export default function AdminUsersPage() {
           </TableHeader>
           <TableBody>
             {loading ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-64 text-center">
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Accessing Core Registry...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
+              Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i} className="border-border opacity-40">
+                  <TableCell className="py-6 px-6">
+                    <div className="flex items-center gap-4">
+                      <Skeleton className="h-10 w-10 rounded-full bg-white/5" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-32 bg-white/5" />
+                        <Skeleton className="h-3 w-48 bg-white/5" />
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell><Skeleton className="h-6 w-20 bg-white/5" /></TableCell>
+                  <TableCell><Skeleton className="h-6 w-20 bg-white/5" /></TableCell>
+                  <TableCell className="text-right px-6"><Skeleton className="h-8 w-8 ml-auto rounded-full bg-white/5" /></TableCell>
+                </TableRow>
+              ))
             ) : filteredUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-64 text-center">
@@ -161,7 +171,6 @@ export default function AdminUsersPage() {
         </Table>
       </div>
 
-      {/* Wallet Adjustment Modal */}
       <Dialog open={!!adjustingUser} onOpenChange={() => setAdjustingUser(null)}>
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-sm">
           <DialogHeader>
@@ -208,8 +217,8 @@ const UserRow = memo(function UserRow({ user, updateRole, toggleBan, setAdjustin
       <TableCell className="py-6 px-6">
         <div className="flex items-center gap-4">
           <RankAvatar 
-            src={`https://picsum.photos/seed/${user.uid}/100/100`}
-            rank={user.rank || 'Warrior'}
+            src={user.photoURL || `https://picsum.photos/seed/${user.uid}/100/100`}
+            rank={user.currentRank || 'Warrior'}
             size="md"
             fallback={user.fullName?.charAt(0)}
           />
