@@ -18,18 +18,17 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Edit2, Trash2, Loader2, Search, Tv } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
 
 const ServiceCard = memo(function ServiceCard({ item, onEdit, onDelete }: any) {
   return (
     <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
       <CardContent className="p-6 space-y-6">
         <div className="flex items-center gap-4">
-          <div className="h-16 w-16 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner overflow-hidden relative">
-            {item.icon ? <Image src={item.icon} alt={item.name} fill className="object-cover" /> : <Tv size={24} className="text-primary" />}
+          <div className="h-16 w-16 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner">
+            <Tv size={24} className="text-primary" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-black uppercase tracking-tight">{item.name}</h3>
+            <h3 className="text-sm font-black uppercase tracking-tight text-white">{item.name}</h3>
             <div className={`mt-2 px-2 py-0.5 rounded-full text-[7px] font-black uppercase inline-block border ${item.status === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/10' : 'bg-primary/10 text-primary border-primary/10'}`}>
               {item.status}
             </div>
@@ -61,7 +60,6 @@ export default function OttManagementPage() {
     id: '',
     name: '',
     status: 'active',
-    icon: '',
     sortOrder: 0
   });
 
@@ -84,7 +82,7 @@ export default function OttManagementPage() {
     } else {
       setEditingItem(null);
       setFormData({
-        id: '', name: '', status: 'active', icon: '', sortOrder: (items?.length || 0) + 1
+        id: '', name: '', status: 'active', sortOrder: (items?.length || 0) + 1
       });
     }
     setIsModalOpen(true);
@@ -95,7 +93,19 @@ export default function OttManagementPage() {
     setSaving(true);
     try {
       const id = formData.id || formData.name.toLowerCase().replace(/\s+/g, '-');
-      await setDoc(doc(db, 'ott_services', id), { ...formData, id, updatedAt: new Date().toISOString() }, { merge: true });
+      const serviceRef = doc(db, 'ott_services', id);
+      await setDoc(serviceRef, { ...formData, id, updatedAt: new Date().toISOString() }, { merge: true });
+
+      // SYNC TO MEDIA HUB
+      const mediaRef = doc(db, 'media_assets', id);
+      await setDoc(mediaRef, {
+        entityId: id,
+        entityType: 'ott',
+        entityName: formData.name,
+        isEnabled: formData.status === 'active',
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
       toast({ title: 'Service Updated', description: `${formData.name} configuration saved.` });
       setIsModalOpen(false);
     } catch (e: any) {
@@ -109,7 +119,8 @@ export default function OttManagementPage() {
     if (!confirm('Permanently remove this OTT service?')) return;
     try {
       await deleteDoc(doc(db, 'ott_services', id));
-      toast({ title: 'Service Purged', description: 'Record removed successfully.' });
+      await deleteDoc(doc(db, 'media_assets', id));
+      toast({ title: 'Service Purged' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Error', description: e.message });
     }
@@ -119,8 +130,8 @@ export default function OttManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">OTT Hub</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Streaming Service Distribution</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">OTT Hub</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Service Distribution</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
           <Plus size={16} /> Deploy New Service
@@ -154,7 +165,7 @@ export default function OttManagementPage() {
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
-          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">{editingItem ? 'Update Service' : 'Deploy New Service'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">{editingItem ? 'Update Service' : 'Deploy New Service'}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-2 gap-6 py-6">
             <div className="space-y-2 col-span-2">
               <Label className="text-[9px] font-black uppercase tracking-widest">Service Name</Label>

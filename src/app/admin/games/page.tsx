@@ -73,7 +73,21 @@ export default function GameManagementPage() {
     setSaving(true);
     try {
       const gId = formData.id || formData.slug;
-      await setDoc(doc(db, 'games', gId), { ...formData, id: gId, updatedAt: new Date().toISOString() }, { merge: true });
+      const gameRef = doc(db, 'games', gId);
+      const gameData = { ...formData, id: gId, updatedAt: new Date().toISOString() };
+      
+      await setDoc(gameRef, gameData, { merge: true });
+
+      // SYNC TO MEDIA HUB
+      const mediaRef = doc(db, 'media_assets', gId);
+      await setDoc(mediaRef, {
+        entityId: gId,
+        entityType: 'game',
+        entityName: formData.name,
+        isEnabled: formData.status === 'active',
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+
       toast({ title: 'Registry Synchronized', description: `${formData.name} updated.` });
       setIsModalOpen(false);
     } catch (e: any) {
@@ -87,6 +101,7 @@ export default function GameManagementPage() {
     if (!confirm('Permanently remove this game?')) return;
     try {
       await deleteDoc(doc(db, 'games', id));
+      await deleteDoc(doc(db, 'media_assets', id));
       toast({ title: 'Game Purged' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Error', description: e.message });
@@ -97,8 +112,8 @@ export default function GameManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Game Registry</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">High-Performance Data Hub</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Game Registry</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">High-Performance Hub</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
           <Plus size={16} /> Deploy New Title
@@ -132,7 +147,7 @@ export default function GameManagementPage() {
                     <Gamepad2 size={24} className="text-primary opacity-40" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-sm font-black uppercase tracking-tight">{game.name}</h3>
+                    <h3 className="text-sm font-black uppercase tracking-tight text-white">{game.name}</h3>
                     <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mt-0.5">{game.slug}</p>
                     <div className={`mt-2 px-2 py-0.5 rounded-full text-[7px] font-black uppercase inline-block border ${game.status === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/10' : 'bg-primary/10 text-primary border-primary/10'}`}>
                       {game.status}
@@ -157,7 +172,7 @@ export default function GameManagementPage() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-black uppercase tracking-tighter">
+            <DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">
               {editingGame ? 'Update Title' : 'Deploy Title'}
             </DialogTitle>
           </DialogHeader>

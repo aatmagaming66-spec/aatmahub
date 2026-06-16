@@ -6,21 +6,19 @@ import {
   collection, 
   query, 
   doc, 
-  updateDoc, 
+  setDoc, 
   onSnapshot,
-  orderBy
+  orderBy,
+  deleteDoc
 } from 'firebase/firestore';
 import { 
   ref, 
   uploadBytesResumable, 
-  getDownloadURL,
-  deleteObject 
+  getDownloadURL 
 } from 'firebase/storage';
 import { 
   Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
+  CardContent 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,82 +28,56 @@ import { Progress } from '@/components/ui/progress';
 import { 
   Search, 
   Upload, 
-  RefreshCcw, 
   Trash2, 
   Save, 
   Gamepad2, 
   Tv, 
   Share2, 
-  Palette,
-  Image as ImageIcon,
+  ImageIcon,
   Loader2,
   AlertCircle,
-  CheckCircle2,
-  Globe
+  Filter,
+  CheckCircle2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
-interface DynamicEntity {
+interface MediaAsset {
   id: string;
-  name: string;
-  type: 'game' | 'ott' | 'social' | 'branding';
-  status: string;
-  icon?: string;
-  banner?: string;
-  updatedAt?: string;
-  collectionName: string;
+  entityId: string;
+  entityType: 'game' | 'ott' | 'social' | 'branding';
+  entityName: string;
+  logoUrl?: string;
+  bannerUrl?: string;
+  isEnabled: boolean;
+  updatedAt: string;
 }
 
-export default function MediaManagerPage() {
+export default function DynamicMediaHub() {
   const db = useFirestore();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'game' | 'ott' | 'social'>('all');
   const [loading, setLoading] = useState(true);
-  
-  // Real-time states for collections
-  const [games, setGames] = useState<DynamicEntity[]>([]);
-  const [ott, setOtt] = useState<DynamicEntity[]>([]);
-  const [social, setSocial] = useState<DynamicEntity[]>([]);
-  const [siteSettings, setSiteSettings] = useState<any>(null);
+  const [assets, setAssets] = useState<MediaAsset[]>([]);
 
   useEffect(() => {
-    // 1. Listen to Games
-    const unsubGames = onSnapshot(collection(db, 'games'), (snap) => {
-      setGames(snap.docs.map(d => ({ ...d.data(), id: d.id, type: 'game', collectionName: 'games' } as DynamicEntity)));
-    });
-
-    // 2. Listen to OTT
-    const unsubOtt = onSnapshot(collection(db, 'ott_services'), (snap) => {
-      setOtt(snap.docs.map(d => ({ ...d.data(), id: d.id, type: 'ott', collectionName: 'ott_services' } as DynamicEntity)));
-    });
-
-    // 3. Listen to Social
-    const unsubSocial = onSnapshot(collection(db, 'social_services'), (snap) => {
-      setSocial(snap.docs.map(d => ({ ...d.data(), id: d.id, type: 'social', collectionName: 'social_services' } as DynamicEntity)));
-    });
-
-    // 4. Listen to Site Branding
-    const unsubSite = onSnapshot(doc(db, 'settings', 'site'), (snap) => {
-      if (snap.exists()) setSiteSettings({ ...snap.data(), id: 'site', type: 'branding', collectionName: 'settings' });
+    const q = query(collection(db, 'media_assets'), orderBy('entityName', 'asc'));
+    const unsubscribe = onSnapshot(q, (snap) => {
+      setAssets(snap.docs.map(d => ({ ...d.data(), id: d.id } as MediaAsset)));
       setLoading(false);
     });
-
-    return () => {
-      unsubGames();
-      unsubOtt();
-      unsubSocial();
-      unsubSite();
-    };
+    return () => unsubscribe();
   }, [db]);
 
-  const filterItems = (items: DynamicEntity[]) => 
-    items.filter(item => item.name?.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  const filteredGames = useMemo(() => filterItems(games), [games, searchQuery]);
-  const filteredOtt = useMemo(() => filterItems(ott), [ott, searchQuery]);
-  const filteredSocial = useMemo(() => filterItems(social), [social, searchQuery]);
+  const filteredAssets = useMemo(() => {
+    return assets.filter(a => {
+      const matchesSearch = a.entityName?.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesFilter = filterType === 'all' || a.entityType === filterType;
+      return matchesSearch && matchesFilter;
+    });
+  }, [assets, searchQuery, filterType]);
 
   if (loading) {
     return (
@@ -119,57 +91,49 @@ export default function MediaManagerPage() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Media Manager 2.0</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60 mt-2">Dynamic Asset Distribution</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Media Hub 2.0</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60 mt-2">Centralized Asset Intelligence</p>
         </div>
         
-        <div className="relative w-full md:w-96 group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <Input 
-            placeholder="Search catalog entities..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl ring-0"
-          />
+        <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+          <div className="relative flex-1 md:w-64 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input 
+              placeholder="Search assets..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-card border-border pl-10 h-12 rounded-2xl text-xs font-bold focus:border-primary shadow-xl ring-0"
+            />
+          </div>
+          <div className="flex gap-2 bg-card p-1 rounded-2xl border border-border">
+            {['all', 'game', 'ott', 'social'].map((t) => (
+              <button
+                key={t}
+                onClick={() => setFilterType(t as any)}
+                className={cn(
+                  "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                  filterType === t ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-white"
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
-      {/* 1. BRANDING SECTION */}
-      {siteSettings && !searchQuery && (
-        <section className="space-y-6">
-          <div className="flex items-center gap-3 px-2">
-            <div className="h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center text-primary"><Palette size={18} /></div>
-            <h2 className="text-sm font-black uppercase tracking-widest text-white">Site Branding</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <BrandingCard settings={siteSettings} />
-          </div>
-        </section>
+      {filteredAssets.length === 0 ? (
+        <div className="bg-card border border-dashed border-border rounded-[2.5rem] p-20 text-center space-y-4">
+           <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto opacity-20" />
+           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">NO MEDIA ASSETS FOUND</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAssets.map((asset) => (
+            <MediaAssetCard key={asset.id} asset={asset} />
+          ))}
+        </div>
       )}
-
-      {/* 2. GAMES SECTION */}
-      <MediaSection 
-        title="Mobile Games Catalog" 
-        icon={Gamepad2} 
-        items={filteredGames}
-        accent="text-accent"
-      />
-
-      {/* 3. OTT SERVICES SECTION */}
-      <MediaSection 
-        title="OTT Distribution" 
-        icon={Tv} 
-        items={filteredOtt}
-        accent="text-primary"
-      />
-
-      {/* 4. SOCIAL SERVICES SECTION */}
-      <MediaSection 
-        title="Social Growth Hub" 
-        icon={Share2} 
-        items={filteredSocial}
-        accent="text-accent"
-      />
 
       <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
@@ -177,40 +141,14 @@ export default function MediaManagerPage() {
           <span className="text-[10px] font-black uppercase tracking-widest text-primary">Media Protocol</span>
         </div>
         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          Changes to media assets are committed to the specific entity record in Firestore. Logo resolution: 256x256px. Banner resolution: 1200x400px.
+          Changes to media assets reflect instantly on public hubs. Max size: 5MB. Formats: JPG, PNG, WEBP.
         </p>
       </div>
     </div>
   );
 }
 
-function MediaSection({ title, icon: Icon, items, accent }: any) {
-  if (items.length === 0) return null;
-
-  return (
-    <section className="space-y-6 pt-4">
-      <div className="flex items-center justify-between px-2">
-        <div className="flex items-center gap-3">
-          <div className={cn("h-8 w-8 rounded-xl bg-white/5 flex items-center justify-center", accent)}>
-            <Icon size={18} />
-          </div>
-          <div>
-            <h2 className="text-sm font-black uppercase tracking-widest text-white">{title}</h2>
-            <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">{items.length} Entities</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map((item: DynamicEntity) => (
-          <EntityMediaCard key={item.id} entity={item} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
+function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const db = useFirestore();
   const storage = useStorage();
   const { toast } = useToast();
@@ -219,23 +157,33 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
   const [logoProgress, setLogoProgress] = useState(0);
   const [bannerProgress, setBannerProgress] = useState(0);
   
-  // Local previews
-  const [localIcon, setLocalIcon] = useState<string | null>(entity.icon || null);
-  const [localBanner, setLocalBanner] = useState<string | null>(entity.banner || null);
-  const [isEnabled, setIsEnabled] = useState(entity.status === 'active' || entity.status === 'enabled');
+  const [localLogo, setLocalLogo] = useState<string | null>(asset.logoUrl || null);
+  const [localBanner, setLocalBanner] = useState<string | null>(asset.bannerUrl || null);
+  const [enabled, setEnabled] = useState(asset.isEnabled);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'icon' | 'banner') => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const storagePath = `media/${entity.collectionName}/${entity.id}/${type}_${Date.now()}`;
+    // VALIDATION
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast({ variant: 'destructive', title: 'Invalid File', description: 'Please use JPG, PNG or WEBP.' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum file size is 5MB.' });
+      return;
+    }
+
+    const storagePath = `media_assets/${asset.entityType}/${asset.entityId}/${type}_${Date.now()}`;
     const storageRef = ref(storage, storagePath);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
     uploadTask.on('state_changed', 
       (snapshot) => {
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        if (type === 'icon') setLogoProgress(progress);
+        if (type === 'logo') setLogoProgress(progress);
         else setBannerProgress(progress);
       }, 
       (error) => {
@@ -243,14 +191,14 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
       }, 
       async () => {
         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-        if (type === 'icon') {
-          setLocalIcon(downloadURL);
+        if (type === 'logo') {
+          setLocalLogo(downloadURL);
           setLogoProgress(0);
         } else {
           setLocalBanner(downloadURL);
           setBannerProgress(0);
         }
-        toast({ title: 'Media Buffered', description: 'Press Save to commit changes.' });
+        toast({ title: 'Buffer Updated', description: 'Asset ready to commit.' });
       }
     );
   };
@@ -258,16 +206,16 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const entityRef = doc(db, entity.collectionName, entity.id);
-      const data: any = {
-        icon: localIcon,
-        banner: localBanner,
-        status: isEnabled ? (entity.collectionName === 'regions' ? 'enabled' : 'active') : (entity.collectionName === 'regions' ? 'disabled' : 'inactive'),
+      const assetRef = doc(db, 'media_assets', asset.id);
+      await setDoc(assetRef, {
+        ...asset,
+        logoUrl: localLogo,
+        bannerUrl: localBanner,
+        isEnabled: enabled,
         updatedAt: new Date().toISOString()
-      };
+      }, { merge: true });
       
-      await updateDoc(entityRef, data);
-      toast({ title: 'Entity Synchronized', description: `${entity.name} media updated.` });
+      toast({ title: 'Protocol Synchronized', description: `${asset.entityName} media updated.` });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
     } finally {
@@ -275,12 +223,15 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
     }
   };
 
+  const Icon = asset.entityType === 'game' ? Gamepad2 : (asset.entityType === 'ott' ? Tv : Share2);
+  const accent = asset.entityType === 'game' ? 'text-primary' : (asset.entityType === 'ott' ? 'text-accent' : 'text-blue-400');
+
   return (
     <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all duration-500">
       {/* BANNER PREVIEW AREA */}
       <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {localBanner ? (
-          <Image src={localBanner} alt="Banner" fill className="object-cover" />
+          <Image src={localBanner} alt="Banner" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
         ) : (
           <div className="flex flex-col items-center gap-2 opacity-10">
             <ImageIcon size={40} className="text-white" />
@@ -291,18 +242,18 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
         {bannerProgress > 0 && (
           <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-6 gap-2 z-20">
             <Progress value={bannerProgress} className="h-1 bg-white/10" />
-            <span className="text-[8px] font-black text-white uppercase tracking-widest">Uploading Banner...</span>
+            <span className="text-[8px] font-black text-white uppercase tracking-widest">Uploading...</span>
           </div>
         )}
 
         <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
-          <div className="bg-black/60 backdrop-blur-md p-1 px-3 rounded-lg border border-white/10 text-[8px] font-black uppercase tracking-widest text-primary">
-            {entity.type} Entity
+          <div className="bg-black/60 backdrop-blur-md p-1 px-3 rounded-lg border border-white/10 text-[7px] font-black uppercase tracking-widest text-primary">
+            {asset.entityType}
           </div>
           <div className="bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-xl">
              <Switch 
-               checked={isEnabled} 
-               onCheckedChange={setIsEnabled}
+               checked={enabled} 
+               onCheckedChange={setEnabled}
                className="data-[state=checked]:bg-green-500"
              />
           </div>
@@ -311,10 +262,10 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
 
       <CardContent className="p-6 space-y-6">
         <div className="flex items-center gap-4">
-          <div className="relative h-16 w-16 shrink-0 rounded-2xl bg-black/40 border border-white/5 shadow-inner overflow-hidden flex items-center justify-center">
-            {localIcon ? (
-              <Image src={localIcon} alt="Logo" fill className="object-cover" />
-            ) : <ImageIcon size={20} className="text-white/10" />}
+          <div className="relative h-14 w-14 shrink-0 rounded-2xl bg-black/40 border border-white/5 shadow-inner overflow-hidden flex items-center justify-center">
+            {localLogo ? (
+              <Image src={localLogo} alt="Logo" fill className="object-cover" />
+            ) : <Icon size={20} className={cn("opacity-20", accent)} />}
             
             {logoProgress > 0 && (
               <div className="absolute inset-0 bg-primary/80 flex items-center justify-center">
@@ -323,9 +274,9 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
             )}
           </div>
           <div className="min-w-0">
-            <h3 className="text-sm font-black uppercase tracking-tight text-white truncate">{entity.name}</h3>
+            <h3 className="text-sm font-black uppercase tracking-tight text-white truncate">{asset.entityName}</h3>
             <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest mt-0.5">
-              Ref: {entity.id}
+              Ref: {asset.entityId}
             </p>
           </div>
         </div>
@@ -335,11 +286,11 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo Asset</Label>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1 h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-                <Upload size={12} className="mr-1.5" /> Change
-                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'icon')} />
+                <Upload size={12} className="mr-1.5" /> Upload
+                <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
               </Button>
-              {localIcon && (
-                <Button variant="ghost" onClick={() => setLocalIcon(null)} className="h-9 w-9 rounded-xl text-primary p-0">
+              {localLogo && (
+                <Button variant="ghost" onClick={() => setLocalLogo(null)} className="h-9 w-9 rounded-xl text-primary p-0">
                   <Trash2 size={12} />
                 </Button>
               )}
@@ -350,8 +301,8 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner Asset</Label>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1 h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-                <ImageIcon size={12} className="mr-1.5" /> Change
-                <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
+                <ImageIcon size={12} className="mr-1.5" /> Upload
+                <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
               </Button>
               {localBanner && (
                 <Button variant="ghost" onClick={() => setLocalBanner(null)} className="h-9 w-9 rounded-xl text-primary p-0">
@@ -363,84 +314,8 @@ function EntityMediaCard({ entity }: { entity: DynamicEntity }) {
         </div>
 
         <Button onClick={handleSave} disabled={isSaving} className="w-full h-12 bg-primary hover:bg-secondary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 gap-2">
-          {isSaving ? <Loader2 className="animate-spin h-4 w-4" /> : <><Save size={14} /> Commit Dynamic Changes</>}
+          {isSaving ? <Loader2 className="animate-spin h-4 w-4" /> : <><Save size={14} /> Commit Changes</>}
         </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function BrandingCard({ settings }: { settings: any }) {
-  const db = useFirestore();
-  const storage = useStorage();
-  const { toast } = useToast();
-  const [isSaving, setIsSaving] = useState(false);
-  
-  const [logoUrl, setLogoUrl] = useState(settings.logoUrl || '');
-  const [heroUrl, setHeroUrl] = useState(settings.heroUrl || '');
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const storageRef = ref(storage, `branding/${field}_${Date.now()}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    uploadTask.on('state_changed', null, 
-      (err) => toast({ variant: 'destructive', title: 'Error', description: err.message }),
-      async () => {
-        const url = await getDownloadURL(uploadTask.snapshot.ref);
-        if (field === 'logoUrl') setLogoUrl(url);
-        else setHeroUrl(url);
-        toast({ title: 'Identity Uploaded' });
-      }
-    );
-  };
-
-  const saveBranding = async () => {
-    setIsSaving(true);
-    try {
-      await updateDoc(doc(db, 'settings', 'site'), { logoUrl, heroUrl, updatedAt: new Date().toISOString() });
-      toast({ title: 'Site Identity Updated' });
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e.message });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  return (
-    <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl">
-      <div className="relative aspect-[3/1] bg-black/40 border-b border-white/5 flex items-center justify-center">
-        {heroUrl ? <Image src={heroUrl} alt="Hero" fill className="object-cover opacity-50" /> : <Globe size={40} className="text-white/10" />}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-           <span className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">AATMA HUB BRANDING</span>
-        </div>
-      </div>
-      <CardContent className="p-6 space-y-6">
-        <div className="flex items-center gap-4">
-           <div className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden relative">
-              {logoUrl ? <Image src={logoUrl} alt="Logo" fill className="object-contain" /> : <Palette size={20} className="text-primary" />}
-           </div>
-           <div>
-             <h3 className="text-sm font-black uppercase tracking-tight">Main Identity</h3>
-             <p className="text-[8px] text-muted-foreground uppercase font-black">Site Logo & Master Hero</p>
-           </div>
-        </div>
-
-        <div className="space-y-4">
-           <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="h-10 rounded-xl text-[8px] font-black uppercase relative overflow-hidden">
-                Update Logo <input type="file" className="absolute inset-0 opacity-0" onChange={(e) => handleUpload(e, 'logoUrl')} />
-              </Button>
-              <Button variant="outline" className="h-10 rounded-xl text-[8px] font-black uppercase relative overflow-hidden">
-                Update Hero <input type="file" className="absolute inset-0 opacity-0" onChange={(e) => handleUpload(e, 'heroUrl')} />
-              </Button>
-           </div>
-           <Button onClick={saveBranding} disabled={isSaving} className="w-full h-12 bg-primary font-black uppercase text-[10px] rounded-2xl shadow-xl shadow-primary/20">
-             {isSaving ? <Loader2 className="animate-spin" /> : 'Save Global Branding'}
-           </Button>
-        </div>
       </CardContent>
     </Card>
   );

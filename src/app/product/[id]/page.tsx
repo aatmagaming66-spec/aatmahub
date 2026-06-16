@@ -1,27 +1,22 @@
-
 "use client"
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, ShieldCheck, Zap, ShoppingBag, ArrowRight, Gamepad2, Loader2, PackageSearch, Smartphone } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Zap, ArrowRight, Gamepad2, Loader2, PackageSearch, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, where, doc } from "firebase/firestore";
+import { collection, query, where, doc, onSnapshot } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
+import Image from "next/image";
 
-/**
- * PRODUCT DETAIL PAGE
- * Dynamically renders based on category ID (slug).
- * Fetches all child SKUs from the 'products' collection.
- */
 export default function ProductPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -30,17 +25,14 @@ export default function ProductPage() {
   const { user } = useUser();
   const db = useFirestore();
   
-  // DATA SOURCE 1: Product Registry (SKUs)
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
     where('category', '==', id),
     where('status', '==', 'active')
   ), [db, id]);
 
-  // DATA SOURCE 2: Parent Metadata (e.g. Game Info)
   const gameRef = useMemo(() => id ? doc(db, 'games', id as string) : null, [db, id]);
   const { data: gameInfo } = useDoc(gameRef);
-
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
 
   const [selectedPack, setSelectedPack] = useState<any>(null);
@@ -49,10 +41,18 @@ export default function ProductPage() {
   const [serverId, setServerId] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [asset, setAsset] = useState<any>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    const unsubscribe = onSnapshot(doc(db, 'media_assets', id as string), (snap) => {
+      if (snap.exists()) setAsset(snap.data());
+    });
+    return () => unsubscribe();
+  }, [db, id]);
 
   const productName = gameInfo?.name || id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
 
-  // Logic: Default selection logic once registry is hydrated
   useMemo(() => {
     if (packs && packs.length > 0 && !selectedPack) {
       const defaultPack = packs.find(p => p.tab === activeTab) || packs[0];
@@ -80,28 +80,6 @@ export default function ProductPage() {
     if (isVerified) setIsVerified(false);
   };
 
-  const handleAddToCart = () => {
-    if (!user) { toast({ variant: "destructive", title: "Login Required" }); router.push('/login'); return; }
-    if (!isVerified) { toast({ variant: "destructive", title: "Verification Required" }); return; }
-    if (!selectedPack) return;
-
-    addItem({
-      id: `${id}-${selectedPack.id}-${playerId}`,
-      name: `${productName} - ${selectedPack.name}`,
-      price: selectedPack.price,
-      quantity: 1,
-      image: "",
-      region: selectedPack.region || "GLOBAL",
-      tabName: selectedPack.tab || "PACKAGE",
-      playerId,
-      serverId,
-      verifiedName: "AATMA_USER"
-    });
-
-    toast({ title: "Added to Hub", description: `${selectedPack.name} selected.` });
-    setPlayerId(""); setServerId(""); setIsVerified(false);
-  };
-
   const handleBuyNow = () => {
     if (!user) { router.push('/login'); return; }
     if (!isVerified) { toast({ variant: "destructive", title: "Verification Required" }); return; }
@@ -113,7 +91,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: "",
+      image: asset?.logoUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -123,18 +101,46 @@ export default function ProductPage() {
     router.push('/checkout');
   };
 
+  const handleAddToCart = () => {
+    if (!user) { router.push('/login'); return; }
+    if (!isVerified) { toast({ variant: "destructive", title: "Verification Required" }); return; }
+    if (!selectedPack) return;
+
+    addItem({
+      id: `${id}-${selectedPack.id}-${playerId}`,
+      name: `${productName} - ${selectedPack.name}`,
+      price: selectedPack.price,
+      quantity: 1,
+      image: asset?.logoUrl || "",
+      region: selectedPack.region || "GLOBAL",
+      tabName: selectedPack.tab || "PACKAGE",
+      playerId,
+      serverId,
+      verifiedName: "AATMA_USER"
+    });
+    toast({ title: "Added to Hub" });
+  };
+
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      <div className="relative w-full h-40 bg-gradient-to-br from-primary/30 via-background to-background border-b border-white/5 p-6 flex flex-col justify-end">
-        <h1 className="text-3xl font-headline font-black text-white uppercase tracking-tighter leading-none mb-2">{productName}</h1>
-        <div className="flex gap-2">
-          <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md text-[8px] font-black uppercase text-primary tracking-widest flex items-center gap-1"><Zap size={10} /> Instant</span>
-          <span className="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-md text-[8px] font-black uppercase text-green-500 tracking-widest flex items-center gap-1"><ShieldCheck size={10} /> Verified</span>
+      <div className="relative w-full h-48 border-b border-white/5 overflow-hidden flex flex-col justify-end p-6">
+        {asset?.bannerUrl ? (
+          <Image src={asset.bannerUrl} alt="Banner" fill className="object-cover opacity-40" priority />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-background to-background" />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
+        
+        <div className="relative z-10">
+          <h1 className="text-3xl font-headline font-black text-white uppercase tracking-tighter leading-none mb-2">{productName}</h1>
+          <div className="flex gap-2">
+            <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md text-[8px] font-black uppercase text-primary tracking-widest flex items-center gap-1"><Zap size={10} /> Instant</span>
+            <span className="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-md text-[8px] font-black uppercase text-green-500 tracking-widest flex items-center gap-1"><ShieldCheck size={10} /> Verified</span>
+          </div>
         </div>
       </div>
 
       <div className="p-4 space-y-8">
-        {/* PLAYER ID SECTION */}
         <section className="bg-card border border-border p-6 rounded-[2rem] space-y-4 shadow-xl">
           <div className="flex items-center gap-2"><Smartphone size={14} className="text-primary" /><h3 className="text-[10px] font-black uppercase tracking-widest">Player Verification</h3></div>
           <div className="grid grid-cols-2 gap-4">
@@ -152,7 +158,6 @@ export default function ProductPage() {
           </Button>
         </section>
 
-        {/* PACKAGE REGISTRY LIST */}
         <section className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full bg-card border border-border h-12 p-1 rounded-2xl mb-6">
@@ -182,7 +187,6 @@ export default function ProductPage() {
           </Tabs>
         </section>
 
-        {/* ACTIONS */}
         <div className="flex flex-col gap-3 pb-20">
           <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 group">
             Buy Now <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />

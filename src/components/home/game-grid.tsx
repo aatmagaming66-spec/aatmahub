@@ -1,12 +1,13 @@
 "use client"
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import Link from "next/link";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gamepad2 } from "lucide-react";
+import Image from "next/image";
 
 export function GameGrid() {
   const db = useFirestore();
@@ -17,6 +18,20 @@ export function GameGrid() {
   ), [db]);
 
   const { data: games, loading } = useCollection(gamesQuery);
+  const [media, setMedia] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const q = collection(db, 'media_assets');
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const mediaMap: Record<string, any> = {};
+      snap.docs.forEach(d => {
+        const data = d.data();
+        mediaMap[data.entityId] = data;
+      });
+      setMedia(mediaMap);
+    });
+    return () => unsubscribe();
+  }, [db]);
 
   if (loading) {
     return (
@@ -42,6 +57,10 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
+          const gameMedia = media[game.id];
+          const isEnabled = gameMedia ? gameMedia.isEnabled : true;
+          if (!isEnabled) return null;
+
           return (
             <Link 
               key={game.id} 
@@ -49,8 +68,16 @@ export function GameGrid() {
               className="group transition-all duration-300 active:scale-95"
             >
               <div className="relative h-[145px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                {/* Visual Identity: Gradient Block */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-card group-hover:from-primary/30 transition-all duration-500" />
+                {gameMedia?.logoUrl ? (
+                  <Image 
+                    src={gameMedia.logoUrl} 
+                    alt={game.name} 
+                    fill 
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-card group-hover:from-primary/30 transition-all duration-500" />
+                )}
                 
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
                   <div className="flex justify-between items-start">
@@ -60,17 +87,21 @@ export function GameGrid() {
                       </div>
                     ) : <div />}
                     
-                    <div className={`text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg ${
+                    <div className={cn(
+                      "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
                       game.status === 'active' ? 'bg-green-500' : 'bg-primary'
-                    }`}>
+                    )}>
                       {game.status || 'Active'}
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-center h-full opacity-20">
-                     <Gamepad2 size={24} className="text-white" />
-                  </div>
+                  {!gameMedia?.logoUrl && (
+                    <div className="flex items-center justify-center h-full opacity-20">
+                       <Gamepad2 size={24} className="text-white" />
+                    </div>
+                  )}
                 </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
               </div>
               <div className="text-center px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
@@ -84,3 +115,5 @@ export function GameGrid() {
     </section>
   );
 }
+
+import { cn } from "@/lib/utils";

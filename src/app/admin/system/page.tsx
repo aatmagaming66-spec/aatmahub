@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -6,7 +5,7 @@ import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ShieldCheck, Zap, Database, Bot, Terminal, Loader2, RefreshCcw, History, Wrench, Sparkles, DatabaseZap } from 'lucide-react';
+import { Activity, ShieldCheck, Zap, Database, Bot, Terminal, Loader2, RefreshCcw, History, Sparkles, DatabaseZap, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,6 +15,7 @@ export default function SystemHealthPage() {
   const [loading, setLoading] = useState(true);
   const [repairing, setRepairing] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [syncingMedia, setSyncMedia] = useState(false);
   const [health, setHealth] = useState<any>({
     firestore: 'checking',
     telegram: 'checking'
@@ -42,17 +42,12 @@ export default function SystemHealthPage() {
     setLoading(false);
   };
 
-  /**
-   * REPAIR REGISTRY: Migrates all orphaned products and titles into a unified dynamic registry.
-   * Ensures every document has required fields for Admin visibility.
-   */
   const repairRegistry = async () => {
-    if (!confirm('Perform deep registry synchronization? This will repair orphaned product records.')) return;
+    if (!confirm('Perform deep registry synchronization?')) return;
     setRepairing(true);
     try {
       const collections = ['games', 'ott_services', 'social_services', 'products', 'ranks'];
       let count = 0;
-      
       for (const colName of collections) {
         const snap = await getDocs(collection(db, colName));
         for (const d of snap.docs) {
@@ -66,7 +61,7 @@ export default function SystemHealthPage() {
           count++;
         }
       }
-      toast({ title: "Deep Sync Complete", description: `Synchronized ${count} records across all sectors.` });
+      toast({ title: "Deep Sync Complete", description: `Synchronized ${count} records.` });
     } catch (error: any) {
       toast({ variant: "destructive", title: "Sync Failed", description: error.message });
     } finally {
@@ -74,37 +69,37 @@ export default function SystemHealthPage() {
     }
   };
 
-  /**
-   * INITIALIZE MARKETPLACE: Seeds the database with production-ready base data.
-   */
-  const seedMarketplace = async () => {
-    if (!confirm('Deploy master marketplace blueprint? This will populate your catalog with active titles and SKUs.')) return;
-    setSeeding(true);
+  const syncMediaAssets = async () => {
+    if (!confirm('Rebuild Media Asset Registry from existing entities?')) return;
+    setSyncMedia(true);
     try {
-      const batch = writeBatch(db);
-      
-      const games = [
-        { id: 'mlbb-global', name: 'Mobile Legends', slug: 'mlbb-global', status: 'active', sortOrder: 1, flag: '🌐', requirePlayerId: true, requireServerId: true },
-        { id: 'ff-global', name: 'Free Fire', slug: 'ff-global', status: 'active', sortOrder: 2, flag: '🔥', requirePlayerId: true, requireServerId: false },
-        { id: 'pubg-global', name: 'BGMI / PUBG', slug: 'pubg-global', status: 'active', sortOrder: 3, flag: '🔫', requirePlayerId: true, requireServerId: false }
+      const types = [
+        { col: 'games', type: 'game' },
+        { col: 'ott_services', type: 'ott' },
+        { col: 'social_services', type: 'social' }
       ];
-
-      const products = [
-        { id: 'ml-86', name: '86 Diamonds', price: 99, category: 'mlbb-global', tab: 'small', status: 'active', region: 'Global' },
-        { id: 'ml-172', name: '172 Diamonds', price: 199, category: 'mlbb-global', tab: 'small', status: 'active', region: 'Global' },
-        { id: 'ml-weekly', name: 'Weekly Pass', price: 159, category: 'mlbb-global', tab: 'pass', status: 'active', region: 'Global' },
-        { id: 'ff-100', name: '100 Diamonds', price: 80, category: 'ff-global', tab: 'small', status: 'active', region: 'Global' }
-      ];
-
-      for (const g of games) { batch.set(doc(db, 'games', g.id), { ...g, updatedAt: new Date().toISOString() }); }
-      for (const p of products) { batch.set(doc(db, 'products', p.id), { ...p, updatedAt: new Date().toISOString() }); }
-
-      await batch.commit();
-      toast({ title: 'Marketplace Blueprint Deployed', description: 'Catalog Registry is now dynamic.' });
+      let count = 0;
+      for (const t of types) {
+        const snap = await getDocs(collection(db, t.col));
+        for (const d of snap.docs) {
+          const data = d.data();
+          await setDoc(doc(db, 'media_assets', d.id), {
+            entityId: d.id,
+            entityType: t.type,
+            entityName: data.name || data.id,
+            isEnabled: data.status === 'active',
+            logoUrl: data.icon || data.logoUrl || null,
+            bannerUrl: data.banner || data.bannerUrl || null,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+          count++;
+        }
+      }
+      toast({ title: "Media Sync Complete", description: `Rebuilt ${count} media profiles.` });
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Seed Failed', description: e.message });
+      toast({ variant: 'destructive', title: 'Media Sync Failed', description: e.message });
     } finally {
-      setSeeding(false);
+      setSyncMedia(false);
     }
   };
 
@@ -114,20 +109,25 @@ export default function SystemHealthPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Kernel Stats</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">System Monitoring & Maintenance</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Kernel Stats</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">System Core Control</p>
         </div>
         <div className="flex gap-2">
           <Button 
             variant="outline" 
+            onClick={syncMediaAssets}
+            disabled={syncingMedia}
+            className="h-10 px-4 rounded-xl border-accent/20 bg-accent/5 text-accent font-black uppercase text-[9px] tracking-widest gap-2"
+          >
+            {syncingMedia ? <Loader2 size={12} className="animate-spin" /> : <ImageIcon size={12} />} Sync Media Hub
+          </Button>
+          <Button 
+            variant="outline" 
             onClick={repairRegistry}
             disabled={repairing}
-            className="h-10 px-4 rounded-xl border-primary/20 bg-primary/5 text-primary font-black uppercase text-[10px] tracking-widest gap-2"
+            className="h-10 px-4 rounded-xl border-primary/20 bg-primary/5 text-primary font-black uppercase text-[9px] tracking-widest gap-2"
           >
             {repairing ? <Loader2 size={12} className="animate-spin" /> : <DatabaseZap size={12} />} Deep Registry Sync
-          </Button>
-          <Button variant="outline" onClick={checkHealth} className="h-10 px-4 rounded-xl border-border bg-card font-black uppercase text-[10px] tracking-widest gap-2">
-            <RefreshCcw size={12} /> Ping System
           </Button>
         </div>
       </header>
@@ -145,18 +145,13 @@ export default function SystemHealthPage() {
                 <Activity className="h-5 w-5 text-primary" />
                 <h3 className="text-xs font-black uppercase tracking-widest">Operations Hub</h3>
              </div>
-             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v2.8.5-STABLE</span>
+             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v2.9.2-DYNAMIC</span>
           </div>
           
           <div className="space-y-6">
             <p className="text-[11px] text-muted-foreground uppercase leading-relaxed font-medium">
-              AATMA HUB dynamic registry handles cross-collection synchronization. If product visibility drops, use the <b>Deep Registry Sync</b> to re-index all digital assets.
+              AATMA HUB utilizes a decoupled media registry. If entities are missing thumbnails or banners, use the <b>Sync Media Hub</b> tool to reconstruct the visual profiles.
             </p>
-            <div className="pt-4 flex gap-4">
-               <Button onClick={seedMarketplace} disabled={seeding} className="bg-primary h-12 px-8 rounded-xl font-black uppercase text-[10px] tracking-widest">
-                 {seeding ? <Loader2 className="animate-spin h-4 w-4" /> : <><Sparkles className="mr-2 h-4 w-4" /> Seed Blueprint</>}
-               </Button>
-            </div>
           </div>
         </Card>
 
