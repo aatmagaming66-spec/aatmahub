@@ -1,20 +1,48 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ShieldCheck, Zap, Database, Bot, Smartphone, Cpu, Loader2, RefreshCcw, Terminal, History, Wrench, CheckCircle2 } from 'lucide-react';
+import { Activity, ShieldCheck, Zap, Database, Bot, Smartphone, Cpu, Loader2, RefreshCcw, Terminal, History, Wrench, CheckCircle2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+
+const INITIAL_GAMES = [
+  { id: "mlbb-in", name: "MLBB India", imgId: "game-mlbb-india", flag: "🇮🇳" },
+  { id: "mlbb-id", name: "MLBB Indonesia", imgId: "game-mlbb", flag: "🇮🇩" },
+  { id: "mlbb-ph", name: "MLBB Philippines", imgId: "game-mlbb", flag: "🇵🇭" },
+  { id: "mlbb-my", name: "MLBB Malaysia", imgId: "game-mlbb", flag: "🇲🇾" },
+  { id: "mlbb-sg", name: "MLBB Singapore", imgId: "game-mlbb", flag: "🇸🇬" },
+  { id: "mlbb-ru", name: "MLBB Russia", imgId: "game-mlbb", flag: "🇷🇺" },
+  { id: "mlbb-br", name: "MLBB Brazil", imgId: "game-mlbb", flag: "🇧🇷" },
+  { id: "hok", name: "Honor of Kings", imgId: "game-hok" },
+  { id: "genshin", name: "Genshin Impact", imgId: "game-genshin" },
+  { id: "bgmi", name: "BGMI", imgId: "game-bgmi" },
+  { id: "mcgg", name: "Magic Chess Go Go", imgId: "game-mlbb" },
+];
+
+const INITIAL_OTT = [
+  { id: "netflix", name: "Netflix Premium", imgId: "ott-netflix" },
+  { id: "prime", name: "Amazon Prime", imgId: "ott-prime" },
+  { id: "yt-prem", name: "YouTube Premium", imgId: "ott-yt" },
+  { id: "spotify", name: "Spotify Premium", imgId: "ott-spotify" },
+];
+
+const INITIAL_SOCIAL = [
+  { id: "ig-serv", name: "Instagram Services", imgId: "social-ig" },
+  { id: "fb-serv", name: "Facebook Services", imgId: "social-fb" },
+  { id: "tg-serv", name: "Telegram Services", imgId: "social-fb" },
+  { id: "yt-serv", name: "YouTube Growth", imgId: "ott-yt" },
+];
 
 export default function SystemHealthPage() {
   const db = useFirestore();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [repairing, setRepairing] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [health, setHealth] = useState<any>({
     firestore: 'checking',
     telegram: 'checking',
@@ -55,6 +83,37 @@ export default function SystemHealthPage() {
 
     setHealth(newHealth);
     setLoading(false);
+  };
+
+  const seedMarketplace = async () => {
+    if (!confirm('This will seed initial marketplace data into Firestore. Proceed?')) return;
+    setSeeding(true);
+    try {
+      const batch = writeBatch(db);
+
+      INITIAL_GAMES.forEach((item, index) => {
+        const ref = doc(db, 'games', item.id);
+        batch.set(ref, { ...item, status: 'active', sortOrder: index + 1, updatedAt: new Date().toISOString() }, { merge: true });
+      });
+
+      INITIAL_OTT.forEach((item, index) => {
+        const ref = doc(db, 'ott_services', item.id);
+        batch.set(ref, { ...item, status: 'active', sortOrder: index + 1, updatedAt: new Date().toISOString() }, { merge: true });
+      });
+
+      INITIAL_SOCIAL.forEach((item, index) => {
+        const ref = doc(db, 'social_services', item.id);
+        batch.set(ref, { ...item, status: 'active', sortOrder: index + 1, updatedAt: new Date().toISOString() }, { merge: true });
+      });
+
+      await batch.commit();
+      toast({ title: "Marketplace Synchronized", description: "All initial categories have been seeded into Firestore." });
+      checkHealth();
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Seeding Failed", description: error.message });
+    } finally {
+      setSeeding(false);
+    }
   };
 
   const repairData = async () => {
@@ -105,6 +164,14 @@ export default function SystemHealthPage() {
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Kernel Monitoring Service</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={seedMarketplace}
+            disabled={seeding}
+            className="h-10 px-4 rounded-xl border-accent/20 bg-accent/5 text-accent font-black uppercase text-[10px] tracking-widest gap-2"
+          >
+            {seeding ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />} Initialize Marketplace
+          </Button>
           <Button 
             variant="outline" 
             onClick={repairData}
