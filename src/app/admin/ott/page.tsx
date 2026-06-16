@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, setDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -17,9 +16,38 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Search, Tv, Save, ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Search, Tv } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+
+const ServiceCard = memo(function ServiceCard({ item, onEdit, onDelete }: any) {
+  return (
+    <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
+      <CardContent className="p-6 space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner overflow-hidden relative">
+            {item.icon ? <Image src={item.icon} alt={item.name} fill className="object-cover" /> : <Tv size={24} className="text-primary" />}
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-black uppercase tracking-tight">{item.name}</h3>
+            <div className={`mt-2 px-2 py-0.5 rounded-full text-[7px] font-black uppercase inline-block border ${item.status === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/10' : 'bg-primary/10 text-primary border-primary/10'}`}>
+              {item.status}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => onEdit(item)} className="flex-1 border-border h-10 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-white/5">
+            <Edit2 size={12} /> Edit
+          </Button>
+          <Button variant="outline" onClick={() => onDelete(item.id)} className="border-primary/20 text-primary hover:bg-primary/5 h-10 w-10 rounded-xl flex items-center justify-center">
+            <Trash2 size={14} />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
 
 export default function OttManagementPage() {
   const db = useFirestore();
@@ -37,7 +65,6 @@ export default function OttManagementPage() {
     sortOrder: 0
   });
 
-  // MEMOIZE QUERY TO PREVENT INFINITE LOOPS
   const ottQuery = useMemo(() => query(
     collection(db, 'ott_services'), 
     orderBy('sortOrder', 'asc')
@@ -57,7 +84,7 @@ export default function OttManagementPage() {
     } else {
       setEditingItem(null);
       setFormData({
-        id: '', name: '', status: 'active', icon: '', sortOrder: items.length + 1
+        id: '', name: '', status: 'active', icon: '', sortOrder: (items?.length || 0) + 1
       });
     }
     setIsModalOpen(true);
@@ -120,30 +147,7 @@ export default function OttManagementPage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item) => (
-            <Card key={item.id} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
-              <CardContent className="p-6 space-y-6">
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner overflow-hidden relative">
-                    {item.icon ? <Image src={item.icon} alt={item.name} fill className="object-cover" /> : <Tv size={24} className="text-primary" />}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-black uppercase tracking-tight">{item.name}</h3>
-                    <div className={`mt-2 px-2 py-0.5 rounded-full text-[7px] font-black uppercase inline-block border ${item.status === 'active' ? 'bg-green-500/10 text-green-500 border-green-500/10' : 'bg-primary/10 text-primary border-primary/10'}`}>
-                      {item.status}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => handleOpenModal(item)} className="flex-1 border-border h-10 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-white/5">
-                    <Edit2 size={12} /> Edit
-                  </Button>
-                  <Button variant="outline" onClick={() => handleDelete(item.id)} className="border-primary/20 text-primary hover:bg-primary/5 h-10 w-10 rounded-xl flex items-center justify-center">
-                    <Trash2 size={14} />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ServiceCard key={item.id} item={item} onEdit={handleOpenModal} onDelete={handleDelete} />
           ))}
         </div>
       )}

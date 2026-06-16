@@ -1,30 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 import { AdminNav } from '@/components/admin/admin-nav';
-import { Loader2, ShieldAlert } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, loading } = useUser();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Audit: A super_admin is inherently an admin
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   const hasAdminAccess = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && isMounted) {
       if (!user || !hasAdminAccess) {
-        console.warn(`[Admin Audit] Unauthorized access attempt. Redirecting to root.`);
         router.push('/');
-      } else {
-        console.log(`[Admin Audit] Session Authorized: Role=${profile?.role}`);
       }
     }
-  }, [user, profile, loading, hasAdminAccess, router]);
+  }, [user, profile, loading, hasAdminAccess, router, isMounted]);
 
-  if (loading) {
+  if (!isMounted || loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -36,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   if (!user || !hasAdminAccess) {
-    return null; // Let the useEffect handle redirection
+    return null;
   }
 
   return (

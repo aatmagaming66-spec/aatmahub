@@ -1,9 +1,8 @@
-
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, orderBy, limit, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, doc, updateDoc, increment } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,8 +15,33 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Search, Wallet, TrendingUp, ArrowUpRight, ArrowDownLeft, Loader2, Edit3, Save } from 'lucide-react';
+import { Search, Wallet, TrendingUp, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+const WalletCard = memo(function WalletCard({ wallet, onAdjust }: any) {
+  return (
+    <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
+      <CardContent className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary"><Wallet size={20} /></div>
+            <div>
+              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">User Identity</p>
+              <p className="text-[10px] font-black uppercase text-white truncate max-w-[120px]">{wallet.userId}</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-xl font-black text-white">₹{wallet.balance.toLocaleString()}</p>
+            <span className="text-[7px] font-black uppercase tracking-widest text-green-500">Available Credits</span>
+          </div>
+        </div>
+        <Button onClick={() => onAdjust(wallet)} className="w-full h-10 bg-white/5 border border-white/5 hover:bg-primary hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest gap-2">
+          <TrendingUp size={12} /> Adjust Balance
+        </Button>
+      </CardContent>
+    </Card>
+  );
+});
 
 export default function AdminWalletRegistryPage() {
   const db = useFirestore();
@@ -27,7 +51,6 @@ export default function AdminWalletRegistryPage() {
   const [adjustAmount, setAdjustAmount] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // MEMOIZE COLLECTION TO PREVENT LOOPS
   const walletsRef = useMemo(() => collection(db, 'wallets'), [db]);
   const { data: wallets, loading } = useCollection(walletsRef);
 
@@ -82,26 +105,7 @@ export default function AdminWalletRegistryPage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredWallets.map((w) => (
-            <Card key={w.userId} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
-              <CardContent className="p-6 space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary"><Wallet size={20} /></div>
-                    <div>
-                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">User Identity</p>
-                      <p className="text-[10px] font-black uppercase text-white truncate max-w-[120px]">{w.userId}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xl font-black text-white">₹{w.balance.toLocaleString()}</p>
-                    <span className="text-[7px] font-black uppercase tracking-widest text-green-500">Available Credits</span>
-                  </div>
-                </div>
-                <Button onClick={() => setAdjustingWallet(w)} className="w-full h-10 bg-white/5 border border-white/5 hover:bg-primary hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest gap-2">
-                  <TrendingUp size={12} /> Adjust Balance
-                </Button>
-              </CardContent>
-            </Card>
+            <WalletCard key={w.userId} wallet={w} onAdjust={setAdjustingWallet} />
           ))}
         </div>
       )}
