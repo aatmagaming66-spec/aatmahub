@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
@@ -18,6 +19,12 @@ export interface UserProfile {
   active?: boolean;
   permissions?: string[];
   banned?: boolean;
+  notifications?: {
+    orderUpdates: boolean;
+    walletUpdates: boolean;
+    promotional: boolean;
+    securityAlerts: boolean;
+  };
 }
 
 interface ProfileContextType {
@@ -46,24 +53,24 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Hard fail-safe timeout to prevent UI hang in extreme network cases
-    const failSafe = setTimeout(() => {
-      setInitialized(true);
-      setLoading(false);
-    }, 3000);
-
+    // 1. Auth Handshake (Identity Determination)
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      clearTimeout(failSafe);
-      
+      console.log('[PROFILE_PROVIDER] Auth resolved:', firebaseUser?.uid || 'Guest');
       setUser(firebaseUser);
-      // Identity is determined - reveal the shell
       setInitialized(true);
       
+      // If no user, we are definitively not loading a profile
       if (!firebaseUser) {
         setProfile(null);
         setLoading(false);
       }
     });
+
+    // 2. Hard timeout for initialization (Fail-safe)
+    const failSafe = setTimeout(() => {
+      setInitialized(true);
+      setLoading(false);
+    }, 3000);
 
     return () => {
       unsubscribeAuth();
@@ -74,16 +81,23 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
 
+    // 3. Profile Hydration (Background Async)
+    console.log('[PROFILE_PROVIDER] Syncing profile document...');
     const userDocRef = doc(db, 'users', user.uid);
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data() as UserProfile;
+        
+        // Auto-promote Super Admins
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         if (isSuperAdminTarget && data.role !== 'super_admin') {
            updateDoc(userDocRef, { role: 'super_admin', active: true, permissions: ['all'] }).catch(() => {});
         }
+        
         setProfile(data);
+        console.log('[PROFILE_PROVIDER] Profile document hydrated.');
       } else {
+        // Handle new user profile creation if it doesn't exist
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         const newProfile: UserProfile = {
           uid: user.uid,
@@ -96,12 +110,18 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
           currentRank: 'Warrior',
           rankId: 'warrior',
           createdAt: new Date().toISOString(),
+          notifications: {
+            orderUpdates: true,
+            walletUpdates: true,
+            promotional: false,
+            securityAlerts: true
+          }
         };
         setDoc(userDocRef, newProfile).catch(() => {});
       }
       setLoading(false);
     }, (error) => {
-      console.error('[PROFILE] background sync error:', error);
+      console.error('[PROFILE_PROVIDER] Error syncing profile:', error);
       setLoading(false);
     });
 

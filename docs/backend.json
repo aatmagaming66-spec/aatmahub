@@ -15,7 +15,16 @@
         "currentRank": { "type": "string", "default": "Warrior" },
         "rankId": { "type": "string", "default": "warrior" },
         "banned": { "type": "boolean" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "notifications": {
+          "type": "object",
+          "properties": {
+            "orderUpdates": { "type": "boolean", "default": true },
+            "walletUpdates": { "type": "boolean", "default": true },
+            "promotional": { "type": "boolean", "default": false },
+            "securityAlerts": { "type": "boolean", "default": true }
+          }
+        }
       },
       "required": ["uid", "email", "fullName", "role"]
     },

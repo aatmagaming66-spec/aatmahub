@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -158,7 +159,7 @@ export default function ProfilePage() {
           </div>
           <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl">
             <CardContent className="p-0">
-              <button onClick={() => setEditing(!editing)} className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
+              <button onClick={() => setEditing(!editing)} className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors text-left">
                 <div className="flex items-center gap-4">
                   <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><User size={16} /></div>
                   <span className="text-xs font-bold text-white/90 uppercase">Edit Profile</span>
@@ -167,24 +168,26 @@ export default function ProfilePage() {
               </button>
 
               <Link href="/profile/change-password">
-                <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
+                <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                   <div className="flex items-center gap-4">
                     <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Key size={16} /></div>
                     <span className="text-xs font-bold text-white/90 uppercase">Change Password</span>
                   </div>
                   <ChevronRight size={16} className="text-white/20" />
-                </button>
+                </div>
               </Link>
 
-              <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><Bell size={16} /></div>
-                  <span className="text-xs font-bold text-white/90 uppercase">Notification Settings</span>
+              <Link href="/profile/notifications">
+                <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><Bell size={16} /></div>
+                    <span className="text-xs font-bold text-white/90 uppercase">Notification Settings</span>
+                  </div>
+                  <ChevronRight size={16} className="text-white/20" />
                 </div>
-                <ChevronRight size={16} className="text-white/20" />
-              </button>
+              </Link>
 
-              <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
+              <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors text-left">
                 <div className="flex items-center gap-4">
                   <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Fingerprint size={16} /></div>
                   <span className="text-xs font-bold text-white/90 uppercase">Security Settings</span>
@@ -192,7 +195,7 @@ export default function ProfilePage() {
                 <ChevronRight size={16} className="text-white/20" />
               </button>
 
-              <button className="w-full flex items-center justify-between p-5 hover:bg-white/5 group transition-colors">
+              <button className="w-full flex items-center justify-between p-5 hover:bg-white/5 group transition-colors text-left">
                 <div className="flex items-center gap-4">
                   <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><LinkIcon size={16} /></div>
                   <span className="text-xs font-bold text-white/90 uppercase">Linked Accounts</span>
