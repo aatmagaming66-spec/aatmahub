@@ -39,7 +39,8 @@ export default function ProductPage() {
   const [isVerified, setIsVerified] = useState(false);
 
   const productName = id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
-  const imgId = id?.toString().startsWith('mlbb') ? 'game-mlbb' : 
+  const imgId = id === 'mlbb-in' ? 'game-mlbb-india' :
+                id?.toString().startsWith('mlbb') ? 'game-mlbb' : 
                 id === 'hok' ? 'game-hok' : 
                 id === 'genshin' ? 'game-genshin' : 'game-mlbb';
   const img = PlaceHolderImages.find(i => i.id === imgId);

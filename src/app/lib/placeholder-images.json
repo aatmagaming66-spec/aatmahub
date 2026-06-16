@@ -8,9 +8,15 @@
       "imageHint": "brand logo"
     },
     {
+      "id": "game-mlbb-india",
+      "description": "Mobile Legends Bang Bang India Hero Art",
+      "imageUrl": "/images/mlbb-india.jpg",
+      "imageHint": "mlbb character"
+    },
+    {
       "id": "game-mlbb",
-      "description": "Mobile Legends Bang Bang India",
-      "imageUrl": "/mlbb-india.jpg",
+      "description": "Mobile Legends Bang Bang Generic",
+      "imageUrl": "https://picsum.photos/seed/mlbb_hero/600/800",
       "imageHint": "mlbb character"
     },
     {

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const GAMES = [
-  { id: "mlbb-in", name: "MLBB India", imgId: "game-mlbb", flag: "🇮🇳" },
+  { id: "mlbb-in", name: "MLBB India", imgId: "game-mlbb-india", flag: "🇮🇳" },
   { id: "mlbb-id", name: "MLBB Indonesia", imgId: "game-mlbb", flag: "🇮🇩" },
   { id: "mlbb-ph", name: "MLBB Philippines", imgId: "game-mlbb", flag: "🇵🇭" },
   { id: "mlbb-my", name: "MLBB Malaysia", imgId: "game-mlbb", flag: "🇲🇾" },
