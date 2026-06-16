@@ -8,7 +8,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { doc, query, collection, where, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, Loader2, ArrowLeft, Crown, Cpu, Target, Zap, ShieldCheck } from 'lucide-react';
+import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, Loader2, ArrowLeft, Crown, Target, Zap, ShieldCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -75,7 +75,6 @@ export default function WalletDashboard() {
     if (name.includes('immortal')) return {
       bg: 'bg-gradient-to-br from-yellow-600 via-red-900 to-yellow-700 animate-pulse',
       border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]',
-      chip: 'from-yellow-400 via-yellow-200 to-yellow-500',
       shine: 'via-white/30',
     };
     
@@ -83,14 +82,12 @@ export default function WalletDashboard() {
     if (name.includes('warrior')) return {
       bg: baseAatmaBg,
       border: 'border-slate-400/40',
-      chip: 'from-slate-400 via-slate-200 to-slate-500',
       shine: 'via-white/5',
     };
 
     return {
       bg: baseAatmaBg,
       border: `border-[${rankInfo.color}]/40 shadow-[0_0_10px_${rankInfo.color}33]`,
-      chip: 'from-zinc-400 via-zinc-200 to-zinc-500',
       shine: 'via-white/5',
     };
   };
@@ -135,7 +132,7 @@ export default function WalletDashboard() {
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <div className={cn(
-          "relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]",
+          "relative w-full min-h-[188px] transition-all duration-700 [transform-style:preserve-3d]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
           
@@ -163,36 +160,17 @@ export default function WalletDashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 py-2">
-                <div className={cn(
-                  "h-8 w-11 bg-gradient-to-br rounded-md relative overflow-hidden flex items-center justify-center border border-white/20 shadow-inner shrink-0",
-                  cardTheme.chip
-                )}>
-                   <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-20">
-                      {[...Array(9)].map((_, i) => <div key={i} className="border border-black/40 rounded-sm" />)}
-                   </div>
-                   <Cpu className="absolute h-4 w-4 text-black/20" />
-                </div>
-                
-                <RankAvatar 
-                   src={`https://picsum.photos/seed/${user.uid}/100/100`}
-                   rank={rankInfo.name}
-                   size="sm"
-                />
-              </div>
+              {/* CLEAN CENTER AREA (REPLACED CHIP/AVATAR) */}
+              <div className="flex-1" />
 
               <div className="mt-auto space-y-3">
                  <div className="flex justify-between items-end gap-4">
-                    <div className="space-y-1 min-w-0">
-                       <span className="text-[7px] font-black text-white/30 uppercase tracking-widest leading-none">Card Holder</span>
-                       <p className="text-[10px] font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-[9px] font-mono font-black text-white/40 tracking-[0.2em]">**** **** **** 2047</p>
+                    <div className="space-y-0.5 min-w-0">
+                       <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
+                       <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
                     </div>
                  </div>
                  <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-2.5 gap-2">
-                   <span className="truncate">Tier: <span className="text-white/60">{rankInfo.name}</span></span>
                    <span className="shrink-0">Reward: <span className="text-green-500/60">{rankInfo.discount}% OFF</span></span>
                    <span className="shrink-0">Spent: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
                  </div>
