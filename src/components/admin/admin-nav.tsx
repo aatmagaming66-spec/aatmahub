@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, memo } from 'react';
@@ -27,7 +26,8 @@ import {
   ImageIcon,
   Home as HomeIcon,
   Layers,
-  Wallet
+  Wallet,
+  Trophy
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -38,6 +38,7 @@ const ADMIN_LINKS = [
 
 const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Intelligence', icon: BarChart3 },
+  { href: '/admin/ranks', label: 'Rank Manager', icon: Trophy },
   { href: '/admin/media', label: 'Media Hub', icon: ImageIcon },
   { href: '/admin/homepage', label: 'Home Control', icon: HomeIcon },
   { href: '/admin/games', label: 'Games Manager', icon: Gamepad2 },

@@ -1,31 +1,97 @@
 /**
  * Global Rank Configuration & Thresholds
+ * Updated for the Advanced Rank Progression Center
  */
 
-export const RANKS = [
-  { name: 'Warrior', threshold: 0, discount: 0, color: '#94a3b8' },
-  { name: 'Elite', threshold: 500, discount: 0, color: '#10b981' },
-  { name: 'Master', threshold: 1500, discount: 0, color: '#3b82f6' },
-  { name: 'Grandmaster', threshold: 3000, discount: 0, color: '#a855f7' },
-  { name: 'Epic', threshold: 7500, discount: 0, color: '#ec4899' },
-  { name: 'Legend', threshold: 15000, discount: 0, color: '#eab308' },
-  { name: 'Mythic', threshold: 30000, discount: 0, color: '#ef4444' },
-  { name: 'Mythical Honor', threshold: 50000, discount: 1, color: '#f97316' },
-  { name: 'Mythical Glory', threshold: 75000, discount: 2, color: '#dc2626' },
-  { name: 'Mythical Immortal', threshold: 100000, discount: 3, color: '#fbbf24' },
-];
-
-export function getRankFromSpend(spend: number) {
-  for (let i = RANKS.length - 1; i >= 0; i--) {
-    if (spend >= RANKS[i].threshold) {
-      return RANKS[i];
-    }
-  }
-  return RANKS[0];
+export interface RankDefinition {
+  id: string;
+  name: string;
+  threshold: number;
+  discount: number;
+  color: string;
+  benefits: string[];
+  sortOrder: number;
 }
 
-export function getNextRank(spend: number) {
-  const currentRank = getRankFromSpend(spend);
-  const currentIndex = RANKS.findIndex(r => r.name === currentRank.name);
-  return currentIndex < RANKS.length - 1 ? RANKS[currentIndex + 1] : null;
+export const DEFAULT_RANKS: RankDefinition[] = [
+  { 
+    id: 'warrior',
+    name: 'Warrior', 
+    threshold: 0, 
+    discount: 0, 
+    color: '#94a3b8', 
+    benefits: ['0% Purchase Discount', 'Basic HUB Access'],
+    sortOrder: 0
+  },
+  { 
+    id: 'elite',
+    name: 'Elite', 
+    threshold: 1000, 
+    discount: 1, 
+    color: '#10b981', 
+    benefits: ['1% Purchase Discount', 'Priority Order Queue'],
+    sortOrder: 1
+  },
+  { 
+    id: 'master',
+    name: 'Master', 
+    threshold: 5000, 
+    discount: 2, 
+    color: '#3b82f6', 
+    benefits: ['2% Purchase Discount', 'Faster Order Processing'],
+    sortOrder: 2
+  },
+  { 
+    id: 'epic',
+    name: 'Epic', 
+    threshold: 15000, 
+    discount: 3, 
+    color: '#a855f7', 
+    benefits: ['3% Purchase Discount', 'Premium Profile Badge'],
+    sortOrder: 3
+  },
+  { 
+    id: 'legend',
+    name: 'Legend', 
+    threshold: 50000, 
+    discount: 5, 
+    color: '#eab308', 
+    benefits: ['5% Purchase Discount', 'Priority Customer Support'],
+    sortOrder: 4
+  },
+  { 
+    id: 'mythic',
+    name: 'Mythic', 
+    threshold: 100000, 
+    discount: 7, 
+    color: '#ef4444', 
+    benefits: ['7% Purchase Discount', 'Exclusive Community Perks'],
+    sortOrder: 5
+  },
+  { 
+    id: 'immortal',
+    name: 'Mythical Immortal', 
+    threshold: 250000, 
+    discount: 10, 
+    color: '#fbbf24', 
+    benefits: ['10% Purchase Discount', 'Highest Order Priority', 'Exclusive Immortal Benefits'],
+    sortOrder: 6
+  },
+];
+
+export function getRankFromSpend(spend: number, ranks: RankDefinition[] = DEFAULT_RANKS) {
+  const sorted = [...ranks].sort((a, b) => b.threshold - a.threshold);
+  for (const rank of sorted) {
+    if (spend >= rank.threshold) {
+      return rank;
+    }
+  }
+  return ranks[0];
+}
+
+export function getNextRank(spend: number, ranks: RankDefinition[] = DEFAULT_RANKS) {
+  const currentRank = getRankFromSpend(spend, ranks);
+  const sorted = [...ranks].sort((a, b) => a.sortOrder - b.sortOrder);
+  const currentIndex = sorted.findIndex(r => r.id === currentRank.id);
+  return currentIndex < sorted.length - 1 ? sorted[currentIndex + 1] : null;
 }

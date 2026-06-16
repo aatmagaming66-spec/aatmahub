@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect, memo } from 'react';
@@ -26,7 +25,8 @@ import {
   Share2,
   ImageIcon,
   Home as HomeIcon,
-  Layers
+  Layers,
+  Trophy
 } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import Link from 'next/link';
@@ -86,6 +86,7 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = useMemo(() => [
+    { label: 'Rank Management', href: '/admin/ranks', icon: Trophy, desc: 'Manage tiers & requirements' },
     { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
     { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage products & pricing' },
     { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Manage regions & availability' },
