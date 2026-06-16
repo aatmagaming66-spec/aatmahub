@@ -41,6 +41,7 @@ export default function AdminProductsPage() {
     thumbnail: ''
   });
 
+  // Master Registry Query
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
     orderBy('name', 'asc')
@@ -135,9 +136,15 @@ export default function AdminProductsPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Product Catalog</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Marketplace Control Hub</p>
+        <div className="flex items-end gap-4">
+          <div>
+            <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Product Catalog</h1>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Marketplace Control Hub</p>
+          </div>
+          <div className="bg-card border border-border px-3 py-1.5 rounded-xl flex items-center gap-2 mb-1">
+             <span className="text-[9px] font-black uppercase text-muted-foreground">Registry Pool:</span>
+             <span className="text-xs font-black text-primary">{products?.length || 0}</span>
+          </div>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
           <Plus className="h-4 w-4" /> Deploy New Product
