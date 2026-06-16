@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection } from 'firebase/firestore';
+import { collection, query, where, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
@@ -34,18 +34,31 @@ export default function AnalyticsPage() {
   const db = useFirestore();
   const [isMounted, setIsMounted] = useState(false);
 
-  // Stabilize collection references
-  const ordersRef = useMemo(() => collection(db, 'orders'), [db]);
-  const usersRef = useMemo(() => collection(db, 'users'), [db]);
-  const transactionsRef = useMemo(() => collection(db, 'transactions'), [db]);
-
-  const { data: orders, loading: ordersLoading } = useCollection(ordersRef);
-  const { data: users, loading: usersLoading } = useCollection(usersRef);
-  const { data: transactions, loading: txLoading } = useCollection(transactionsRef);
-  
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // OPTIMIZATION: Temporal Filtering (Last 30 Days) to reduce Firestore reads
+  const analyticsWindow = useMemo(() => subDays(new Date(), 30).toISOString(), []);
+
+  const ordersQuery = useMemo(() => query(
+    collection(db, 'orders'),
+    where('createdAt', '>=', analyticsWindow)
+  ), [db, analyticsWindow]);
+
+  const usersQuery = useMemo(() => query(
+    collection(db, 'users'),
+    limit(500) // Caps user analysis for performance
+  ), [db]);
+
+  const transactionsQuery = useMemo(() => query(
+    collection(db, 'transactions'),
+    where('createdAt', '>=', analyticsWindow)
+  ), [db, analyticsWindow]);
+
+  const { data: orders, loading: ordersLoading } = useCollection(ordersQuery);
+  const { data: users, loading: usersLoading } = useCollection(usersQuery);
+  const { data: transactions, loading: txLoading } = useCollection(transactionsQuery);
 
   const stats = useMemo(() => {
     if (!orders || !users || !transactions || !isMounted) return null;

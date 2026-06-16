@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, memo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, updateDoc, doc, orderBy, query } from 'firebase/firestore';
+import { collection, updateDoc, doc, orderBy, query, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -35,10 +34,11 @@ export default function AdminOrdersPage() {
     setIsMounted(true);
   }, []);
 
-  // MEMOIZE QUERY TO PREVENT INFINITE LOOPS
+  // OPTIMIZATION: Memoized query with limit to reduce initial Firestore reads
   const ordersQuery = useMemo(() => query(
     collection(db, 'orders'), 
-    orderBy('createdAt', 'desc')
+    orderBy('createdAt', 'desc'),
+    limit(100) // Prevents loading massive datasets unnecessarily
   ), [db]);
 
   const { data: orders, loading } = useCollection(ordersQuery);
@@ -80,7 +80,7 @@ export default function AdminOrdersPage() {
         </div>
         <div className="flex items-center gap-3">
            <div className="bg-card border border-border px-3 py-1.5 rounded-xl flex items-center gap-2">
-              <span className="text-[9px] font-black uppercase text-muted-foreground">Active Count:</span>
+              <span className="text-[9px] font-black uppercase text-muted-foreground">Recent Pool:</span>
               <span className="text-xs font-black text-primary">{filteredOrders.length}</span>
            </div>
         </div>
