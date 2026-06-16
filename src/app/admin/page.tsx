@@ -72,12 +72,13 @@ export default function AdminDashboard() {
     const now = new Date();
     return Array.from({ length: 7 }).map((_, i) => {
       const d = subDays(now, 6 - i);
+      const dayStr = format(d, 'EEE');
       const dayStart = startOfDay(d);
       const dayEnd = endOfDay(d);
       const revenue = orders
         .filter(o => o.status === 'completed' && isWithinInterval(new Date(o.createdAt), { start: dayStart, end: dayEnd }))
         .reduce((acc, o) => acc + o.totalAmount, 0);
-      return { name: format(d, 'EEE'), revenue };
+      return { name: dayStr, revenue };
     });
   }, [orders, isMounted]);
 
@@ -113,16 +114,16 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Main Stats Grid - Horizontal Scroll on Mobile */}
-      <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
+      {/* Main Stats Grid - 2x2 on Mobile, 4 columns on Desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 px-1">
         {stats.map((stat, i) => (
-          <Card key={i} className="flex-shrink-0 w-36 h-[85px] bg-card border-border shadow-xl rounded-2xl overflow-hidden group hover:border-primary/30 transition-all">
-            <CardContent className="p-4 flex flex-col justify-center h-full">
-              <div className={`h-7 w-7 rounded-lg bg-white/5 flex items-center justify-center ${stat.color} mb-1.5`}>
-                <stat.icon size={14} />
+          <Card key={i} className="h-[72px] bg-card border-border shadow-xl rounded-2xl overflow-hidden group hover:border-primary/30 transition-all">
+            <CardContent className="p-3 flex items-center gap-3 h-full">
+              <div className={`h-8 w-8 shrink-0 rounded-lg bg-white/5 flex items-center justify-center ${stat.color}`}>
+                <stat.icon size={16} />
               </div>
-              <div className="space-y-0.5">
-                <h3 className="text-lg font-black tracking-tighter leading-none">{stat.value}</h3>
+              <div className="min-w-0">
+                <h3 className="text-sm font-black tracking-tighter leading-tight truncate">{stat.value}</h3>
                 <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest truncate">{stat.label}</p>
               </div>
             </CardContent>
@@ -212,4 +213,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
