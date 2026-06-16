@@ -13,10 +13,12 @@ import {
   Tv, 
   Share2, 
   AlertCircle,
-  Database
+  Database,
+  ImageIcon
 } from 'lucide-react';
+import Image from 'next/image';
 
-export default function ImageManagementPage() {
+export default function EntityRegistryPage() {
   const db = useFirestore();
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -47,7 +49,7 @@ export default function ImageManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
         <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Entity Registry</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">High-Performance Marketplace Records</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Master Marketplace Records</p>
       </header>
 
       <div className="relative group">
@@ -71,19 +73,25 @@ export default function ImageManagementPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item) => (
             <Card key={`${item.type}-${item.id}`} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
+              <div className="relative h-24 w-full bg-black/40 border-b border-white/5">
+                 {(item.icon && item.icon.startsWith?.('http')) || item.banner || item.cardImage ? (
+                   <Image src={item.icon.startsWith?.('http') ? item.icon : (item.cardImage || item.banner)} alt={item.name} fill className="object-cover opacity-40" />
+                 ) : (
+                   <div className="h-full w-full flex items-center justify-center opacity-10"><item.icon size={30} /></div>
+                 )}
+                 <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
+              </div>
               <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary/10 to-black border border-white/5 flex items-center justify-center">
-                    <item.icon size={20} className="text-primary opacity-40" />
+                <div className="flex items-center gap-4">
+                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/10 to-black border border-white/5 flex items-center justify-center">
+                    {item.icon.startsWith?.('http') ? (
+                      <div className="relative h-6 w-6"><Image src={item.icon} alt="" fill className="object-contain" /></div>
+                    ) : <item.icon size={18} className="text-primary opacity-40" />}
                   </div>
                   <div>
                     <h3 className="text-sm font-black uppercase tracking-tight truncate max-w-[150px]">{item.name}</h3>
                     <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mt-0.5">{item.type.replace('_', ' ')}</p>
                   </div>
-                </div>
-                
-                <div className="pt-4 border-t border-white/5">
-                  <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em]">Live Registry Entry</span>
                 </div>
               </CardContent>
             </Card>
@@ -94,10 +102,10 @@ export default function ImageManagementPage() {
       <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Binary Distribution Notice</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Identity Intelligence</span>
         </div>
         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          Binary transmission (Images) has been disabled across the platform to prioritize identity verification speeds and database integrity. The marketplace is now operating in pure data mode.
+          Registry entities are mapped to global distribution keys. Modifying media here will automatically update the public hubs.
         </p>
       </div>
     </div>

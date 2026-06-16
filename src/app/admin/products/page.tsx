@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useFirestore } from '@/firebase/provider';
+import { useState, useMemo, useEffect } from 'react';
+import { useFirestore, useStorage } from '@/firebase/provider';
 import { collection, setDoc, deleteDoc, doc, query, orderBy, limit } from 'firebase/firestore';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
 import { 
   Dialog,
   DialogContent,
@@ -16,16 +18,20 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Upload, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 export default function AdminProductsPage() {
   const db = useFirestore();
+  const storage = useStorage();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [formData, setFormData] = useState({
     id: '',
@@ -34,10 +40,11 @@ export default function AdminProductsPage() {
     category: '',
     region: 'Global',
     tab: 'small',
-    status: 'active'
+    status: 'active',
+    thumbnailUrl: '',
+    bannerUrl: ''
   });
 
-  // OPTIMIZATION: Query results are capped to 50 items initially
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
     limit(50)
@@ -69,16 +76,41 @@ export default function AdminProductsPage() {
         category: product.category || '',
         region: product.region || 'Global',
         tab: product.tab || 'small',
-        status: product.status || 'active'
+        status: product.status || 'active',
+        thumbnailUrl: product.thumbnailUrl || '',
+        bannerUrl: product.bannerUrl || ''
       });
     } else {
       setEditingProduct(null);
       setFormData({ 
         id: '', name: '', price: '', category: '', region: 'Global', tab: 'small',
-        status: 'active' 
+        status: 'active', thumbnailUrl: '', bannerUrl: '' 
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handleFileUpload = async (file: File, type: 'thumbnail' | 'banner') => {
+    if (!file) return;
+    setUploading(true);
+    setUploadProgress(0);
+
+    const storageRef = ref(storage, `products/${formData.id || 'new'}/${type}_${Date.now()}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+
+    uploadTask.on('state_changed', 
+      (snap) => setUploadProgress((snap.bytesTransferred / snap.totalBytes) * 100),
+      (err) => {
+        toast({ variant: 'destructive', title: 'Upload Error', description: err.message });
+        setUploading(false);
+      },
+      async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        setFormData(prev => ({ ...prev, [type === 'thumbnail' ? 'thumbnailUrl' : 'bannerUrl']: url }));
+        setUploading(false);
+        toast({ title: 'Media Synced', description: 'Product image updated.' });
+      }
+    );
   };
 
   const handleSave = async () => {
@@ -97,7 +129,7 @@ export default function AdminProductsPage() {
       };
 
       await setDoc(doc(db, 'products', pId), dataToSave, { merge: true });
-      toast({ title: "Catalog Updated", description: `${formData.name} synchronized.` });
+      toast({ title: "Product Registry Updated", description: `${formData.name} configuration synchronized.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
@@ -120,8 +152,8 @@ export default function AdminProductsPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Catalog Hub</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Package Management</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Product Registry</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Package & Asset Management</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
           <Plus size={16} /> Deploy New Package
@@ -131,7 +163,7 @@ export default function AdminProductsPage() {
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Search items..." 
+          placeholder="Search product registry..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
@@ -149,16 +181,20 @@ export default function AdminProductsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProducts.map((p) => (
             <Card key={p.id} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
-              <CardContent className="p-6 space-y-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="h-10 w-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/5">
-                    <Tag size={18} className="text-primary opacity-40" />
-                  </div>
-                  <div className="bg-black/60 rounded-lg px-3 py-1 text-primary font-black text-sm border border-white/5 shadow-xl">
-                    ₹{p.price}
-                  </div>
+              <div className="relative h-32 w-full bg-black/40 overflow-hidden">
+                {p.bannerUrl || p.thumbnailUrl ? (
+                  <Image src={p.bannerUrl || p.thumbnailUrl} alt={p.name} fill className="object-cover opacity-50" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-white/5"><Package size={40} /></div>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
+                <div className="absolute top-4 left-4 flex gap-2">
+                   <div className="bg-black/60 rounded-lg px-3 py-1 text-primary font-black text-xs border border-white/5 shadow-xl">
+                      ₹{p.price}
+                    </div>
                 </div>
-
+              </div>
+              <CardContent className="p-6 space-y-6">
                 <div>
                   <h3 className="text-sm font-black uppercase tracking-tight truncate text-white">{p.name}</h3>
                   <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest mt-0.5">{p.category} • {p.region}</p>
@@ -182,15 +218,19 @@ export default function AdminProductsPage() {
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase tracking-tighter">
-              {editingProduct ? 'Configure Package' : 'Deploy New Package'}
+              {editingProduct ? 'Configure Product' : 'Registry Entry'}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-6 py-4">
+          <div className="space-y-6 py-4 max-h-[60vh] overflow-y-auto no-scrollbar">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2 col-span-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Package Name</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest">Product Name</Label>
                 <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="86 Diamonds" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Entry ID</Label>
+                <Input disabled={!!editingProduct} value={formData.id} onChange={(e) => setFormData({...formData, id: e.target.value})} placeholder="product-id" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest">Price (INR)</Label>
@@ -199,16 +239,39 @@ export default function AdminProductsPage() {
                   <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} placeholder="99" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold pl-10" />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Parent Category</Label>
-                <select 
-                  value={formData.category} 
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full bg-black/50 border border-border h-12 rounded-xl text-xs font-bold px-3 text-white focus:border-primary outline-none"
-                >
-                  <option value="">Select...</option>
-                  {games?.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                </select>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Media Assets</Label>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <span className="text-[8px] font-black uppercase">Thumbnail URL</span>
+                  <div className="flex gap-2">
+                    <Input value={formData.thumbnailUrl} onChange={(e) => setFormData({...formData, thumbnailUrl: e.target.value})} className="bg-black/50 border-border h-10 rounded-xl text-[10px]" placeholder="https://..." />
+                    <input type="file" id="thumb-up" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'thumbnail')} />
+                    <Button variant="outline" asChild className="h-10 w-10 p-0 rounded-xl cursor-pointer"><label htmlFor="thumb-up"><Upload size={14} /></label></Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[8px] font-black uppercase">Banner URL</span>
+                  <div className="flex gap-2">
+                    <Input value={formData.bannerUrl} onChange={(e) => setFormData({...formData, bannerUrl: e.target.value})} className="bg-black/50 border-border h-10 rounded-xl text-[10px]" placeholder="https://..." />
+                    <input type="file" id="banner-up" className="hidden" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'banner')} />
+                    <Button variant="outline" asChild className="h-10 w-10 p-0 rounded-xl cursor-pointer"><label htmlFor="banner-up"><Upload size={14} /></label></Button>
+                  </div>
+                </div>
+              </div>
+              
+              {uploading && <Progress value={uploadProgress} className="h-1" />}
+              
+              <div className="relative h-24 w-full rounded-xl overflow-hidden border border-white/5 bg-black/40">
+                {formData.bannerUrl || formData.thumbnailUrl ? (
+                  <Image src={formData.bannerUrl || formData.thumbnailUrl} alt="Preview" fill className="object-cover opacity-50" />
+                ) : <div className="h-full w-full flex items-center justify-center text-white/5"><ImageIcon size={20} /></div>}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-[8px] font-black uppercase bg-black/60 px-3 py-1 rounded-full">Preview Mode</span>
+                </div>
               </div>
             </div>
 
@@ -222,8 +285,8 @@ export default function AdminProductsPage() {
           </div>
 
           <DialogFooter>
-            <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Execute Deployment"}
+            <Button onClick={handleSave} disabled={saving || uploading} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
+              {saving ? <Loader2 className="animate-spin" /> : "Authorize Deployment"}
             </Button>
           </DialogFooter>
         </DialogContent>
