@@ -9,7 +9,7 @@ import {
   setDoc, 
   onSnapshot,
   orderBy,
-  deleteDoc
+  getDocs
 } from 'firebase/firestore';
 import { 
   ref, 
@@ -35,9 +35,7 @@ import {
   Share2, 
   ImageIcon,
   Loader2,
-  AlertCircle,
-  Filter,
-  CheckCircle2
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -60,8 +58,10 @@ export default function DynamicMediaHub() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'game' | 'ott' | 'social'>('all');
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [assets, setAssets] = useState<MediaAsset[]>([]);
 
+  // 1. PRIMARY LISTENER: Dynamic Media Assets
   useEffect(() => {
     const q = query(collection(db, 'media_assets'), orderBy('entityName', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
@@ -70,6 +70,58 @@ export default function DynamicMediaHub() {
     });
     return () => unsubscribe();
   }, [db]);
+
+  // 2. AUTO-HYDRATION ENGINE: Reconcile with Source Collections
+  useEffect(() => {
+    async function reconcileRegistry() {
+      if (syncing) return;
+      setSyncing(true);
+      
+      try {
+        const collections = [
+          { path: 'games', type: 'game' },
+          { path: 'ott_services', type: 'ott' },
+          { path: 'social_services', type: 'social' }
+        ];
+
+        let missingCount = 0;
+        const currentMediaIds = new Set(assets.map(a => a.entityId));
+
+        for (const col of collections) {
+          const snap = await getDocs(collection(db, col.path));
+          for (const d of snap.docs) {
+            const data = d.data();
+            if (!currentMediaIds.has(d.id)) {
+              // Entity exists in source but not in media_assets - AUTO CREATE
+              const assetRef = doc(db, 'media_assets', d.id);
+              await setDoc(assetRef, {
+                entityId: d.id,
+                entityType: col.type,
+                entityName: data.name || d.id,
+                isEnabled: data.status === 'active' || data.status === 'enabled',
+                logoUrl: data.icon || null,
+                bannerUrl: data.banner || null,
+                updatedAt: new Date().toISOString()
+              }, { merge: true });
+              missingCount++;
+            }
+          }
+        }
+
+        if (missingCount > 0) {
+          console.log(`[Media Hub] Auto-hydrated ${missingCount} records.`);
+        }
+      } catch (e) {
+        console.error('[Media Hub] Auto-sync failure:', e);
+      } finally {
+        setSyncing(false);
+      }
+    }
+
+    if (!loading) {
+      reconcileRegistry();
+    }
+  }, [db, loading, assets.length]);
 
   const filteredAssets = useMemo(() => {
     return assets.filter(a => {
@@ -91,7 +143,10 @@ export default function DynamicMediaHub() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Media Hub 2.0</h1>
+          <div className="flex items-center gap-3">
+             <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Media Hub</h1>
+             {syncing && <Loader2 className="h-4 w-4 text-primary animate-spin" />}
+          </div>
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60 mt-2">Centralized Asset Intelligence</p>
         </div>
         
@@ -105,13 +160,13 @@ export default function DynamicMediaHub() {
               className="bg-card border-border pl-10 h-12 rounded-2xl text-xs font-bold focus:border-primary shadow-xl ring-0"
             />
           </div>
-          <div className="flex gap-2 bg-card p-1 rounded-2xl border border-border">
+          <div className="flex gap-2 bg-card p-1 rounded-2xl border border-border overflow-x-auto no-scrollbar">
             {['all', 'game', 'ott', 'social'].map((t) => (
               <button
                 key={t}
                 onClick={() => setFilterType(t as any)}
                 className={cn(
-                  "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                  "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shrink-0",
                   filterType === t ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-white"
                 )}
               >
@@ -125,7 +180,9 @@ export default function DynamicMediaHub() {
       {filteredAssets.length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-[2.5rem] p-20 text-center space-y-4">
            <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto opacity-20" />
-           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">NO MEDIA ASSETS FOUND</p>
+           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">
+             {syncing ? "SYNCHRONIZING REGISTRY..." : "NO MEDIA ASSETS FOUND"}
+           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -138,10 +195,10 @@ export default function DynamicMediaHub() {
       <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Media Protocol</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Registry Protocol</span>
         </div>
         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          Changes to media assets reflect instantly on public hubs. Max size: 5MB. Formats: JPG, PNG, WEBP.
+          The registry automatically scans for new marketplace entities. Changes made here reflect instantly across all public headers and detail pages.
         </p>
       </div>
     </div>
@@ -165,7 +222,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // VALIDATION
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       toast({ variant: 'destructive', title: 'Invalid File', description: 'Please use JPG, PNG or WEBP.' });
@@ -228,7 +284,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
   return (
     <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all duration-500">
-      {/* BANNER PREVIEW AREA */}
       <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {localBanner ? (
           <Image src={localBanner} alt="Banner" fill className="object-cover transition-transform duration-700 group-hover:scale-105" />
