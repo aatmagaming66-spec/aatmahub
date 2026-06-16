@@ -1,8 +1,7 @@
-
 'use client';
 
 import React from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { Crown, Zap } from 'lucide-react';
 
@@ -14,7 +13,7 @@ interface RankAvatarProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
-export function RankAvatar({ src, fallback, rank = 'Warrior', className, size = 'md' }: RankAvatarProps) {
+export function RankAvatar({ fallback, rank = 'Warrior', className, size = 'md' }: RankAvatarProps) {
   const r = rank.toLowerCase();
 
   const getRankStyles = () => {
@@ -42,8 +41,7 @@ export function RankAvatar({ src, fallback, rank = 'Warrior', className, size = 
   return (
     <div className={cn("relative inline-block shrink-0", className)}>
       <Avatar className={cn(sizes[size], "transition-all duration-500 bg-black/40", getRankStyles())}>
-        <AvatarImage src={src} className="object-cover" />
-        <AvatarFallback className="bg-primary/10 text-primary font-black uppercase text-[10px]">
+        <AvatarFallback className="bg-primary/10 text-primary font-black uppercase text-center leading-none">
           {fallback || rank.charAt(0)}
         </AvatarFallback>
       </Avatar>

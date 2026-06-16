@@ -1,15 +1,12 @@
-
 "use client"
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, ShieldCheck, Zap, Info, ShoppingBag, ArrowRight } from "lucide-react";
+import { CheckCircle2, ShieldCheck, Zap, ShoppingBag, ArrowRight, Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
@@ -39,11 +36,6 @@ export default function ProductPage() {
   const [isVerified, setIsVerified] = useState(false);
 
   const productName = id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
-  const imgId = id === 'mlbb-in' ? 'game-mlbb-india' :
-                id?.toString().startsWith('mlbb') ? 'game-mlbb' : 
-                id === 'hok' ? 'game-hok' : 
-                id === 'genshin' ? 'game-genshin' : 'game-mlbb';
-  const img = PlaceHolderImages.find(i => i.id === imgId);
 
   const handleVerify = () => {
     if (!playerId || !serverId) {
@@ -51,12 +43,10 @@ export default function ProductPage() {
       return;
     }
     setVerifying(true);
-    // Identity verification protocol simulator
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
       
-      // Temporary persistence during the current form session
       localStorage.setItem('aatma_verification', JSON.stringify({
         playerId,
         serverId,
@@ -72,7 +62,6 @@ export default function ProductPage() {
     if (type === 'player') setPlayerId(val);
     else setServerId(val);
     
-    // Reset verification if user modifies the validated input
     if (isVerified) {
       setIsVerified(false);
       localStorage.removeItem('aatma_verification');
@@ -98,14 +87,13 @@ export default function ProductPage() {
       return;
     }
 
-    // Capture point-in-time identity snapshot
     const cartId = `${id}-${selectedPack.id}-${playerId}`;
     addItem({
       id: cartId,
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: img?.imageUrl || "https://picsum.photos/seed/game/400/400",
+      image: "", // Image-free
       region: id?.toString().split('-')[1]?.toUpperCase() || "GLOBAL",
       tabName: selectedPack.tab.toUpperCase(),
       playerId,
@@ -118,7 +106,6 @@ export default function ProductPage() {
       description: `${selectedPack.name} (ID: ${playerId}) is ready.`,
     });
 
-    // IMMEDIATE RESET: Purge form state so page is fresh for next entry
     resetForm();
   };
 
@@ -134,18 +121,14 @@ export default function ProductPage() {
       return;
     }
 
-    // Snapshot identity and transition to checkout immediately
     const cartId = `${id}-${selectedPack.id}-${playerId}`;
-    
-    // Note: For 'Buy Now' we clear the cart to focus on this single verified transaction
     clearCart();
-    
     addItem({
       id: cartId,
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: img?.imageUrl || "https://picsum.photos/seed/game/400/400",
+      image: "", // Image-free
       region: id?.toString().split('-')[1]?.toUpperCase() || "GLOBAL",
       tabName: selectedPack.tab.toUpperCase(),
       playerId,
@@ -153,24 +136,17 @@ export default function ProductPage() {
       verifiedName: "AATMA_USER"
     });
 
-    // Reset local state before navigating
     resetForm();
-
     router.push('/checkout');
   };
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      {/* Banner */}
-      <div className="relative w-full h-56">
-        <Image 
-          src={img?.imageUrl || "https://picsum.photos/seed/game/800/400"} 
-          alt="Product Header" 
-          fill 
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+      {/* Header Shell - Gradient instead of Image */}
+      <div className="relative w-full h-48 bg-gradient-to-br from-primary/30 via-background to-background border-b border-white/5">
+        <div className="absolute inset-0 flex items-center justify-center opacity-5">
+           <Gamepad2 size={120} className="text-white" />
+        </div>
         <div className="absolute bottom-6 left-6">
           <h1 className="text-3xl font-headline font-black text-white uppercase tracking-tighter">
             {productName}

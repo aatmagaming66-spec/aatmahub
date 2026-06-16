@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -17,12 +17,10 @@ import {
   ArrowRight, 
   ShieldCheck, 
   Loader2, 
-  Crown, 
   Copy, 
   ChevronRight, 
   User, 
   Bell, 
-  Lock, 
   Settings,
   Shield,
   LogIn,
@@ -31,10 +29,7 @@ import {
   Link as LinkIcon,
   Fingerprint,
   Zap,
-  Star,
-  Camera,
-  Trash2,
-  Image as ImageIcon
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
@@ -42,12 +37,6 @@ import { getRankFromSpend } from '@/lib/ranks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
-/**
- * AATMA HUB Simplified Profile Hub
- * Optimized for 0ms render-blocking and background hydration.
- * Refined Header with Badge Matrix.
- * Added Profile Picture management.
- */
 export default function ProfilePage() {
   const { user, profile, initialized } = useUser();
   const { ranks } = useGlobalSettings();
@@ -58,30 +47,15 @@ export default function ProfilePage() {
 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [photoURL, setPhotoURL] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Sync identity fields only when not editing to prevent overwrites
   useEffect(() => {
     if (profile && !editing) {
       setFullName(profile.fullName || '');
       setPhoneNumber(profile.phoneNumber || '');
-      setPhotoURL(profile.photoURL || '');
     }
   }, [profile, editing]);
-
-  // Prefetch routes only once when identity is established
-  useEffect(() => {
-    if (user) {
-      router.prefetch('/profile/change-password');
-      router.prefetch('/profile/notifications');
-      router.prefetch('/profile/security');
-      router.prefetch('/profile/linked-accounts');
-    }
-  }, [user, router]);
 
   const rankInfo = useMemo(() => {
     return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
@@ -101,22 +75,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ variant: 'destructive', title: 'Asset Restricted', description: 'Maximum file size is 5MB.' });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPhotoURL(reader.result as string);
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleSave = async () => { 
     if (!user) return; 
     setSaving(true); 
@@ -124,7 +82,6 @@ export default function ProfilePage() {
       await updateDoc(doc(db, 'users', user.uid), { 
         fullName, 
         phoneNumber,
-        photoURL,
         updatedAt: new Date().toISOString()
       }); 
       setEditing(false); 
@@ -140,7 +97,7 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-500 pb-24">
-      {/* 1. SHARED GRADIENT HEADER SHELL */}
+      {/* HEADER SHELL */}
       <div className="relative p-6 pb-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12"><Shield size={200} className="text-primary" /></div>
         
@@ -158,13 +115,13 @@ export default function ProfilePage() {
           ) : (
             <div className="flex items-center gap-4">
               {!initialized ? (
-                 <div className="relative"><Skeleton className="h-20 w-20 rounded-full bg-white/5" /><div className="absolute inset-0 border-2 border-white/5 rounded-full" /></div>
+                 <Skeleton className="h-20 w-20 rounded-full bg-white/5" />
               ) : (
                 <RankAvatar 
-                  src={profile?.photoURL || `https://picsum.photos/seed/${user?.uid}/200/200`} 
                   rank={rankInfo.name} 
                   size="xl" 
                   className="shadow-2xl" 
+                  fallback={profile?.fullName?.charAt(0)}
                 />
               )}
               <div className="flex-1 space-y-1.5 min-w-0">
@@ -175,7 +132,6 @@ export default function ProfilePage() {
                     <h2 className="text-xl font-headline font-black uppercase tracking-tighter leading-tight truncate text-white">{profile?.fullName || 'Aatma Member'}</h2>
                   )}
                   
-                  {/* Identity Badge Matrix */}
                   {profile && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       <div className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md flex items-center gap-1">
@@ -206,7 +162,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* 2. PAGE CONTENT BODY */}
       <div className="p-6 space-y-8">
         {initialized && !user ? (
           <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
@@ -214,11 +169,6 @@ export default function ProfilePage() {
               <Button className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 gap-3">
                 <LogIn size={18} /> Establish Connection
               </Button>
-            </Link>
-            <Link href="/register" className="block text-center">
-              <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors">
-                Initialize New Identity
-              </span>
             </Link>
           </div>
         ) : (
@@ -296,50 +246,6 @@ export default function ProfilePage() {
                   <button className="text-[9px] uppercase h-8 font-black text-muted-foreground" onClick={() => setEditing(false)}>Cancel</button>
                 </div>
 
-                {/* Profile Picture Management */}
-                <div className="flex flex-col items-center gap-4 py-2 border-b border-white/5 pb-6">
-                  <div className="relative group">
-                    <RankAvatar 
-                      src={photoURL || profile?.photoURL || `https://picsum.photos/seed/${user?.uid}/200/200`}
-                      rank={rankInfo.name}
-                      size="xl"
-                      className="ring-4 ring-primary/20"
-                    />
-                    <button 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 h-8 w-8 bg-primary rounded-full flex items-center justify-center shadow-xl border-2 border-card active:scale-90 transition-transform"
-                    >
-                      <Camera size={14} className="text-white" />
-                    </button>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="h-8 px-4 rounded-xl border-white/5 bg-white/5 text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
-                    >
-                      <ImageIcon size={12} className="mr-1.5" /> Change Photo
-                    </Button>
-                    {(photoURL || profile?.photoURL) && (
-                      <Button 
-                        variant="ghost" 
-                        onClick={() => setPhotoURL('')}
-                        className="h-8 px-4 rounded-xl text-primary text-[9px] font-black uppercase tracking-widest hover:bg-primary/10"
-                      >
-                        <Trash2 size={12} className="mr-1.5" /> Remove
-                      </Button>
-                    )}
-                  </div>
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/png, image/jpeg, image/webp" 
-                    onChange={handleFileChange} 
-                  />
-                  <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">JPG, PNG, WEBP (Max 5MB)</p>
-                </div>
-
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-black opacity-60">Legal Full Name</Label>
@@ -368,10 +274,6 @@ export default function ProfilePage() {
               <div className="flex justify-between items-center text-[10px] font-bold uppercase">
                  <span className="text-muted-foreground">Joined HUB</span>
                  <span className="text-white">{profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '---'}</span>
-              </div>
-              <div className="flex justify-between items-center text-[10px] font-bold uppercase">
-                 <span className="text-muted-foreground">Last Connection</span>
-                 <span className="text-white">{user?.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Now'}</span>
               </div>
             </section>
 

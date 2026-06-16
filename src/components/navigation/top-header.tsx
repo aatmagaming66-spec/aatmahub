@@ -1,38 +1,21 @@
-
 "use client"
 
 import { ShoppingCart, Bell, Menu } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart-context";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
-import { useState } from "react";
 
 export function TopHeader() {
   const { totalCount } = useCart();
   const { toggleSidebar } = useSidebar();
-  const [logoError, setLogoError] = useState(false);
-  
-  const logo = PlaceHolderImages.find(img => img.id === 'app-logo');
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md border-b border-border h-14">
       <div className="flex h-full items-center justify-between px-4">
-        {/* Left Side: Logo */}
+        {/* Left Side: Text Identity */}
         <div className="flex items-center">
           <Link href="/" className="flex items-center gap-2 group">
-            {logo && !logoError && (
-              <Image 
-                src={logo.imageUrl} 
-                alt="AATMA Logo" 
-                width={28} 
-                height={28} 
-                className="h-7 w-7 object-contain group-hover:scale-110 transition-transform"
-                onError={() => setLogoError(true)}
-              />
-            )}
             <span className="font-headline font-bold text-lg tracking-tighter">
               <span className="text-primary">AATMA</span> <span className="text-foreground">HUB</span>
             </span>

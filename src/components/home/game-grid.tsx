@@ -1,19 +1,16 @@
-
 "use client"
 
 import { useMemo } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useFirestore } from "@/firebase/provider";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Gamepad2 } from "lucide-react";
 
 export function GameGrid() {
   const db = useFirestore();
   
-  // Fetch live games from registry
   const gamesQuery = useMemo(() => query(
     collection(db, 'games'),
     orderBy('sortOrder', 'asc')
@@ -45,27 +42,15 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          // IMAGE PRIORITY PROTOCOL: cardImage -> thumbnail -> imageUrl -> placeholder
-          const displayImage = game.cardImage || game.thumbnail || game.imageUrl;
-          
-          // Fallback to placeholder lookup if no admin image exists
-          const placeholder = PlaceHolderImages.find(i => i.id === game.imgId);
-          const finalSrc = displayImage || placeholder?.imageUrl || "https://picsum.photos/seed/game/400/600";
-
           return (
             <Link 
               key={game.id} 
               href={`/product/${game.id}`} 
               className="group transition-all duration-300 active:scale-95"
             >
-              <div className="relative h-[145px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl shadow-primary/5 bg-card group-hover:border-primary/50 transition-all duration-500">
-                <Image
-                  src={finalSrc}
-                  alt={game.name}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-700"
-                  data-ai-hint={placeholder?.imageHint || "mobile game poster"}
-                />
+              <div className="relative h-[145px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
+                {/* Visual Identity: Gradient Block */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-card group-hover:from-primary/30 transition-all duration-500" />
                 
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
                   <div className="flex justify-between items-start">
@@ -81,9 +66,11 @@ export function GameGrid() {
                       {game.status || 'Active'}
                     </div>
                   </div>
+                  
+                  <div className="flex items-center justify-center h-full opacity-20">
+                     <Gamepad2 size={24} className="text-white" />
+                  </div>
                 </div>
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
               </div>
               <div className="text-center px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
