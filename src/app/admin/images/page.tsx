@@ -30,15 +30,19 @@ export default function ImageManagementPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Fetch all marketplace items
-  const { data: games, loading: gamesLoading } = useCollection(query(collection(db, 'games')));
-  const { data: ott, loading: ottLoading } = useCollection(query(collection(db, 'ott_services')));
-  const { data: social, loading: socialLoading } = useCollection(query(collection(db, 'social_services')));
+  // MEMOIZE QUERIES: Ensuring query objects are stable to prevent hook infinite loops
+  const gamesQuery = useMemo(() => query(collection(db, 'games')), [db]);
+  const ottQuery = useMemo(() => query(collection(db, 'ott_services')), [db]);
+  const socialQuery = useMemo(() => query(collection(db, 'social_services')), [db]);
+
+  const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
+  const { data: ott, loading: ottLoading } = useCollection(ottQuery);
+  const { data: social, loading: socialLoading } = useCollection(socialQuery);
 
   const allItems = useMemo(() => {
-    const g = games.map(item => ({ ...item, type: 'games', icon: Gamepad2 }));
-    const o = ott.map(item => ({ ...item, type: 'ott_services', icon: Tv }));
-    const s = social.map(item => ({ ...item, type: 'social_services', icon: Share2 }));
+    const g = (games || []).map(item => ({ ...item, type: 'games', icon: Gamepad2 }));
+    const o = (ott || []).map(item => ({ ...item, type: 'ott_services', icon: Tv }));
+    const s = (social || []).map(item => ({ ...item, type: 'social_services', icon: Share2 }));
     return [...g, ...o, ...s];
   }, [games, ott, social]);
 
@@ -124,7 +128,7 @@ export default function ImageManagementPage() {
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredItems.map((item) => (
-            <Card key={item.id} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
+            <Card key={`${item.type}-${item.id}`} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
               <CardContent className="p-0">
                 {/* Image Preview Area */}
                 <div className="relative aspect-video w-full bg-black/40 overflow-hidden">
@@ -168,13 +172,13 @@ export default function ImageManagementPage() {
                     <div className="flex-1">
                       <input 
                         type="file" 
-                        id={`file-${item.id}`} 
+                        id={`file-${item.type}-${item.id}`} 
                         className="hidden" 
                         accept="image/*"
                         onChange={(e) => handleFileChange(e, item.id, item.type)}
                       />
                       <Label 
-                        htmlFor={`file-${item.id}`} 
+                        htmlFor={`file-${item.type}-${item.id}`} 
                         className="flex items-center justify-center gap-2 w-full h-11 bg-primary/10 border border-primary/20 hover:bg-primary hover:text-white transition-all rounded-xl cursor-pointer text-[10px] font-black uppercase tracking-widest"
                       >
                         <Upload size={14} /> Replace

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc, writeBatch } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -51,9 +51,14 @@ export default function SystemHealthPage() {
     unipin: 'checking'
   });
 
-  const { data: logs } = useCollection(
-    query(collection(db, 'automationLogs'), orderBy('timestamp', 'desc'), limit(10))
-  );
+  // MEMOIZE QUERY: Prevents infinite loop by stabilizing the query reference
+  const logsQuery = useMemo(() => query(
+    collection(db, 'automationLogs'), 
+    orderBy('timestamp', 'desc'), 
+    limit(10)
+  ), [db]);
+
+  const { data: logs } = useCollection(logsQuery);
 
   const checkHealth = async () => {
     setLoading(true);
