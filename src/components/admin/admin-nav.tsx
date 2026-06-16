@@ -1,9 +1,9 @@
 
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase/auth/use-user';
 import { 
@@ -13,10 +13,7 @@ import {
   Users, 
   Globe, 
   CreditCard,
-  Zap,
-  Cpu,
   Activity,
-  Megaphone,
   Database,
   ArrowLeft,
   BarChart3,
@@ -58,10 +55,19 @@ const SUPER_ADMIN_LINKS = [
   { href: '/admin/backups', label: 'Data Vault', icon: Database },
 ];
 
-export function AdminNav() {
+export const AdminNav = memo(function AdminNav() {
   const pathname = usePathname();
-  const { profile, loading } = useUser();
+  const router = useRouter();
+  const { profile } = useUser();
   const isSuper = profile?.role === 'super_admin';
+
+  // Instant Prefetch Logic for all admin routes
+  useEffect(() => {
+    ADMIN_LINKS.forEach(link => router.prefetch(link.href));
+    if (isSuper) {
+      SUPER_ADMIN_LINKS.forEach(link => router.prefetch(link.href));
+    }
+  }, [router, isSuper]);
 
   return (
     <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10">
@@ -119,4 +125,4 @@ export function AdminNav() {
       )}
     </nav>
   );
-}
+});

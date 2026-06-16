@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, memo } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, doc, getDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -16,9 +16,7 @@ import {
   CheckCircle2,
   Package,
   Bot,
-  Zap,
   BarChart3,
-  ArrowUpRight,
   ShieldCheck,
   Globe,
   Database,
@@ -26,9 +24,9 @@ import {
   ChevronRight,
   Tv,
   Share2,
-  Layers,
   ImageIcon,
-  Home as HomeIcon
+  Home as HomeIcon,
+  Layers
 } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import Link from 'next/link';
@@ -42,7 +40,7 @@ export default function AdminDashboard() {
 
   const isSuper = profile?.role === 'super_admin';
 
-  // Stabilize collection references
+  // STABILIZE REFS
   const usersRef = useMemo(() => collection(db, 'users'), [db]);
   const ordersRef = useMemo(() => collection(db, 'orders'), [db]);
   const transactionsRef = useMemo(() => collection(db, 'transactions'), [db]);
@@ -53,17 +51,16 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     setIsMounted(true);
-    async function fetchTg() {
-      const snap = await getDoc(doc(db, 'settings', 'telegram'));
+    // Non-blocking fetch for non-critical status
+    getDoc(doc(db, 'settings', 'telegram')).then(snap => {
       if (snap.exists()) setTgStatus(snap.data());
-    }
-    fetchTg();
+    });
   }, [db]);
 
   const stats = useMemo(() => {
     if (!isMounted) return [];
-    const totalRevenue = orders?.reduce((acc, order) => order.status === 'completed' ? acc + order.totalAmount : acc, 0) || 0;
-    const totalDeposits = transactions?.filter(t => t.type === 'deposit' && t.status === 'success').reduce((acc, t) => acc + t.amount, 0) || 0;
+    const totalRevenue = orders?.reduce((acc, order) => order.status === 'completed' ? acc + (order.totalAmount || 0) : acc, 0) || 0;
+    const totalDeposits = transactions?.filter(t => t.type === 'deposit' && t.status === 'success').reduce((acc, t) => acc + (t.amount || 0), 0) || 0;
 
     return [
       { label: 'Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: IndianRupee, color: 'text-primary' },
@@ -83,12 +80,12 @@ export default function AdminDashboard() {
       const dayEnd = endOfDay(d);
       const revenue = orders
         .filter(o => o.status === 'completed' && isWithinInterval(new Date(o.createdAt), { start: dayStart, end: dayEnd }))
-        .reduce((acc, o) => acc + o.totalAmount, 0);
+        .reduce((acc, o) => acc + (o.totalAmount || 0), 0);
       return { name: dayStr, revenue };
     });
   }, [orders, isMounted]);
 
-  const superModules = [
+  const superModules = useMemo(() => [
     { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
     { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage products & pricing' },
     { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Manage regions & availability' },
@@ -100,7 +97,7 @@ export default function AdminDashboard() {
     { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },
     { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Website & system configuration' },
     { label: 'Backup Management', href: '/admin/backups', icon: Database, desc: 'Database backups & restore' },
-  ];
+  ], []);
 
   if (!isMounted) return null;
 
@@ -125,20 +122,10 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Main Stats Grid - 4 columns for mobile */}
+      {/* Main Stats Grid */}
       <div className="grid grid-cols-4 gap-1 px-1">
         {stats.map((stat, i) => (
-          <Card key={i} className="h-[64px] bg-card border-border shadow-xl rounded-xl overflow-hidden group hover:border-primary/30 transition-all">
-            <CardContent className="p-1.5 flex flex-col justify-center gap-1 h-full">
-              <div className={`h-6 w-6 shrink-0 rounded-md bg-white/5 flex items-center justify-center ${stat.color}`}>
-                <stat.icon size={11} />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-[10px] sm:text-xs font-black tracking-tighter leading-none truncate">{stat.value}</h3>
-                <p className="text-[6px] font-black text-muted-foreground uppercase tracking-tight truncate">{stat.label}</p>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard key={i} {...stat} />
         ))}
       </div>
 
@@ -150,27 +137,13 @@ export default function AdminDashboard() {
            </div>
            <div className="flex flex-col gap-2">
               {superModules.map((mod, i) => (
-                <Link key={i} href={mod.href}>
-                  <Card className="bg-card border-border h-[72px] rounded-2xl hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl">
-                    <div className="flex items-center gap-4 w-full">
-                      <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
-                        <mod.icon size={20} />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-xs font-black uppercase tracking-tight leading-tight">{mod.label}</h4>
-                        <p className="text-[8px] text-muted-foreground uppercase font-bold tracking-widest leading-none mt-1">{mod.desc}</p>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
-                    </div>
-                  </Card>
-                </Link>
+                <ModuleCard key={i} {...mod} />
               ))}
            </div>
         </section>
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Revenue Analytics - Ultra Compact Height */}
         <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-3">
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-[10px] font-black uppercase tracking-widest">Business Analytics</h3>
@@ -200,28 +173,64 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
-        {/* Order Pipeline - Compact Items */}
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-5 space-y-4">
           <h3 className="text-[10px] font-black uppercase tracking-widest">Pipeline</h3>
           <div className="space-y-2">
-            {[
-              { label: 'Pending', count: orders?.filter(o => o.status === 'pending').length || 0, icon: Clock, color: 'text-orange-400' },
-              { label: 'Processing', count: orders?.filter(o => o.status === 'processing').length || 0, icon: TrendingUp, color: 'text-accent' },
-              { label: 'Completed', count: orders?.filter(o => o.status === 'completed').length || 0, icon: CheckCircle2, color: 'text-green-400' },
-            ].map((stat, i) => (
-              <div key={i} className="bg-white/5 border border-white/5 p-3 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div className={`h-7 w-7 rounded-lg flex items-center justify-center bg-black/40 ${stat.color}`}>
-                    <stat.icon size={14} />
-                  </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest">{stat.label}</span>
-                </div>
-                <span className="text-lg font-black leading-none">{stat.count}</span>
-              </div>
-            ))}
+            <PipelineItem label="Pending" count={orders?.filter(o => o.status === 'pending').length || 0} icon={Clock} color="text-orange-400" />
+            <PipelineItem label="Processing" count={orders?.filter(o => o.status === 'processing').length || 0} icon={TrendingUp} color="text-accent" />
+            <PipelineItem label="Completed" count={orders?.filter(o => o.status === 'completed').length || 0} icon={CheckCircle2} color="text-green-400" />
           </div>
         </Card>
       </div>
     </div>
   );
 }
+
+const StatCard = memo(function StatCard({ label, value, icon: Icon, color }: any) {
+  return (
+    <Card className="h-[64px] bg-card border-border shadow-xl rounded-xl overflow-hidden group hover:border-primary/30 transition-all">
+      <CardContent className="p-1.5 flex flex-col justify-center gap-1 h-full">
+        <div className={`h-6 w-6 shrink-0 rounded-md bg-white/5 flex items-center justify-center ${color}`}>
+          <Icon size={11} />
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-[10px] sm:text-xs font-black tracking-tighter leading-none truncate">{value}</h3>
+          <p className="text-[6px] font-black text-muted-foreground uppercase tracking-tight truncate">{label}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+});
+
+const ModuleCard = memo(function ModuleCard({ label, href, icon: Icon, desc }: any) {
+  return (
+    <Link href={href}>
+      <Card className="bg-card border-border h-[72px] rounded-2xl hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl">
+        <div className="flex items-center gap-4 w-full">
+          <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+            <Icon size={20} />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-xs font-black uppercase tracking-tight leading-tight">{label}</h4>
+            <p className="text-[8px] text-muted-foreground uppercase font-bold tracking-widest leading-none mt-1">{desc}</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+        </div>
+      </Card>
+    </Link>
+  );
+});
+
+const PipelineItem = memo(function PipelineItem({ label, count, icon: Icon, color }: any) {
+  return (
+    <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex items-center justify-between">
+      <div className="flex items-center gap-2.5">
+        <div className={`h-7 w-7 rounded-lg flex items-center justify-center bg-black/40 ${color}`}>
+          <Icon size={14} />
+        </div>
+        <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+      </div>
+      <span className="text-lg font-black leading-none">{count}</span>
+    </div>
+  );
+});

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, updateDoc, doc, orderBy, query, increment } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -30,7 +30,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Search, Shield, User, Mail, MoreVertical, Crown, Loader2, Calendar, Wallet, Ban, CheckCircle2 } from 'lucide-react';
+import { Search, Shield, User, Mail, MoreVertical, Crown, Loader2, Wallet, Ban, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
@@ -41,11 +41,11 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Wallet Adjustment State
   const [adjustingUser, setAdjustingUser] = useState<any>(null);
   const [adjustAmount, setAdjustAmount] = useState('');
   const [isAdjusting, setIsAdjusting] = useState(false);
 
+  // MEMOIZE QUERY
   const usersQuery = useMemo(() => query(
     collection(db, 'users'), 
     orderBy('createdAt', 'desc')
@@ -102,14 +102,6 @@ export default function AdminUsersPage() {
     }
   };
 
-  const getRoleStyle = (role: string) => {
-    switch (role) {
-      case 'super_admin': return 'bg-primary/20 text-primary border-primary/20';
-      case 'admin': return 'bg-accent/20 text-accent border-accent/20';
-      default: return 'bg-white/5 text-muted-foreground border-white/5';
-    }
-  };
-
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -157,67 +149,13 @@ export default function AdminUsersPage() {
               </TableRow>
             ) : (
               filteredUsers.map((user) => (
-                <TableRow key={user.uid} className={cn("border-border hover:bg-white/5 transition-colors", user.banned && "bg-primary/5 opacity-60")}>
-                  <TableCell className="py-6 px-6">
-                    <div className="flex items-center gap-4">
-                      <Avatar className="h-10 w-10 border-2 border-primary/20">
-                        <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100/100`} />
-                        <AvatarFallback className="bg-primary/10 text-primary font-black text-xs">
-                          {user.fullName?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="space-y-1">
-                        <p className="text-sm font-black uppercase tracking-tight leading-none">{user.fullName}</p>
-                        <p className="text-[9px] text-muted-foreground font-bold flex items-center gap-1.5 uppercase">
-                          {user.email}
-                        </p>
-                        <p className="text-[7px] text-white/20 font-mono uppercase tracking-tighter">UID: {user.uid}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                       {user.role === 'super_admin' ? <Crown className="h-3 w-3 text-primary" /> : <Shield className="h-3 w-3 text-accent" />}
-                       <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${getRoleStyle(user.role)}`}>
-                        {user.role?.replace('_', ' ')}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded border inline-block w-fit ${
-                        user.banned ? 'bg-primary/20 text-primary border-primary/20' : 'bg-green-500/10 text-green-500 border-green-500/10'
-                      }`}>
-                        {user.banned ? 'RESTRICTED' : 'OPERATIONAL'}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right px-6">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-card border-border min-w-[160px]">
-                        <DropdownMenuItem onClick={() => setAdjustingUser(user)} className="text-[10px] font-black uppercase tracking-widest p-3 gap-2">
-                          <Wallet size={12} className="text-primary" /> Adjust Wallet
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-border" />
-                        <DropdownMenuItem onClick={() => updateRole(user.uid, 'user')} className="text-[10px] font-black uppercase tracking-widest p-3">
-                          Set as User
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateRole(user.uid, 'admin')} className="text-[10px] font-black uppercase tracking-widest p-3 text-accent">
-                          Promote Admin
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-border" />
-                        <DropdownMenuItem onClick={() => toggleBan(user.uid, user.banned)} className="text-[10px] font-black uppercase tracking-widest p-3 text-primary flex justify-between">
-                          {user.banned ? <><CheckCircle2 size={12} /> Restore Access</> : <><Ban size={12} /> Ban Entity</>}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                <UserRow 
+                  key={user.uid} 
+                  user={user} 
+                  updateRole={updateRole} 
+                  toggleBan={toggleBan} 
+                  setAdjustingUser={setAdjustingUser} 
+                />
               ))
             )}
           </TableBody>
@@ -256,3 +194,77 @@ export default function AdminUsersPage() {
     </div>
   );
 }
+
+const UserRow = memo(function UserRow({ user, updateRole, toggleBan, setAdjustingUser }: any) {
+  const getRoleStyle = (role: string) => {
+    switch (role) {
+      case 'super_admin': return 'bg-primary/20 text-primary border-primary/20';
+      case 'admin': return 'bg-accent/20 text-accent border-accent/20';
+      default: return 'bg-white/5 text-muted-foreground border-white/5';
+    }
+  };
+
+  return (
+    <TableRow className={cn("border-border hover:bg-white/5 transition-colors", user.banned && "bg-primary/5 opacity-60")}>
+      <TableCell className="py-6 px-6">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-10 w-10 border-2 border-primary/20">
+            <AvatarImage src={`https://picsum.photos/seed/${user.uid}/100/100`} />
+            <AvatarFallback className="bg-primary/10 text-primary font-black text-xs">
+              {user.fullName?.charAt(0) || 'U'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="space-y-1">
+            <p className="text-sm font-black uppercase tracking-tight leading-none">{user.fullName}</p>
+            <p className="text-[9px] text-muted-foreground font-bold flex items-center gap-1.5 uppercase">
+              {user.email}
+            </p>
+            <p className="text-[7px] text-white/20 font-mono uppercase tracking-tighter">UID: {user.uid}</p>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-2">
+           {user.role === 'super_admin' ? <Crown className="h-3 w-3 text-primary" /> : <Shield className="h-3 w-3 text-accent" />}
+           <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${getRoleStyle(user.role)}`}>
+            {user.role?.replace('_', ' ')}
+          </span>
+        </div>
+      </TableCell>
+      <TableCell>
+        <div className="flex flex-col gap-1">
+          <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded border inline-block w-fit ${
+            user.banned ? 'bg-primary/20 text-primary border-primary/20' : 'bg-green-500/10 text-green-500 border-green-500/10'
+          }`}>
+            {user.banned ? 'RESTRICTED' : 'OPERATIONAL'}
+          </span>
+        </div>
+      </TableCell>
+      <TableCell className="text-right px-6">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-card border-border min-w-[160px]">
+            <DropdownMenuItem onClick={() => setAdjustingUser(user)} className="text-[10px] font-black uppercase tracking-widest p-3 gap-2">
+              <Wallet size={12} className="text-primary" /> Adjust Wallet
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuItem onClick={() => updateRole(user.uid, 'user')} className="text-[10px] font-black uppercase tracking-widest p-3">
+              Set as User
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => updateRole(user.uid, 'admin')} className="text-[10px] font-black uppercase tracking-widest p-3 text-accent">
+              Promote Admin
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="bg-border" />
+            <DropdownMenuItem onClick={() => toggleBan(user.uid, user.banned)} className="text-[10px] font-black uppercase tracking-widest p-3 text-primary flex justify-between">
+              {user.banned ? <><CheckCircle2 size={12} /> Restore Access</> : <><Ban size={12} /> Ban Entity</>}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </TableCell>
+    </TableRow>
+  );
+});
