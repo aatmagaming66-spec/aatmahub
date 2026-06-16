@@ -10,17 +10,15 @@ import { useUser } from "@/firebase/auth/use-user";
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, initialized, loading } = useUser();
+  const { user, initialized } = useUser();
 
   const NAV_ITEMS = [
     { label: "Home", icon: Home, href: "/" },
     { label: "Wallet", icon: Wallet, href: "/wallet" },
     { label: "Orders", icon: ClipboardList, href: "/orders" },
     { 
-      // CRITICAL FIX: Use 'initialized' to know if the Auth phase is done.
-      // Show Account/Login immediately once identity is known, even if profile data is still hydrating.
-      label: !initialized ? "Loading" : (user ? "Account" : "Login"), 
-      icon: !initialized ? Loader2 : (user ? UserCircle : LogIn), 
+      label: user ? "Account" : "Login", 
+      icon: user ? UserCircle : LogIn, 
       href: user ? "/profile" : "/login" 
     },
   ];
@@ -33,7 +31,6 @@ export function BottomNav() {
 
   const handleTrackClick = (href: string) => {
     window.__nav_click_time = performance.now();
-    console.log(`[PERF_HUB] Navigation Triggered for ${href} at ${window.__nav_click_time.toFixed(2)}ms`);
   };
 
   return (
@@ -54,11 +51,10 @@ export function BottomNav() {
             >
               <item.icon className={cn(
                 "h-5 w-5", 
-                isActive && "fill-primary/10",
-                item.label === "Loading" && "animate-spin"
+                isActive && "fill-primary/10"
               )} />
               <span className="text-[10px] font-bold uppercase tracking-wider">
-                {item.label}
+                {!initialized ? "..." : item.label}
               </span>
               {isActive && (
                 <div className="absolute bottom-1 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_#DC2626]" />

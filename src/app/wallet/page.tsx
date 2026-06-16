@@ -3,7 +3,6 @@
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
 import { useDoc } from '@/firebase/firestore/use-doc';
-import { useCollection } from '@/firebase/firestore/use-collection';
 import { useGlobalSettings } from '@/firebase/settings-context';
 import { doc, query, collection, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
 import { RankProgressionSlider } from '@/components/wallet/rank-progression-slider';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCollection } from '@/firebase/firestore/use-collection';
 
 export default function WalletDashboard() {
   const { user, profile, initialized } = useUser();
@@ -24,7 +24,6 @@ export default function WalletDashboard() {
   const router = useRouter();
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // REDIRECT GATING - Moved into useEffect to allow shell render
   useEffect(() => {
     if (initialized && !user) {
       router.push('/login');
@@ -50,16 +49,14 @@ export default function WalletDashboard() {
     return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
   }, [profile, ranks]);
 
-  const getCardTheme = (rankName: string) => {
-    const name = (rankName || 'Warrior').toLowerCase();
+  const theme = useMemo(() => {
+    const name = (rankInfo.name || 'Warrior').toLowerCase();
     if (name.includes('immortal') || name.includes('vip') || name.includes('legend')) return {
       bg: 'bg-gradient-to-br from-yellow-600 via-red-900 to-yellow-700 animate-pulse',
       border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]'
     };
     return { bg: 'bg-gradient-to-br from-red-900 via-zinc-950 to-black', border: 'border-slate-400/40' };
-  };
-
-  const theme = getCardTheme(rankInfo.name);
+  }, [rankInfo.name]);
 
   const balance = wallet?.balance || 0;
 
@@ -75,6 +72,7 @@ export default function WalletDashboard() {
         </div>
       </header>
 
+      {/* 3D Card Shell always mounts instantly */}
       <div className="w-full mb-10 [perspective:1000px] cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
         <div className={cn("relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]", isFlipped && "[transform:rotateY(180deg)]")}>
           {/* FRONT */}
@@ -88,8 +86,10 @@ export default function WalletDashboard() {
             </div>
             <div className="mt-auto space-y-4">
               <div className="space-y-1.5">
-                {!initialized ? <Skeleton className="h-5 w-32 bg-white/10" /> : (
-                  <p className="text-base font-black text-white uppercase truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
+                {!profile ? (
+                  <Skeleton className="h-5 w-32 bg-white/10" />
+                ) : (
+                  <p className="text-base font-black text-white uppercase truncate">{profile?.fullName || 'AATMA Member'}</p>
                 )}
                 <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
               </div>
@@ -105,7 +105,7 @@ export default function WalletDashboard() {
             <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2.5">
               <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Credits</span>
               <h2 className="text-3xl font-black text-white tracking-tighter">
-                {walletLoading ? <span className="animate-pulse opacity-50">...</span> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/40">.00</span>
+                {walletLoading ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/40">.00</span>
               </h2>
             </div>
             <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest">
@@ -137,19 +137,25 @@ export default function WalletDashboard() {
           <Link href="/wallet/history"><span className="text-[10px] font-black text-primary uppercase border-b border-primary/30">View All</span></Link>
         </div>
         <div className="space-y-3">
-          {transactionsLoading || !initialized ? Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-2xl bg-card" />) :
-           recentTransactions.length === 0 ? <div className="bg-card/20 border border-dashed border-border p-10 rounded-2xl text-center"><p className="text-[10px] font-black uppercase text-muted-foreground">No activity found</p></div> :
-           recentTransactions.map((tx) => (
-             <div key={tx.transactionId} className="bg-card border border-border p-5 rounded-2xl flex items-center justify-between shadow-lg">
-                <div className="flex items-center gap-4">
-                  <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center border", tx.type === 'deposit' ? 'bg-green-500/10 border-green-500/10' : 'bg-primary/10 border-primary/10')}>
-                    {tx.type === 'deposit' ? <ArrowDownLeft className="h-6 w-6 text-green-500" /> : <ArrowUpRight className="h-6 w-6 text-primary" />}
+          {transactionsLoading ? (
+            Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-2xl bg-card" />)
+          ) : recentTransactions.length === 0 ? (
+            <div className="bg-card/20 border border-dashed border-border p-10 rounded-2xl text-center">
+              <p className="text-[10px] font-black uppercase text-muted-foreground">No activity found</p>
+            </div>
+          ) : (
+             recentTransactions.map((tx) => (
+               <div key={tx.transactionId} className="bg-card border border-border p-5 rounded-2xl flex items-center justify-between shadow-lg">
+                  <div className="flex items-center gap-4">
+                    <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center border", tx.type === 'deposit' ? 'bg-green-500/10 border-green-500/10' : 'bg-primary/10 border-primary/10')}>
+                      {tx.type === 'deposit' ? <ArrowDownLeft className="h-6 w-6 text-green-500" /> : <ArrowUpRight className="h-6 w-6 text-primary" />}
+                    </div>
+                    <div><h4 className="text-sm font-black uppercase text-white">{tx.type}</h4><p className="text-[9px] text-muted-foreground uppercase font-bold">{new Date(tx.createdAt).toLocaleDateString()} • {tx.status}</p></div>
                   </div>
-                  <div><h4 className="text-sm font-black uppercase text-white">{tx.type}</h4><p className="text-[9px] text-muted-foreground uppercase font-bold">{new Date(tx.createdAt).toLocaleDateString()} • {tx.status}</p></div>
-                </div>
-                <div className="text-right"><p className={cn("text-sm font-black", tx.type === 'deposit' ? 'text-green-400' : 'text-primary')}>{tx.type === 'deposit' ? '+' : '-'} ₹{tx.amount}</p></div>
-             </div>
-           ))}
+                  <div className="text-right"><p className={cn("text-sm font-black", tx.type === 'deposit' ? 'text-green-400' : 'text-primary')}>{tx.type === 'deposit' ? '+' : '-'} ₹{tx.amount}</p></div>
+               </div>
+             ))
+          )}
         </div>
       </div>
     </div>

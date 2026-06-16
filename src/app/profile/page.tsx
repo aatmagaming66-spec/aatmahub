@@ -51,7 +51,7 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // REDIRECT GATING
+  // Instant redirect if identity is known to be guest
   useEffect(() => {
     if (initialized && !user) {
       router.push('/login');
@@ -80,34 +80,38 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in pb-24">
+      {/* Profile Header Shell */}
       <div className="relative p-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12"><Shield size={200} className="text-primary" /></div>
         <div className="flex items-center gap-6 relative z-10">
-          {!initialized ? <Skeleton className="h-24 w-24 rounded-full bg-white/5" /> : (
+          {!profile ? (
+             <Skeleton className="h-24 w-24 rounded-full bg-white/5" />
+          ) : (
             <RankAvatar src={`https://picsum.photos/seed/${user?.uid}/200/200`} rank={rankInfo.name} size="2xl" className="shadow-2xl" />
           )}
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-3">
-              {!initialized ? <Skeleton className="h-6 w-32 bg-white/5" /> : (
+              {!profile ? (
+                <Skeleton className="h-6 w-32 bg-white/5" />
+              ) : (
                 <h2 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none truncate max-w-[160px]">{profile?.fullName || 'Aatma Member'}</h2>
               )}
-              <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-lg flex items-center gap-1.5 shadow-lg">
-                <Crown size={10} className="text-primary fill-primary" />
-                <span className="text-[8px] font-black uppercase text-primary tracking-widest">{rankInfo.name}</span>
-              </div>
+              {profile && (
+                <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-lg flex items-center gap-1.5 shadow-lg">
+                  <Crown size={10} className="text-primary fill-primary" />
+                  <span className="text-[8px] font-black uppercase text-primary tracking-widest">{rankInfo.name}</span>
+                </div>
+              )}
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2 group cursor-pointer" onClick={() => { if (user) { navigator.clipboard.writeText(user.uid); toast({ title: 'ID Copied' }); } }}>
-                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Hub ID: {user?.uid.substring(0, 10).toUpperCase() || '----------'}</p>
+                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">
+                  Hub ID: {user ? user.uid.substring(0, 10).toUpperCase() : '----------'}
+                </p>
                 <Copy size={10} className="text-white/20 group-hover:text-primary transition-colors" />
               </div>
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2 mt-8">
-           <div className="px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2 bg-white/5 shadow-lg"><User size={12} className="text-primary" /><span className="text-[9px] font-black uppercase">{profile?.role?.replace('_', ' ') || 'User'}</span></div>
-           <div className="px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2 bg-white/5 shadow-lg"><Star size={12} className="text-primary" /><span className="text-[9px] font-black uppercase">Level {rankInfo.sortOrder + 1}</span></div>
-           <div className="px-3 py-1.5 rounded-xl border border-white/10 flex items-center gap-2 bg-white/5 shadow-lg"><CheckCircle2 size={12} className="text-primary" /><span className="text-[9px] font-black uppercase">Verified</span></div>
         </div>
       </div>
 
@@ -122,7 +126,7 @@ export default function ProfilePage() {
               <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20"><Wallet className="text-primary h-6 w-6" /></div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Wallet Balance</p>
-                {walletLoading || !initialized ? <Skeleton className="h-8 w-24 bg-white/5" /> : <p className="text-2xl font-black text-white">₹{wallet?.balance?.toLocaleString() || '0'}.00</p>}
+                {walletLoading ? <Skeleton className="h-8 w-24 bg-white/5" /> : <p className="text-2xl font-black text-white">₹{wallet?.balance?.toLocaleString() || '0'}.00</p>}
               </div>
             </div>
             <ArrowRight size={20} className="text-primary" />
@@ -152,8 +156,8 @@ export default function ProfilePage() {
           <Card className="bg-card border-border rounded-3xl p-6 space-y-4 animate-in slide-in-from-top-4">
             <div className="flex justify-between items-center"><h4 className="text-xs font-black uppercase text-primary">Update Identity</h4><Button variant="ghost" className="text-[9px] uppercase" onClick={() => setEditing(false)}>Cancel</Button></div>
             <div className="space-y-4">
-              <div className="space-y-2"><Label className="text-[9px] uppercase font-black opacity-60">Full Name</Label><Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-black/50 border-border h-12 rounded-xl focus:border-primary" /></div>
-              <div className="space-y-2"><Label className="text-[9px] uppercase font-black opacity-60">Phone</Label><Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-black/50 border-border h-12 rounded-xl focus:border-primary" /></div>
+              <div className="space-y-2"><Label className="text-[9px] uppercase font-black opacity-60">Full Name</Label><Input value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-background border-border h-12 rounded-xl focus:border-primary" /></div>
+              <div className="space-y-2"><Label className="text-[9px] uppercase font-black opacity-60">Phone</Label><Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-background border-border h-12 rounded-xl focus:border-primary" /></div>
               <Button onClick={async () => { if (!user) return; setSaving(true); try { await updateDoc(doc(db, 'users', user.uid), { fullName, phoneNumber }); setEditing(false); toast({ title: 'Profile Synced' }); } finally { setSaving(false); } }} disabled={saving} className="w-full bg-primary font-black uppercase text-[10px] h-12 rounded-xl">{saving ? <Loader2 className="animate-spin" /> : 'Save Changes'}</Button>
             </div>
           </Card>
