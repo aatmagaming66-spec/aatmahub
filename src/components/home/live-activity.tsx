@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useState } from "react";
@@ -20,7 +21,7 @@ export function LiveActivity() {
   useEffect(() => {
     const timer = setInterval(() => {
       setIndex((prev) => (prev + 1) % RECENT_ACTIVITY.length);
-    }, 3500);
+    }, 4000);
     return () => clearInterval(timer);
   }, []);
 
@@ -38,25 +39,30 @@ export function LiveActivity() {
         {/* Fixed Viewport: Exactly 2 activity items (44px) */}
         <div className="relative h-[44px] overflow-hidden">
           {RECENT_ACTIVITY.map((activity, i) => {
-            // Calculate position relative to current index
+            // Calculate relative position with circular wrapping logic
+            // Target slots: -1 (Exit), 0 (Top Visible), 1 (Bottom Visible), 2 (Ready to Enter)
             let position = i - index;
-            
-            // Handle infinite wrap-around smoothly at item level
-            if (position < -2) position += RECENT_ACTIVITY.length;
+            if (position < -1) position += RECENT_ACTIVITY.length;
             if (position > RECENT_ACTIVITY.length - 2) position -= RECENT_ACTIVITY.length;
 
-            // Only track visibility for items in or near the viewport
-            const isVisible = position >= -1 && position <= 2;
+            // Sequential animation timing to ensure items move one-by-one
+            // Slot -1 (Exiting): starts at 0ms
+            // Slot 0 (Shifting Up): starts at 600ms
+            // Slot 1 (Entering): starts at 1200ms
+            const delay = position === 0 ? "600ms" : position === 1 ? "1200ms" : "0ms";
+            const isVisible = position === 0 || position === 1;
 
             return (
               <div 
                 key={i} 
-                className="absolute w-full h-[22px] flex items-center justify-between px-0.5 transition-all duration-700 ease-in-out"
+                className="absolute w-full h-[22px] flex items-center justify-between px-0.5 transition-all ease-in-out"
                 style={{ 
                   transform: `translateY(${position * 22}px)`,
-                  opacity: position >= 0 && position <= 1 ? 1 : 0,
-                  visibility: isVisible ? 'visible' : 'hidden',
-                  zIndex: isVisible ? 10 : 0
+                  opacity: isVisible ? 1 : 0,
+                  transitionDuration: '500ms',
+                  transitionDelay: delay,
+                  zIndex: isVisible ? 10 : 0,
+                  visibility: (position >= -1 && position <= 2) ? 'visible' : 'hidden'
                 }}
               >
                 <div className="flex items-center gap-2 truncate">
