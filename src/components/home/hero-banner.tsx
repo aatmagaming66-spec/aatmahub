@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react";
@@ -74,25 +73,22 @@ export function HeroBanner() {
     <section className="relative w-full h-[220px] overflow-hidden px-4 mt-4">
       <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-white/5" ref={emblaRef}>
         <div className="flex h-full">
-          {SLIDES.map((slide) => {
+          {SLIDES.map((slide, index) => {
             const img = PlaceHolderImages.find(img => img.id === slide.imgId);
             return (
               <div key={slide.id} className="relative flex-[0_0_100%] min-w-0 h-full">
-                {/* Image Background */}
                 <Image
                   src={img?.imageUrl || "https://picsum.photos/seed/aatma/1200/600"}
                   alt={slide.title}
                   fill
                   className="object-cover"
-                  priority={slide.id === "hero-main"}
+                  priority={index === 0}
                   data-ai-hint={img?.imageHint}
                 />
                 
-                {/* Gradient Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent z-10" />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
                 
-                {/* Content */}
                 <div className="absolute inset-0 z-20 flex flex-col justify-center px-8">
                   <h2 className="text-2xl font-headline font-black text-white mb-1.5 leading-tight tracking-tighter max-w-[200px] uppercase">
                     {slide.title.split(' ').map((word, i) => (
@@ -115,7 +111,6 @@ export function HeroBanner() {
           })}
         </div>
         
-        {/* Pagination Dots */}
         <div className="absolute bottom-4 right-8 z-30 flex gap-1.5">
           {SLIDES.map((_, index) => (
             <button

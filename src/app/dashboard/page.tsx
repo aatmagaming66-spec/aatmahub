@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo, useEffect, useState } from "react";
@@ -21,11 +20,9 @@ export default function DashboardPage() {
     setIsMounted(true);
   }, []);
 
-  // AUDIT: Unified Wallet Source
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
 
-  // FIX: Removed server-side orderBy to prevent "Failed Precondition" (Missing Index) error
   const ordersQuery = useMemo(() => {
     if (!user) return null;
     return query(
@@ -34,48 +31,14 @@ export default function DashboardPage() {
     );
   }, [user, db]);
 
-  const { data: rawOrders, loading: ordersLoading, error: ordersError } = useCollection(ordersQuery);
+  const { data: rawOrders, loading: ordersLoading } = useCollection(ordersQuery);
 
-  // FIX: Perform sorting locally to avoid complex index requirements
   const orders = useMemo(() => {
     if (!rawOrders) return [];
     return [...rawOrders].sort((a, b) => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }, [rawOrders]);
-
-  const transactionsQuery = useMemo(() => {
-    if (!user) return null;
-    return query(
-      collection(db, 'transactions'),
-      where('userId', '==', user.uid)
-    );
-  }, [user, db]);
-
-  const { data: rawTransactions, loading: txLoading, error: txError } = useCollection(transactionsQuery);
-
-  const transactions = useMemo(() => {
-    if (!rawTransactions) return [];
-    return [...rawTransactions].sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [rawTransactions]);
-
-  useEffect(() => {
-    if (user) {
-      console.log(`[Wallet Audit] Dashboard UID: ${user.uid}`);
-      console.log(`[Wallet Audit] Wallet Balance: ₹${wallet?.balance ?? 0}`);
-      console.log(`[Wallet Audit] Items Retrieved: Orders=${orders?.length}, TXs=${transactions?.length}`);
-      
-      if (ordersError) {
-        console.error(`[Wallet Audit] Orders Query Error:`, ordersError.message);
-        if (ordersError.message.includes('FAILED_PRECONDITION')) {
-          console.warn('[Wallet Audit] Root Cause: Missing Composite Index. Applied client-side sort fallback.');
-        }
-      }
-      if (txError) console.error(`[Wallet Audit] TX Query Error:`, txError.message);
-    }
-  }, [user, wallet, orders, transactions, ordersError, txError]);
 
   const stats = useMemo(() => {
     const total = orders?.length || 0;
@@ -108,7 +71,6 @@ export default function DashboardPage() {
         </p>
       </header>
 
-      {/* Wallet Card */}
       <Card className="bg-gradient-to-br from-primary via-primary to-accent border-none shadow-2xl shadow-primary/20 overflow-hidden relative rounded-3xl">
         <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 scale-150"><Wallet size={120} /></div>
         <CardContent className="p-8">
@@ -138,7 +100,6 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-3 gap-4">
         {stats.map((stat, i) => (
           <Card key={i} className="bg-card border-border shadow-xl rounded-2xl overflow-hidden group hover:border-accent/30 transition-all">
@@ -151,7 +112,6 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Recent Activity */}
       <div className="space-y-5">
         <div className="flex justify-between items-end px-1">
           <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50">Recent Orders</h3>
@@ -168,9 +128,8 @@ export default function DashboardPage() {
           ) : orders?.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-10 rounded-3xl text-center">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                {ordersError ? 'Security Protocol Restriction' : 'No recent transactions detected'}
+                No recent transactions detected
               </p>
-              {ordersError && <p className="text-[8px] text-primary/50 mt-2 font-mono uppercase tracking-tighter">{ordersError.message}</p>}
             </div>
           ) : (
             orders?.slice(0, 3).map((order) => (

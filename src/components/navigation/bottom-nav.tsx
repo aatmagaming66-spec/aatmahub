@@ -1,13 +1,15 @@
 'use client';
 
+import { useEffect } from "react";
 import { Home, LayoutDashboard, ClipboardList, UserCircle, LogIn, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase/auth/use-user";
 
 export function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, loading } = useUser();
 
   const NAV_ITEMS = [
@@ -21,12 +23,18 @@ export function BottomNav() {
     },
   ];
 
+  // Aggressive route prefetching for instant navigation
+  useEffect(() => {
+    NAV_ITEMS.forEach((item) => {
+      router.prefetch(item.href);
+    });
+  }, [router]);
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border h-16 safe-area-bottom">
       <div className="flex h-full items-center justify-around px-2">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
-          const isUserItem = item.label === "Account" || item.label === "Login" || item.label === "Loading";
           
           return (
             <Link 
