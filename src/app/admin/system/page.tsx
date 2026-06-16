@@ -3,15 +3,18 @@
 
 import { useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, collection, query, limit, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ShieldCheck, Zap, Database, Bot, Smartphone, Cpu, Loader2, RefreshCcw, Terminal, History } from 'lucide-react';
+import { Activity, ShieldCheck, Zap, Database, Bot, Smartphone, Cpu, Loader2, RefreshCcw, Terminal, History, Wrench, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SystemHealthPage() {
   const db = useFirestore();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [repairing, setRepairing] = useState(false);
   const [health, setHealth] = useState<any>({
     firestore: 'checking',
     telegram: 'checking',
@@ -54,6 +57,42 @@ export default function SystemHealthPage() {
     setLoading(false);
   };
 
+  const repairData = async () => {
+    setRepairing(true);
+    const collections = ['games', 'ott_services', 'social_services'];
+    let totalFixed = 0;
+
+    try {
+      for (const colName of collections) {
+        const snap = await getDocs(collection(db, colName));
+        const docs = snap.docs;
+        
+        for (let i = 0; i < docs.length; i++) {
+          const docRef = doc(db, colName, docs[i].id);
+          await setDoc(docRef, { 
+            sortOrder: i + 1,
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+          totalFixed++;
+        }
+      }
+      
+      toast({
+        title: "Data Repair Complete",
+        description: `Successfully synchronized ${totalFixed} records with numeric sortOrder.`,
+      });
+      checkHealth();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Repair Failed",
+        description: error.message
+      });
+    } finally {
+      setRepairing(false);
+    }
+  };
+
   useEffect(() => {
     checkHealth();
   }, []);
@@ -65,14 +104,24 @@ export default function SystemHealthPage() {
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">System Health</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Kernel Monitoring Service</p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={checkHealth}
-          disabled={loading}
-          className="h-10 px-4 rounded-xl border-border bg-card font-black uppercase text-[10px] tracking-widest gap-2"
-        >
-          {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCcw size={12} />} Refresh Ping
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={repairData}
+            disabled={repairing}
+            className="h-10 px-4 rounded-xl border-primary/20 bg-primary/5 text-primary font-black uppercase text-[10px] tracking-widest gap-2"
+          >
+            {repairing ? <Loader2 size={12} className="animate-spin" /> : <Wrench size={12} />} Repair Registry
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={checkHealth}
+            disabled={loading}
+            className="h-10 px-4 rounded-xl border-border bg-card font-black uppercase text-[10px] tracking-widest gap-2"
+          >
+            {loading ? <Loader2 size={12} className="animate-spin" /> : <RefreshCcw size={12} />} Refresh Ping
+          </Button>
+        </div>
       </header>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -109,7 +158,7 @@ export default function SystemHealthPage() {
           <div className="space-y-4 overflow-y-auto no-scrollbar flex-1">
             {logs?.length === 0 ? (
               <p className="text-[10px] text-muted-foreground uppercase text-center py-10 font-bold">No automation events recorded.</p>
-            ) : logs?.map((log) => (
+            ) : logs?.map((log: any) => (
               <div key={log.logId} className="space-y-1 p-3 bg-white/5 rounded-xl border border-white/5">
                 <div className="flex justify-between items-center">
                   <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${
