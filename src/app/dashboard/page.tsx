@@ -67,13 +67,13 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">My Dashboard</h1>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">My Wallet</h1>
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">
           HUB IDENTITY: {profile?.fullName || user?.email?.split('@')[0].toUpperCase()}
         </p>
       </header>
 
-      {/* PREMIUM DEBIT CARD MINI VERSION FOR DASHBOARD */}
+      {/* PREMIUM DEBIT CARD MINI VERSION FOR WALLET OVERVIEW */}
       <Link href="/wallet" className="block w-full">
         <div className="relative w-full aspect-[1.58/1] rounded-[2rem] overflow-hidden shadow-2xl group transition-transform duration-500 active:scale-[0.98]">
           <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />

@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from "react";
-import { Home, LayoutDashboard, ClipboardList, UserCircle, LogIn, Loader2 } from "lucide-react";
+import { Home, Wallet, ClipboardList, UserCircle, LogIn, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ export function BottomNav() {
 
   const NAV_ITEMS = [
     { label: "Home", icon: Home, href: "/" },
-    { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+    { label: "Wallet", icon: Wallet, href: "/dashboard" },
     { label: "Orders", icon: ClipboardList, href: "/orders" },
     { 
       label: loading ? "Loading" : (user ? "Account" : "Login"), 
