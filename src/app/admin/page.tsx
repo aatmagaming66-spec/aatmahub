@@ -83,11 +83,11 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = [
-    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users & roles' },
-    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Pricing & Catalog' },
-    { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Global grid settings' },
-    { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Gateway configuration' },
-    { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Kernel & Core logic' },
+    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
+    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage products & pricing' },
+    { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Manage regions & availability' },
+    { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },
+    { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Website & system configuration' },
     { label: 'Backup Management', href: '/admin/backups', icon: Database, desc: 'Database backups & restore' },
   ];
 
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Main Stats Grid - 4 columns across all viewports for maximum density */}
+      {/* Main Stats Grid - 4 columns for mobile */}
       <div className="grid grid-cols-4 gap-1 px-1">
         {stats.map((stat, i) => (
           <Card key={i} className="h-[64px] bg-card border-border shadow-xl rounded-xl overflow-hidden group hover:border-primary/30 transition-all">
@@ -159,16 +159,16 @@ export default function AdminDashboard() {
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Revenue Analytics - Compact Height */}
-        <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-[10px] font-black uppercase tracking-widest">Velocity (7D)</h3>
+        {/* Revenue Analytics - Ultra Compact Height */}
+        <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-3">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-[10px] font-black uppercase tracking-widest">Business Analytics</h3>
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
               <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Sales Perf</span>
             </div>
           </div>
-          <div className="h-[140px] w-full">
+          <div className="h-[110px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <XAxis dataKey="name" stroke="#444" fontSize={8} tickLine={false} axisLine={false} />
