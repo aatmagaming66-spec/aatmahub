@@ -4,8 +4,13 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 
+/**
+ * Account Utility Redirector
+ * Refactored to render a silent shell while executing redirect logic.
+ * This prevents the "Hard Spinner" flicker during navigation.
+ */
 export default function AccountRedirect() {
-  const { user, loading, initialized } = useUser();
+  const { user, initialized } = useUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -18,12 +23,12 @@ export default function AccountRedirect() {
     }
   }, [user, initialized, router]);
 
-  // Utility page - Render an empty animated shell to minimize flicker
+  // Render a minimal empty shell that matches the app layout
+  // to prevent a "flash of white" or blocking spinner.
   return (
     <div className="flex h-[80vh] items-center justify-center">
       <div className="relative flex flex-col items-center gap-4">
-         <div className="h-12 w-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-         <div className="animate-pulse text-[10px] text-primary font-black uppercase tracking-[0.4em]">Hub Synchronization</div>
+         <div className="h-10 w-10 border-4 border-primary/10 border-t-primary rounded-full animate-spin" />
       </div>
     </div>
   );

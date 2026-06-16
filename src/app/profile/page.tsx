@@ -20,22 +20,18 @@ import {
   Wallet, 
   Loader2, 
   Crown, 
-  Star, 
   Copy, 
-  CheckCircle2, 
   ChevronRight, 
   User, 
   ImagePlus, 
   Bell, 
   Lock, 
-  History, 
-  Shield, 
-  Settings
+  Settings,
+  Shield
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
 import { getRankFromSpend } from '@/lib/ranks';
-import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProfilePage() {
@@ -51,7 +47,15 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Instant redirect if identity is known to be guest
+  // Sync state with profile data
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.fullName || '');
+      setPhoneNumber(profile.phoneNumber || '');
+    }
+  }, [profile]);
+
+  // Auth Guard: Direct redirect to login if session is definitively guest
   useEffect(() => {
     if (initialized && !user) {
       router.push('/login');
@@ -65,15 +69,13 @@ export default function ProfilePage() {
     return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
   }, [profile, ranks]);
 
-  useEffect(() => {
-    if (profile) {
-      setFullName(profile.fullName || '');
-      setPhoneNumber(profile.phoneNumber || '');
-    }
-  }, [profile]);
-
   const handleLogout = async () => {
-    try { await signOut(auth); router.push('/login'); } catch (e) { toast({ variant: 'destructive', title: 'Logout Failed' }); }
+    try { 
+      await signOut(auth); 
+      router.push('/login'); 
+    } catch (e) { 
+      toast({ variant: 'destructive', title: 'Logout Failed' }); 
+    }
   };
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
@@ -84,14 +86,14 @@ export default function ProfilePage() {
       <div className="relative p-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12"><Shield size={200} className="text-primary" /></div>
         <div className="flex items-center gap-6 relative z-10">
-          {!profile ? (
+          {!initialized || !profile ? (
              <Skeleton className="h-24 w-24 rounded-full bg-white/5" />
           ) : (
             <RankAvatar src={`https://picsum.photos/seed/${user?.uid}/200/200`} rank={rankInfo.name} size="2xl" className="shadow-2xl" />
           )}
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-3">
-              {!profile ? (
+              {!initialized || !profile ? (
                 <Skeleton className="h-6 w-32 bg-white/5" />
               ) : (
                 <h2 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none truncate max-w-[160px]">{profile?.fullName || 'Aatma Member'}</h2>
@@ -106,9 +108,9 @@ export default function ProfilePage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2 group cursor-pointer" onClick={() => { if (user) { navigator.clipboard.writeText(user.uid); toast({ title: 'ID Copied' }); } }}>
                 <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">
-                  Hub ID: {user ? user.uid.substring(0, 10).toUpperCase() : '----------'}
+                  Hub ID: {initialized && user ? user.uid.substring(0, 10).toUpperCase() : '----------'}
                 </p>
-                <Copy size={10} className="text-white/20 group-hover:text-primary transition-colors" />
+                {initialized && user && <Copy size={10} className="text-white/20 group-hover:text-primary transition-colors" />}
               </div>
             </div>
           </div>
@@ -117,7 +119,11 @@ export default function ProfilePage() {
 
       <div className="p-6 space-y-6">
         {isAdmin && (
-          <Link href="/admin"><Button className="w-full h-16 bg-primary font-black text-[11px] uppercase tracking-[0.2em] gap-3 rounded-2xl shadow-2xl group border-none"><ShieldCheck size={20} /> Admin Command Center <ArrowRight size={16} /></Button></Link>
+          <Link href="/admin">
+            <Button className="w-full h-16 bg-primary font-black text-[11px] uppercase tracking-[0.2em] gap-3 rounded-2xl shadow-2xl group border-none">
+              <ShieldCheck size={20} /> Admin Command Center <ArrowRight size={16} />
+            </Button>
+          </Link>
         )}
 
         <Link href="/wallet">
@@ -126,7 +132,11 @@ export default function ProfilePage() {
               <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20"><Wallet className="text-primary h-6 w-6" /></div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Wallet Balance</p>
-                {walletLoading ? <Skeleton className="h-8 w-24 bg-white/5" /> : <p className="text-2xl font-black text-white">₹{wallet?.balance?.toLocaleString() || '0'}.00</p>}
+                {walletLoading || !initialized ? (
+                  <Skeleton className="h-8 w-24 bg-white/5 mt-1" />
+                ) : (
+                  <p className="text-2xl font-black text-white">₹{wallet?.balance?.toLocaleString() || '0'}.00</p>
+                )}
               </div>
             </div>
             <ArrowRight size={20} className="text-primary" />
