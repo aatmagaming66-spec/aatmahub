@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -24,6 +23,10 @@ import {
   EyeOff
 } from 'lucide-react';
 
+/**
+ * Change Password Sector
+ * Optimized for instant shell mounting and background auth verification.
+ */
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -40,7 +43,10 @@ export default function ChangePasswordPage() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user || !user.email) return;
+    if (!user || !user.email) {
+      toast({ variant: 'destructive', title: 'Session Lost', description: 'Please re-authenticate to continue.' });
+      return;
+    }
 
     if (!currentPassword || !newPassword || !confirmPassword) {
       toast({ variant: 'destructive', title: 'Validation Error', description: 'All fields are mandatory.' });
@@ -60,11 +66,8 @@ export default function ChangePasswordPage() {
     setLoading(true);
 
     try {
-      // 1. Re-authenticate User (Firebase security requirement for sensitive changes)
       const credential = EmailAuthProvider.credential(user.email, currentPassword);
       await reauthenticateWithCredential(user, credential);
-
-      // 2. Update Password
       await updatePassword(user, newPassword);
 
       toast({

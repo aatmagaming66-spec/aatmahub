@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -150,7 +149,7 @@ export default function ProfilePage() {
 
       <div className="p-6 space-y-8">
         {isAdmin && (
-          <Link href="/admin">
+          <Link href="/admin" prefetch={true}>
             <Button className="w-full h-16 bg-primary font-black text-[11px] uppercase tracking-[0.2em] gap-3 rounded-2xl shadow-2xl group border-none">
               <ShieldCheck size={20} /> Admin Command Center <ArrowRight size={16} />
             </Button>
