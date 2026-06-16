@@ -10,6 +10,7 @@
         "fullName": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "phoneNumber": { "type": "string" },
+        "photoURL": { "type": "string", "description": "Profile picture URL or Base64 data" },
         "role": { "type": "string", "enum": ["user", "admin", "super_admin"] },
         "lifetimeSpend": { "type": "number", "default": 0 },
         "currentRank": { "type": "string", "default": "Warrior" },

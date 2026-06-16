@@ -11,6 +11,7 @@ export interface UserProfile {
   fullName: string;
   email: string;
   phoneNumber?: string;
+  photoURL?: string;
   role: 'user' | 'admin' | 'super_admin';
   lifetimeSpend: number;
   currentRank: string;

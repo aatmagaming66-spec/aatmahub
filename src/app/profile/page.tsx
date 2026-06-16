@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -32,7 +32,10 @@ import {
   Link as LinkIcon,
   Fingerprint,
   Zap,
-  Star
+  Star,
+  Camera,
+  Trash2,
+  Image as ImageIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
@@ -44,6 +47,7 @@ import { cn } from '@/lib/utils';
  * AATMA HUB Simplified Profile Hub
  * Optimized for 0ms render-blocking and background hydration.
  * Refined Header with Badge Matrix.
+ * Added Profile Picture management.
  */
 export default function ProfilePage() {
   const { user, profile, initialized } = useUser();
@@ -55,18 +59,22 @@ export default function ProfilePage() {
 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [photoURL, setPhotoURL] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // OPTIMIZATION: Sync identity fields only when not editing to prevent overwrites
+  // Sync identity fields only when not editing to prevent overwrites
   useEffect(() => {
     if (profile && !editing) {
       setFullName(profile.fullName || '');
       setPhoneNumber(profile.phoneNumber || '');
+      setPhotoURL(profile.photoURL || '');
     }
   }, [profile, editing]);
 
-  // OPTIMIZATION: Prefetch routes only once when identity is established
+  // Prefetch routes only once when identity is established
   useEffect(() => {
     if (user) {
       router.prefetch('/profile/change-password');
@@ -94,11 +102,46 @@ export default function ProfilePage() {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'Asset Restricted', description: 'Maximum file size is 1MB.' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPhotoURL(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSave = async () => { 
+    if (!user) return; 
+    setSaving(true); 
+    try { 
+      await updateDoc(doc(db, 'users', user.uid), { 
+        fullName, 
+        phoneNumber,
+        photoURL,
+        updatedAt: new Date().toISOString()
+      }); 
+      setEditing(false); 
+      toast({ title: 'Identity Synchronized', description: 'Your profile has been updated.' }); 
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Save Failed', description: error.message });
+    } finally { 
+      setSaving(false); 
+    } 
+  };
+
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-500 pb-24">
-      {/* 1. SHARED GRADIENT HEADER SHELL - Optimized Spacing */}
+      {/* 1. SHARED GRADIENT HEADER SHELL */}
       <div className="relative p-6 pb-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12"><Shield size={200} className="text-primary" /></div>
         
@@ -119,7 +162,7 @@ export default function ProfilePage() {
                  <div className="relative"><Skeleton className="h-20 w-20 rounded-full bg-white/5" /><div className="absolute inset-0 border-2 border-white/5 rounded-full" /></div>
               ) : (
                 <RankAvatar 
-                  src={`https://picsum.photos/seed/${user?.uid}/200/200`} 
+                  src={profile?.photoURL || `https://picsum.photos/seed/${user?.uid}/200/200`} 
                   rank={rankInfo.name} 
                   size="xl" 
                   className="shadow-2xl" 
@@ -136,17 +179,14 @@ export default function ProfilePage() {
                   {/* Identity Badge Matrix */}
                   {profile && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {/* Role Badge */}
                       <div className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md flex items-center gap-1">
                         <ShieldCheck size={8} className="text-white/40" />
                         <span className="text-[7px] font-black uppercase text-white/70 tracking-widest">{profile.role.replace('_', ' ')}</span>
                       </div>
-                      {/* Level Badge */}
                       <div className="px-2 py-0.5 bg-accent/20 border border-accent/30 rounded-md flex items-center gap-1">
                         <Zap size={8} className="text-accent" />
                         <span className="text-[7px] font-black uppercase text-accent tracking-widest">Level {userLevel}</span>
                       </div>
-                      {/* Rank Badge */}
                       <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-md flex items-center gap-1">
                         <Star size={8} className="text-primary fill-primary" />
                         <span className="text-[7px] font-black uppercase text-primary tracking-widest">{rankInfo.name}</span>
@@ -251,11 +291,56 @@ export default function ProfilePage() {
             </section>
 
             {editing && (
-              <Card className="bg-card border-border rounded-3xl p-6 space-y-4 animate-in slide-in-from-top-4 duration-300">
+              <Card className="bg-card border-border rounded-3xl p-6 space-y-6 animate-in slide-in-from-top-4 duration-300">
                 <div className="flex justify-between items-center">
-                  <h4 className="text-xs font-black uppercase text-primary">Identity Protocol</h4>
+                  <h4 className="text-xs font-black uppercase text-primary tracking-widest">Edit Identity</h4>
                   <button className="text-[9px] uppercase h-8 font-black text-muted-foreground" onClick={() => setEditing(false)}>Cancel</button>
                 </div>
+
+                {/* Profile Picture Management */}
+                <div className="flex flex-col items-center gap-4 py-2 border-b border-white/5 pb-6">
+                  <div className="relative group">
+                    <RankAvatar 
+                      src={photoURL || profile?.photoURL || `https://picsum.photos/seed/${user?.uid}/200/200`}
+                      rank={rankInfo.name}
+                      size="xl"
+                      className="ring-4 ring-primary/20"
+                    />
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 h-8 w-8 bg-primary rounded-full flex items-center justify-center shadow-xl border-2 border-card active:scale-90 transition-transform"
+                    >
+                      <Camera size={14} className="text-white" />
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-8 px-4 rounded-xl border-white/5 bg-white/5 text-[9px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+                    >
+                      <ImageIcon size={12} className="mr-1.5" /> Change Photo
+                    </Button>
+                    {(photoURL || profile?.photoURL) && (
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => setPhotoURL('')}
+                        className="h-8 px-4 rounded-xl text-primary text-[9px] font-black uppercase tracking-widest hover:bg-primary/10"
+                      >
+                        <Trash2 size={12} className="mr-1.5" /> Remove
+                      </Button>
+                    )}
+                  </div>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/png, image/jpeg, image/webp" 
+                    onChange={handleFileChange} 
+                  />
+                  <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">JPG, PNG, WEBP (Max 1MB)</p>
+                </div>
+
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-black opacity-60">Legal Full Name</Label>
@@ -266,19 +351,11 @@ export default function ProfilePage() {
                     <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-background border-border h-12 rounded-xl focus:border-primary font-bold text-white" />
                   </div>
                   <Button 
-                    onClick={async () => { 
-                      if (!user) return; 
-                      setSaving(true); 
-                      try { 
-                        await updateDoc(doc(db, 'users', user.uid), { fullName, phoneNumber }); 
-                        setEditing(false); 
-                        toast({ title: 'Identity Synchronized' }); 
-                      } finally { setSaving(false); } 
-                    }} 
+                    onClick={handleSave} 
                     disabled={saving} 
                     className="w-full bg-primary font-black uppercase text-[10px] h-12 rounded-xl shadow-xl shadow-primary/20"
                   >
-                    {saving ? <Loader2 className="animate-spin h-4 w-4" /> : 'Commit Changes'}
+                    {saving ? <Loader2 className="animate-spin h-4 w-4" /> : 'Commit Profile Changes'}
                   </Button>
                 </div>
               </Card>
