@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -106,7 +105,7 @@ export default function GameManagementPage() {
     try {
       const gId = formData.id || formData.slug;
       await setDoc(doc(db, 'games', gId), { ...formData, id: gId, updatedAt: new Date().toISOString() }, { merge: true });
-      toast({ title: 'Game Updated', description: `${formData.name} is now synchronized.` });
+      toast({ title: 'Registry Synchronized', description: `${formData.name} is now updated.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
@@ -201,7 +200,7 @@ export default function GameManagementPage() {
         <DialogContent className="bg-card border-border rounded-3xl p-0 max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader className="p-8 pb-4">
             <DialogTitle className="text-xl font-black uppercase tracking-tighter">
-              {editingGame ? 'Update Protocol' : 'Deploy New Game'}
+              {editingGame ? 'Update Game Registry' : 'Deploy New Game'}
             </DialogTitle>
           </DialogHeader>
           
@@ -277,7 +276,7 @@ export default function GameManagementPage() {
 
           <DialogFooter className="p-8 pt-4 border-t border-border">
             <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Commit to Registry"}
+              {saving ? <Loader2 className="animate-spin" /> : (editingGame ? "Commit Registry Changes" : "Deploy to Registry")}
             </Button>
           </DialogFooter>
         </DialogContent>

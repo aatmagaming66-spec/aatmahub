@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -77,11 +76,11 @@ export default function AdminProductsPage() {
     if (product) {
       setEditingProduct(product);
       setFormData({
-        id: product.id,
-        name: product.name,
-        price: product.price.toString(),
-        category: product.category,
-        region: product.region,
+        id: product.id || '',
+        name: product.name || '',
+        price: product.price?.toString() || '',
+        category: product.category || 'Game',
+        region: product.region || 'Global',
         imageUrl: product.imageUrl || '',
         icon: product.icon || '',
         cardImage: product.cardImage || '',
@@ -90,7 +89,10 @@ export default function AdminProductsPage() {
       });
     } else {
       setEditingProduct(null);
-      setFormData({ id: '', name: '', price: '', category: 'Game', region: 'Global', imageUrl: '', icon: '', cardImage: '', banner: '', thumbnail: '' });
+      setFormData({ 
+        id: '', name: '', price: '', category: 'Game', region: 'Global', 
+        imageUrl: '', icon: '', cardImage: '', banner: '', thumbnail: '' 
+      });
     }
     setIsModalOpen(true);
   };
@@ -103,12 +105,14 @@ export default function AdminProductsPage() {
     setSaving(true);
     try {
       const pId = formData.id.toLowerCase().replace(/\s+/g, '-');
-      await setDoc(doc(db, 'products', pId), {
+      const dataToSave = {
         ...formData,
         id: pId,
         price: Number(formData.price),
         updatedAt: new Date().toISOString()
-      }, { merge: true });
+      };
+
+      await setDoc(doc(db, 'products', pId), dataToSave, { merge: true });
       toast({ title: "Catalog Updated", description: `Product ${formData.name} is now live.` });
       setIsModalOpen(false);
     } catch (e: any) {
@@ -167,7 +171,7 @@ export default function AdminProductsPage() {
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-4">
                     <div className="h-14 w-14 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner overflow-hidden relative">
-                      {p.icon ? <Image src={p.icon} alt={p.name} fill className="object-cover" /> : <Tag className="h-6 w-6 text-primary" />}
+                      {(p.icon || p.imageUrl) ? <Image src={p.icon || p.imageUrl} alt={p.name} fill className="object-cover" /> : <Tag className="h-6 w-6 text-primary" />}
                     </div>
                     <div>
                       <h3 className="text-sm font-black uppercase tracking-tight">{p.name}</h3>
@@ -273,9 +277,9 @@ export default function AdminProductsPage() {
                 <MediaUploadField 
                   label="Product Icon" 
                   description="Tiny list identity"
-                  value={formData.icon} 
+                  value={formData.icon || formData.imageUrl} 
                   onChange={(e) => handleFileChange(e, 'icon')}
-                  onRemove={() => setFormData({...formData, icon: ''})}
+                  onRemove={() => setFormData({...formData, icon: '', imageUrl: ''})}
                 />
                 <MediaUploadField 
                   label="Card Image" 
@@ -304,7 +308,7 @@ export default function AdminProductsPage() {
 
           <DialogFooter className="p-8 pt-4 border-t border-border">
             <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Commit to Catalog"}
+              {saving ? <Loader2 className="animate-spin" /> : (editingProduct ? "Commit Product Changes" : "Deploy to Catalog")}
             </Button>
           </DialogFooter>
         </DialogContent>
