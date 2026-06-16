@@ -20,7 +20,6 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Globe,
-  Settings,
   Database,
   Activity,
   ChevronRight
@@ -83,60 +82,48 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = [
-    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
-    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage products & pricing' },
-    { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Manage regions & availability' },
-    { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },
-    { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Website & system configuration' },
-    { label: 'Backup Management', href: '/admin/backups', icon: Database, desc: 'Database backups & restore' },
+    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users & roles' },
+    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Pricing & Catalog' },
+    { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Global grid settings' },
+    { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Gateway configuration' },
+    { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Kernel & Core logic' },
+    { label: 'Backup Management', href: '/admin/backups', icon: Database, desc: 'Vault archives' },
   ];
 
   if (!isMounted) return null;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      <header className="flex justify-between items-end">
+    <div className="space-y-6 animate-in fade-in duration-700 pb-10">
+      <header className="flex justify-between items-end px-1">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Operations Dashboard</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Real-time System Intelligence</p>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Intelligence</h1>
+          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">System Core v2.5</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           <Link href="/admin/analytics">
-             <Card className="p-3 border-border rounded-xl flex items-center gap-3 bg-white/5 hover:border-primary transition-all group">
-                <BarChart3 className="h-5 w-5 text-primary group-hover:scale-110 transition-transform" />
-                <div className="text-left">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Analytics</p>
-                  <p className="text-[10px] font-black uppercase text-white">Full View</p>
-                </div>
-                <ArrowUpRight className="h-3 w-3 text-muted-foreground" />
-             </Card>
+             <div className="p-2 border border-border rounded-xl flex items-center bg-white/5 hover:border-primary transition-all">
+                <BarChart3 className="h-4 w-4 text-primary" />
+             </div>
           </Link>
           <Link href="/admin/settings/telegram">
-            <Card className={`p-3 border-border rounded-xl flex items-center gap-3 hover:border-primary transition-colors cursor-pointer ${tgStatus?.notificationsEnabled ? 'bg-primary/5' : 'bg-black/20 opacity-50'}`}>
-              <Bot className={`h-5 w-5 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-              <div className="text-left">
-                <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground">Bot Sync</p>
-                <p className="text-[10px] font-black uppercase text-white">{tgStatus?.notificationsEnabled ? 'Connected' : 'Offline'}</p>
-              </div>
-              <Zap className={`h-3 w-3 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-white/10'}`} />
-            </Card>
+            <div className={`p-2 border border-border rounded-xl flex items-center transition-colors cursor-pointer ${tgStatus?.notificationsEnabled ? 'bg-primary/5 border-primary/30' : 'bg-black/20 opacity-50'}`}>
+              <Bot className={`h-4 w-4 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
+            </div>
           </Link>
         </div>
       </header>
 
-      {/* Main Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Main Stats Grid - Horizontal Scroll on Mobile */}
+      <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1">
         {stats.map((stat, i) => (
-          <Card key={i} className="bg-card border-border shadow-xl rounded-2xl overflow-hidden group hover:border-primary/30 transition-all">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className={`h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center ${stat.color}`}>
-                  <stat.icon className="h-5 w-5" />
-                </div>
+          <Card key={i} className="flex-shrink-0 w-36 h-[85px] bg-card border-border shadow-xl rounded-2xl overflow-hidden group hover:border-primary/30 transition-all">
+            <CardContent className="p-4 flex flex-col justify-center h-full">
+              <div className={`h-7 w-7 rounded-lg bg-white/5 flex items-center justify-center ${stat.color} mb-1.5`}>
+                <stat.icon size={14} />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-2xl font-black tracking-tighter">{stat.value}</h3>
-                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">{stat.label}</p>
+              <div className="space-y-0.5">
+                <h3 className="text-lg font-black tracking-tighter leading-none">{stat.value}</h3>
+                <p className="text-[7px] font-black text-muted-foreground uppercase tracking-widest truncate">{stat.label}</p>
               </div>
             </CardContent>
           </Card>
@@ -144,25 +131,24 @@ export default function AdminDashboard() {
       </div>
 
       {isSuper && (
-        <section className="space-y-4">
-           <div className="flex items-center gap-3 px-1">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-white">Super Admin Command Center</h2>
+        <section className="space-y-3">
+           <div className="flex items-center gap-2 px-1">
+              <ShieldCheck className="h-3 w-3 text-primary" />
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Super Admin Command Center</h2>
            </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
               {superModules.map((mod, i) => (
                 <Link key={i} href={mod.href}>
-                  <Card className="bg-card border-border p-5 rounded-3xl hover:border-primary/40 transition-all group flex items-center justify-between shadow-2xl">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                        <mod.icon className="h-6 w-6" />
+                  <Card className="bg-card border-border h-[75px] rounded-2xl hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="h-9 w-9 flex-shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+                        <mod.icon size={18} />
                       </div>
-                      <div>
-                        <h4 className="text-sm font-black uppercase tracking-tight">{mod.label}</h4>
-                        <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">{mod.desc}</p>
+                      <div className="min-w-0">
+                        <h4 className="text-[10px] font-black uppercase tracking-tight truncate leading-tight">{mod.label}</h4>
+                        <p className="text-[7px] text-muted-foreground uppercase font-bold tracking-widest truncate">{mod.desc}</p>
                       </div>
                     </div>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </Card>
                 </Link>
               ))}
@@ -170,52 +156,54 @@ export default function AdminDashboard() {
         </section>
       )}
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-6">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xs font-black uppercase tracking-widest">Revenue Analytics (7D)</h3>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-primary" />
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Sales Performance</span>
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Revenue Analytics - Compact Height */}
+        <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-[10px] font-black uppercase tracking-widest">Velocity (7D)</h3>
+            <div className="flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Sales Perf</span>
             </div>
           </div>
-          <div className="h-[250px] w-full">
+          <div className="h-[140px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <XAxis dataKey="name" stroke="#444" fontSize={10} tickLine={false} axisLine={false} />
+                <XAxis dataKey="name" stroke="#444" fontSize={8} tickLine={false} axisLine={false} />
                 <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
-                      <div className="bg-black border border-border p-3 rounded-xl shadow-2xl">
-                        <p className="text-[10px] font-black uppercase text-primary mb-1">{payload[0].payload.name}</p>
-                        <p className="text-lg font-black tracking-tighter text-white">₹{payload[0].value}</p>
+                      <div className="bg-black border border-border p-2 rounded-lg shadow-2xl">
+                        <p className="text-[8px] font-black uppercase text-primary">{payload[0].payload.name}</p>
+                        <p className="text-sm font-black tracking-tighter text-white">₹{payload[0].value}</p>
                       </div>
                     );
                   }
                   return null;
                 }} />
-                <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-6 space-y-6">
-          <h3 className="text-xs font-black uppercase tracking-widest">Order Pipeline</h3>
-          <div className="space-y-4">
+        {/* Order Pipeline - Compact Items */}
+        <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-5 space-y-4">
+          <h3 className="text-[10px] font-black uppercase tracking-widest">Pipeline</h3>
+          <div className="space-y-2">
             {[
               { label: 'Pending', count: orders?.filter(o => o.status === 'pending').length || 0, icon: Clock, color: 'text-orange-400' },
               { label: 'Processing', count: orders?.filter(o => o.status === 'processing').length || 0, icon: TrendingUp, color: 'text-accent' },
               { label: 'Completed', count: orders?.filter(o => o.status === 'completed').length || 0, icon: CheckCircle2, color: 'text-green-400' },
             ].map((stat, i) => (
-              <div key={i} className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className={`h-8 w-8 rounded-lg flex items-center justify-center bg-black/40 ${stat.color}`}>
-                    <stat.icon className="h-4 w-4" />
+              <div key={i} className="bg-white/5 border border-white/5 p-3 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className={`h-7 w-7 rounded-lg flex items-center justify-center bg-black/40 ${stat.color}`}>
+                    <stat.icon size={14} />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest">{stat.label}</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest">{stat.label}</span>
                 </div>
-                <span className="text-xl font-black">{stat.count}</span>
+                <span className="text-lg font-black leading-none">{stat.count}</span>
               </div>
             ))}
           </div>
@@ -224,3 +212,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
