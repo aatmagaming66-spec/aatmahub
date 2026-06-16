@@ -37,6 +37,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
+import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
 
 export default function CheckoutPage() {
   const { items, totalAmount } = useCart();
@@ -154,6 +155,7 @@ export default function CheckoutPage() {
         const txId = `PUR-${Date.now()}`;
         const txRef = doc(db, 'transactions', txId);
         const walletDocRef = doc(db, 'wallets', user.uid);
+        const userDocRef = doc(db, 'users', user.uid);
 
         const txData = {
           transactionId: txId,
@@ -165,15 +167,30 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
+        // 1. Debit Wallet
         updateDoc(walletDocRef, { balance: increment(-totalAmount), updatedAt: new Date().toISOString() })
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `increment(${-totalAmount})` } })));
 
+        // 2. Log Transaction
         setDoc(txRef, txData)
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: txRef.path, operation: 'create', requestResourceData: txData })));
 
+        // 3. Create Order
         await setDoc(orderRef, { ...baseOrderData, status: 'pending' })
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: orderRef.path, operation: 'create', requestResourceData: baseOrderData })));
         
+        // 4. Update Lifetime Spending & Rank Persistence
+        const currentSpend = (profile as any)?.lifetimeSpend || 0;
+        const newSpend = currentSpend + totalAmount;
+        const newRank = getRankFromSpend(newSpend, DEFAULT_RANKS);
+        
+        updateDoc(userDocRef, {
+          lifetimeSpend: newSpend,
+          currentRank: newRank.name,
+          rankId: newRank.id,
+          updatedAt: new Date().toISOString()
+        }).catch(err => console.error("Membership sync failure", err));
+
         sendTelegramNotification(db, `🚀 <b>NEW MULTI-ORDER (WALLET)</b>\n\n📦 ID: ${orderId}\n👤 User: ${profile?.fullName || user.email}\n🎯 Targets: ${groupedIdentities.length}\n💰 Total: ₹${totalAmount}`);
         router.push(`/checkout/success/${orderId}`);
       } else if (paymentMethod === 'phonepe') {

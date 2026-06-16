@@ -11,6 +11,9 @@
         "email": { "type": "string", "format": "email" },
         "phoneNumber": { "type": "string" },
         "role": { "type": "string", "enum": ["user", "admin", "super_admin"] },
+        "lifetimeSpend": { "type": "number", "default": 0 },
+        "currentRank": { "type": "string", "default": "Warrior" },
+        "rankId": { "type": "string", "default": "warrior" },
         "banned": { "type": "boolean" },
         "createdAt": { "type": "string", "format": "date-time" }
       },

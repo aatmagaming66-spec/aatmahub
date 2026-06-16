@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/init';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { sendTelegramNotification } from '@/lib/telegram';
+import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
 
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
@@ -27,12 +28,31 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ ok: true, message: 'Already processed' });
         }
         if (isSuccess) {
+          // 1. Update Order Status
           await updateDoc(orderRef, {
             status: 'processing',
             paymentStatus: 'success',
             transactionId: decodedResponse.data.merchantTransactionId,
             updatedAt: new Date().toISOString(),
           });
+
+          // 2. Update User Membership Persistence
+          const userRef = doc(db, 'users', order.userId);
+          const userSnap = await getDoc(userRef);
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            const newSpend = (userData.lifetimeSpend || 0) + order.totalAmount;
+            const newRank = getRankFromSpend(newSpend, DEFAULT_RANKS);
+            
+            await updateDoc(userRef, {
+              lifetimeSpend: newSpend,
+              currentRank: newRank.name,
+              rankId: newRank.id,
+              updatedAt: new Date().toISOString()
+            });
+            console.log(`[Membership Audit] Rank Sync: user=${order.userId}, spend=${newSpend}, rank=${newRank.name}`);
+          }
+
           sendTelegramNotification(db, `✅ <b>PAYMENT SUCCESS</b>\n\n📦 Order: ${id}\n💰 Amount: ₹${order.totalAmount}\n💳 Gateway: PhonePe`);
           return NextResponse.redirect(new URL(`/checkout/success/${id}`, req.url), 303);
         } else {
