@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useUser } from '@/firebase/auth/use-user';
@@ -132,7 +131,7 @@ export default function WalletDashboard() {
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <div className={cn(
-          "relative w-full min-h-[188px] transition-all duration-700 [transform-style:preserve-3d]",
+          "relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
           
@@ -160,17 +159,17 @@ export default function WalletDashboard() {
                 </div>
               </div>
 
-              {/* CLEAN CENTER AREA (REPLACED CHIP/AVATAR) */}
+              {/* CLEAN CENTER AREA */}
               <div className="flex-1" />
 
-              <div className="mt-auto space-y-3">
+              <div className="mt-auto space-y-4">
                  <div className="flex justify-between items-end gap-4">
-                    <div className="space-y-0.5 min-w-0">
+                    <div className="space-y-1.5 min-w-0">
                        <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
-                       <p className="text-[9px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
+                       <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
                     </div>
                  </div>
-                 <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-2.5 gap-2">
+                 <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-3.5 gap-2">
                    <span className="shrink-0">Reward: <span className="text-green-500/60">{rankInfo.discount}% OFF</span></span>
                    <span className="shrink-0">Spent: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
                  </div>
@@ -187,7 +186,7 @@ export default function WalletDashboard() {
             <div className="relative h-full flex flex-col z-10">
               <div className="w-full h-10 bg-black/60 mt-6 shadow-inner shrink-0" />
               <div className="flex-1 px-6 flex flex-col justify-center gap-4">
-                 <div className="text-center space-y-1.5 py-2">
+                 <div className="text-center space-y-2.5 py-2">
                     <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Credits</span>
                     <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-none truncate px-2">
                       ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
