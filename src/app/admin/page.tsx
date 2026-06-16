@@ -4,6 +4,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, doc, getDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
+import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   Users, 
@@ -16,7 +17,13 @@ import {
   Bot,
   Zap,
   BarChart3,
-  ArrowUpRight
+  ArrowUpRight,
+  ShieldCheck,
+  Globe,
+  Settings,
+  Database,
+  Activity,
+  ChevronRight
 } from 'lucide-react';
 import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import Link from 'next/link';
@@ -24,10 +31,13 @@ import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fn
 
 export default function AdminDashboard() {
   const db = useFirestore();
+  const { profile } = useUser();
   const [tgStatus, setTgStatus] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Stabilize collection references to prevent infinite render loops
+  const isSuper = profile?.role === 'super_admin';
+
+  // Stabilize collection references
   const usersRef = useMemo(() => collection(db, 'users'), [db]);
   const ordersRef = useMemo(() => collection(db, 'orders'), [db]);
   const transactionsRef = useMemo(() => collection(db, 'transactions'), [db]);
@@ -72,11 +82,14 @@ export default function AdminDashboard() {
     });
   }, [orders, isMounted]);
 
-  const orderStats = useMemo(() => [
-    { label: 'Pending', count: orders?.filter(o => o.status === 'pending').length || 0, icon: Clock, color: 'text-orange-400' },
-    { label: 'Processing', count: orders?.filter(o => o.status === 'processing').length || 0, icon: TrendingUp, color: 'text-accent' },
-    { label: 'Completed', count: orders?.filter(o => o.status === 'completed').length || 0, icon: CheckCircle2, color: 'text-green-400' },
-  ], [orders]);
+  const superModules = [
+    { label: 'Identity Registry', href: '/admin/users', icon: Users, desc: 'Manage Roles & Access' },
+    { label: 'Catalog Engine', href: '/admin/products', icon: Package, desc: 'Deploy Game Products' },
+    { label: 'Regional Grid', href: '/admin/regions', icon: Globe, desc: 'Global Distribution' },
+    { label: 'Gateway Hub', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Financial Protocols' },
+    { label: 'System Health', href: '/admin/system', icon: Activity, desc: 'Kernel Logs & Latency' },
+    { label: 'Data Archives', href: '/admin/backups', icon: Database, desc: 'Secure Vault Export' },
+  ];
 
   if (!isMounted) return null;
 
@@ -130,8 +143,34 @@ export default function AdminDashboard() {
         ))}
       </div>
 
+      {isSuper && (
+        <section className="space-y-4">
+           <div className="flex items-center gap-3 px-1">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-white">Super Admin Command Center</h2>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {superModules.map((mod, i) => (
+                <Link key={i} href={mod.href}>
+                  <Card className="bg-card border-border p-5 rounded-3xl hover:border-primary/40 transition-all group flex items-center justify-between shadow-2xl">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                        <mod.icon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-black uppercase tracking-tight">{mod.label}</h4>
+                        <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest">{mod.desc}</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </Card>
+                </Link>
+              ))}
+           </div>
+        </section>
+      )}
+
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Revenue Analytics */}
         <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-6">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-xs font-black uppercase tracking-widest">Revenue Analytics (7D)</h3>
@@ -143,38 +182,32 @@ export default function AdminDashboard() {
           <div className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#444" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <Tooltip 
-                  cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-black border border-border p-3 rounded-xl shadow-2xl">
-                          <p className="text-[10px] font-black uppercase text-primary mb-1">{payload[0].payload.name}</p>
-                          <p className="text-lg font-black tracking-tighter text-white">₹{payload[0].value}</p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
+                <XAxis dataKey="name" stroke="#444" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    return (
+                      <div className="bg-black border border-border p-3 rounded-xl shadow-2xl">
+                        <p className="text-[10px] font-black uppercase text-primary mb-1">{payload[0].payload.name}</p>
+                        <p className="text-lg font-black tracking-tighter text-white">₹{payload[0].value}</p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }} />
                 <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        {/* Order Status Breakdown */}
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-6 space-y-6">
           <h3 className="text-xs font-black uppercase tracking-widest">Order Pipeline</h3>
           <div className="space-y-4">
-            {orderStats.map((stat, i) => (
+            {[
+              { label: 'Pending', count: orders?.filter(o => o.status === 'pending').length || 0, icon: Clock, color: 'text-orange-400' },
+              { label: 'Processing', count: orders?.filter(o => o.status === 'processing').length || 0, icon: TrendingUp, color: 'text-accent' },
+              { label: 'Completed', count: orders?.filter(o => o.status === 'completed').length || 0, icon: CheckCircle2, color: 'text-green-400' },
+            ].map((stat, i) => (
               <div key={i} className="bg-white/5 border border-white/5 p-4 rounded-2xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className={`h-8 w-8 rounded-lg flex items-center justify-center bg-black/40 ${stat.color}`}>
@@ -186,37 +219,7 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
-          <div className="pt-4 border-t border-border flex flex-col gap-2">
-            <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Global Order Rate</p>
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-primary w-[65%]" />
-            </div>
-            <p className="text-[8px] text-right font-black text-primary uppercase">65% Target Completion</p>
-          </div>
         </Card>
-      </div>
-
-      {/* Recent Activity Mini-Feed */}
-      <div className="space-y-4">
-        <h3 className="text-xs font-black uppercase tracking-widest px-1">Critical Events</h3>
-        <div className="grid md:grid-cols-2 gap-4">
-           {orders?.slice(0, 4).map((order) => (
-             <div key={order.orderId} className="bg-card border border-border p-4 rounded-2xl flex items-center justify-between group hover:border-primary/20 transition-all">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Package className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-black uppercase tracking-tight">{order.orderId}</h4>
-                    <p className="text-[8px] text-muted-foreground uppercase font-bold tracking-widest">Status: {order.status}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-black">₹{order.totalAmount}</span>
-                </div>
-             </div>
-           ))}
-        </div>
       </div>
     </div>
   );
