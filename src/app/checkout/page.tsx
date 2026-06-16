@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -205,8 +206,8 @@ export default function CheckoutPage() {
   return (
     <div className="flex flex-col w-full p-4 space-y-6 animate-in fade-in duration-700">
       <header className="py-2">
-        <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Checkout Hub</h1>
-        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">MASTER TRANSACTION PROTOCOL</p>
+        <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Checkout</h1>
+        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Review & Complete Order</p>
       </header>
 
       {/* OPTIMIZED COMPACT UNIFIED SUMMARY CARD */}
@@ -232,7 +233,7 @@ export default function CheckoutPage() {
           <div className="p-3 border-b border-border bg-black/20">
             <div className="flex items-center gap-2 mb-2 px-1">
                <ShieldCheck className="h-2.5 w-2.5 text-green-500" />
-               <span className="text-[8px] font-black uppercase tracking-widest text-white/50">Verified Targets</span>
+               <span className="text-[8px] font-black uppercase tracking-widest text-white/50">Verified Account</span>
             </div>
             
             <Accordion type="single" collapsible className="space-y-1.5">
@@ -307,7 +308,7 @@ export default function CheckoutPage() {
       <section className="space-y-3">
         <div className="flex items-center gap-2 px-1">
           <div className="h-4 w-1 bg-accent rounded-full" />
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-white/80">Select Gateway</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-white/80">Select Payment Method</h3>
         </div>
         <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-2.5">
           <Label htmlFor="wallet" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'wallet' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
@@ -315,7 +316,7 @@ export default function CheckoutPage() {
               <Wallet size={14} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
             </div>
             <div className="text-center">
-              <span className="text-[10px] font-black uppercase block leading-none mb-1">Hub Wallet</span>
+              <span className="text-[10px] font-black uppercase block leading-none mb-1">Wallet Balance</span>
               <span className={`text-[7px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>₹{walletBalance.toLocaleString()}</span>
             </div>
             <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
@@ -343,14 +344,14 @@ export default function CheckoutPage() {
           onClick={handlePlaceOrder} 
           disabled={submitting || totalAccounts === 0}
         >
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Execute Order <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /></>}
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Place Order <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /></>}
         </Button>
-        <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-10 text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-white"><ArrowLeft className="mr-2 h-2.5 w-2.5" /> Return to Cart</Button>
+        <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-10 text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-white"><ArrowLeft className="mr-2 h-2.5 w-2.5" /> Back to Cart</Button>
       </div>
 
       <div className="flex items-center justify-center gap-2 py-4 opacity-20">
         <ShieldCheck className="h-3 w-3" />
-        <span className="text-[6px] font-black uppercase tracking-[0.4em]">Hub-to-Server 256-bit AES Encryption</span>
+        <span className="text-[6px] font-black uppercase tracking-[0.4em]">Secure Encrypted Checkout</span>
       </div>
     </div>
   );

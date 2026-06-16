@@ -37,9 +37,9 @@ export default function CartPage() {
       <header className="py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Cart Summary</h1>
+            <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Shopping Cart</h1>
             <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">
-              {totalCount} Items in your hub
+              {totalCount} Item{totalCount !== 1 ? 's' : ''} in Cart
             </p>
           </div>
           <Button 
@@ -47,7 +47,7 @@ export default function CartPage() {
             onClick={clearCart}
             className="text-[9px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 h-8"
           >
-            Clear Hub
+            Clear Cart
           </Button>
         </div>
       </header>
@@ -121,7 +121,7 @@ export default function CartPage() {
             onClick={() => router.push('/checkout')}
             className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl transition-all group"
           >
-            Checkout Now
+            Proceed to Checkout
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Link href="/">

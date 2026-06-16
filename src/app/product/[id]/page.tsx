@@ -94,7 +94,7 @@ export default function ProductPage() {
     }
 
     if (!isVerified) {
-      toast({ variant: "destructive", title: "Verification Required", description: "Please verify your Player ID before adding to cart." });
+      toast({ variant: "destructive", title: "Player Verification Required", description: "Please verify your Player ID before adding to cart." });
       return;
     }
 
@@ -114,7 +114,7 @@ export default function ProductPage() {
     });
 
     toast({
-      title: "Added to Hub",
+      title: "Added to Cart",
       description: `${selectedPack.name} (ID: ${playerId}) is ready.`,
     });
 
@@ -130,7 +130,7 @@ export default function ProductPage() {
     }
 
     if (!isVerified) {
-      toast({ variant: "destructive", title: "Verification Required", description: "Please verify your Player ID before purchase." });
+      toast({ variant: "destructive", title: "Player Verification Required", description: "Please verify your Player ID before purchase." });
       return;
     }
 
@@ -191,7 +191,7 @@ export default function ProductPage() {
         <div className="space-y-6 bg-card p-6 rounded-3xl border border-border shadow-2xl">
           <div className="flex items-center gap-3">
             <div className="h-8 w-1.5 bg-primary rounded-full" />
-            <h3 className="text-sm font-headline font-black uppercase tracking-widest text-white/90">Identity Config</h3>
+            <h3 className="text-sm font-headline font-black uppercase tracking-widest text-white/90">Player Verification</h3>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -220,7 +220,7 @@ export default function ProductPage() {
               onClick={handleVerify}
               disabled={verifying}
             >
-              {verifying ? "Searching Data..." : "Verify Identity"}
+              {verifying ? "Searching Data..." : "Verify Player ID"}
             </Button>
           ) : (
             <div className="bg-green-500/10 border border-green-500/20 p-4 rounded-2xl flex items-center justify-between animate-in zoom-in-95">
@@ -291,7 +291,7 @@ export default function ProductPage() {
             onClick={handleAddToCart}
             className="w-full h-14 border-white/10 bg-transparent text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-white/5 transition-all gap-2"
           >
-            <ShoppingBag className="h-4 w-4" /> Add to Hub
+            <ShoppingBag className="h-4 w-4" /> Add to Cart
           </Button>
         </div>
       </div>
