@@ -19,37 +19,37 @@ export function LiveActivity() {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % (RECENT_ACTIVITY.length - 1));
-    }, 4000);
+      setIndex((prev) => (prev + 1) % RECENT_ACTIVITY.length);
+    }, 3500);
     return () => clearInterval(timer);
   }, []);
 
   return (
     <section className="px-4 mt-6 mb-2">
-      <div className="bg-card/30 border border-white/5 rounded-2xl p-3 flex flex-col gap-2 relative overflow-hidden">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="relative flex h-2 w-2">
+      <div className="bg-card/30 border border-white/5 rounded-2xl p-3 flex flex-col gap-1 relative overflow-hidden">
+        <div className="flex items-center gap-2 mb-0.5">
+          <div className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
           </div>
-          <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Live Feed Distribution</span>
+          <span className="text-[7px] font-black text-white/30 uppercase tracking-[0.3em]">Live Feed Distribution</span>
         </div>
         
-        {/* Compact Vertical Auto-Slider */}
-        <div className="relative h-[42px] overflow-hidden">
+        {/* Compact Vertical Auto-Slider - 1 line at a time */}
+        <div className="relative h-[20px] overflow-hidden">
           <div 
-            className="flex flex-col gap-1 transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateY(-${index * 21}px)` }}
+            className="flex flex-col transition-transform duration-700 ease-in-out"
+            style={{ transform: `translateY(-${index * 20}px)` }}
           >
             {RECENT_ACTIVITY.map((activity, i) => (
-              <div key={i} className="flex items-center justify-between text-[10px] font-bold h-[20px] px-0.5">
+              <div key={i} className="flex items-center justify-between h-[20px] px-0.5">
                 <div className="flex items-center gap-2 truncate">
-                  <Zap size={8} className="text-primary shrink-0" />
-                  <span className="text-primary shrink-0">{activity.id}</span>
-                  <span className="text-white/60 tracking-tight truncate">purchased {activity.product}</span>
+                  <Zap size={7} className="text-primary shrink-0" />
+                  <span className="text-primary text-[9px] font-black shrink-0">{activity.id}</span>
+                  <span className="text-white/60 text-[9px] font-bold tracking-tight truncate uppercase">purchased {activity.product}</span>
                 </div>
                 <div className="flex items-center gap-1 text-white/20 shrink-0 ml-2">
-                  <span className="text-[8px] uppercase font-black">{activity.time}</span>
+                  <span className="text-[7px] uppercase font-black">{activity.time}</span>
                 </div>
               </div>
             ))}
