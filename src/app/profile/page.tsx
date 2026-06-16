@@ -30,31 +30,22 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Fetch Wallet Balance
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet } = useDoc(walletRef);
 
   useEffect(() => {
-    if (user && profile) {
-      console.log(`[Admin Audit] Profile UID: ${user.uid}`);
-      console.log(`[Admin Audit] Profile Role: ${profile.role}`);
+    if (profile) {
+      setFullName(profile.fullName || '');
+      setPhoneNumber(profile.phoneNumber || '');
+      console.log(`[Admin Audit] Profile Page Role: ${profile.role}`);
     }
-  }, [user, profile]);
+  }, [profile]);
 
-  // Route Protection: Redirect to login if not authenticated
   useEffect(() => {
     if (!userLoading && !user) {
       router.push('/login');
     }
   }, [user, userLoading, router]);
-
-  // Sync state with profile data
-  useEffect(() => {
-    if (profile) {
-      setFullName(profile.fullName || '');
-      setPhoneNumber(profile.phoneNumber || '');
-    }
-  }, [profile]);
 
   const handleLogout = async () => {
     try {
@@ -139,7 +130,7 @@ export default function ProfilePage() {
         )}
 
         <Link href="/wallet">
-          <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 rounded-3xl p-6 flex items-center justify-between">
+          <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 rounded-3xl p-6 flex items-center justify-between group hover:border-primary/40 transition-all">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 bg-primary/20 rounded-2xl flex items-center justify-center"><Wallet className="text-primary h-6 w-6" /></div>
               <div>
@@ -147,7 +138,7 @@ export default function ProfilePage() {
                 <p className="text-2xl font-black text-white">₹{wallet?.balance?.toLocaleString() || '0'}.00</p>
               </div>
             </div>
-            <ArrowRight className="h-5 w-5 text-primary" />
+            <ArrowRight className="h-5 w-5 text-primary group-hover:translate-x-1 transition-transform" />
           </Card>
         </Link>
 
@@ -164,7 +155,7 @@ export default function ProfilePage() {
             <div className="grid gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
-                <Input disabled={!editing} value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-background/50 border-border h-12 rounded-xl" />
+                <Input disabled={!editing} value={fullName} onChange={(e) => setFullName(e.target.value)} className="bg-background/50 border-border h-12 rounded-xl focus:border-primary" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email</Label>
@@ -172,18 +163,18 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone</Label>
-                <Input disabled={!editing} value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-background/50 border-border h-12 rounded-xl" />
+                <Input disabled={!editing} value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="bg-background/50 border-border h-12 rounded-xl focus:border-primary" />
               </div>
             </div>
             {editing && (
-              <Button onClick={handleUpdate} disabled={saving} className="w-full mt-6 h-12 bg-primary font-black uppercase text-[11px] tracking-widest rounded-xl">
+              <Button onClick={handleUpdate} disabled={saving} className="w-full mt-6 h-12 bg-primary font-black uppercase text-[11px] tracking-widest rounded-xl shadow-xl shadow-primary/20">
                 {saving ? <Loader2 className="animate-spin" /> : "Confirm Changes"}
               </Button>
             )}
           </CardContent>
         </Card>
 
-        <Button variant="outline" onClick={handleLogout} className="w-full h-14 border-primary/20 text-primary hover:bg-primary/5 font-black text-[12px] uppercase tracking-[0.3em] gap-3 rounded-2xl">
+        <Button variant="outline" onClick={handleLogout} className="w-full h-14 border-primary/20 text-primary hover:bg-primary/5 font-black text-[12px] uppercase tracking-[0.3em] gap-3 rounded-2xl transition-all">
           <LogOut size={20} /> Terminate Session
         </Button>
       </div>

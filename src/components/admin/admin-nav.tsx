@@ -48,23 +48,23 @@ const SUPER_ADMIN_LINKS = [
 
 export function AdminNav() {
   const pathname = usePathname();
-  const { profile } = useUser();
+  const { profile, loading } = useUser();
   const isSuper = profile?.role === 'super_admin';
 
   useEffect(() => {
-    if (profile) {
-      console.log(`[Admin Audit] Nav Component Role Sync: ${profile.role} isSuper=${isSuper}`);
+    if (!loading && profile) {
+      console.log(`[Admin Audit] Nav Component Role Sync: ${profile.role} (isSuper=${isSuper})`);
     }
-  }, [profile, isSuper]);
+  }, [profile, loading, isSuper]);
 
   return (
     <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10">
-      <Link href="/" className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors px-4">
-        <ArrowLeft className="h-4 w-4" /> Back to Store
+      <Link href="/" className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors px-4 group">
+        <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Store
       </Link>
       
       <div className="space-y-1">
-        <p className="px-4 mb-2 text-[8px] font-black text-muted-foreground uppercase tracking-[0.3em]">Core Operations</p>
+        <p className="px-4 mb-2 text-[8px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-40">Core Operations</p>
         {ADMIN_LINKS.map((link) => {
           const isActive = pathname === link.href;
           return (

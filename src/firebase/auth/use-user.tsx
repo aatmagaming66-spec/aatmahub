@@ -29,13 +29,16 @@ export function useUser() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // 1. Listen for Auth State
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      if (firebaseUser) {
-        console.log(`[Admin Audit] Auth Detected: UID=${firebaseUser.uid} Email=${firebaseUser.email}`);
-      } else {
+      
+      if (!firebaseUser) {
         setProfile(null);
         setLoading(false);
+        console.log('[Admin Audit] No Session Detected.');
+      } else {
+        console.log(`[Admin Audit] Auth Detected: UID=${firebaseUser.uid}`);
       }
     });
 
@@ -45,6 +48,7 @@ export function useUser() {
   useEffect(() => {
     if (!user) return;
 
+    // 2. Listen for Profile Changes
     const userDocRef = doc(db, 'users', user.uid);
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -54,7 +58,7 @@ export function useUser() {
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         
         if (isSuperAdminTarget && data.role !== 'super_admin') {
-           console.warn(`[Admin Audit] Target UID detected. Elevating to super_admin role.`);
+           console.warn(`[Admin Audit] Super Admin UID detected. Elevating role in registry...`);
            setDoc(userDocRef, { 
              role: 'super_admin',
              active: true,
@@ -62,13 +66,14 @@ export function useUser() {
            }, { merge: true });
         }
         
-        console.log(`[Admin Audit] Profile Loaded: ROLE=${data.role}`);
+        console.log(`[Admin Audit] Role Verified: ${data.role}`);
         setProfile(data);
       } else {
+        // Handle new Super Admin auto-initialization
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         
         if (isSuperAdminTarget) {
-          console.warn(`[Admin Audit] Super Admin document missing. Initializing registry...`);
+          console.warn(`[Admin Audit] New Super Admin initialization sequence started.`);
           const newProfile: UserProfile = {
             uid: user.uid,
             fullName: user.displayName || 'Super Admin',
@@ -83,7 +88,7 @@ export function useUser() {
       }
       setLoading(false);
     }, (error) => {
-      console.error(`[Admin Audit] Firestore Read Failure:`, error);
+      console.error(`[Admin Audit] Firestore Read Error:`, error);
       setLoading(false);
     });
 
