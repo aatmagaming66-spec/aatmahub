@@ -1,8 +1,9 @@
 'use client';
 
 import { useMemo, useState, useEffect, memo } from 'react';
+import dynamic from 'next/dynamic';
 import { useFirestore } from '@/firebase/provider';
-import { collection, doc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, query, where, limit, orderBy } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,9 +29,38 @@ import {
   Layers,
   Trophy
 } from 'lucide-react';
-import { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } from 'recharts';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Dynamic Import for heavy chart module
+const BarChartComponent = dynamic(() => import('recharts').then(mod => {
+  const { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } = mod;
+  return function RechartsWrapper({ data }: { data: any[] }) {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data}>
+          <XAxis dataKey="name" stroke="#444" fontSize={8} tickLine={false} axisLine={false} />
+          <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} content={({ active, payload }) => {
+            if (active && payload && payload.length) {
+              return (
+                <div className="bg-black border border-border p-2 rounded-lg shadow-2xl">
+                  <p className="text-[8px] font-black uppercase text-primary">{payload[0].payload.name}</p>
+                  <p className="text-sm font-black tracking-tighter text-white">₹{payload[0].value}</p>
+                </div>
+              );
+            }
+            return null;
+          }} />
+          <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  };
+}), { 
+  ssr: false, 
+  loading: () => <Skeleton className="w-full h-full bg-white/5 rounded-xl" /> 
+});
 
 export default function AdminDashboard() {
   const db = useFirestore();
@@ -40,10 +70,20 @@ export default function AdminDashboard() {
 
   const isSuper = profile?.role === 'super_admin';
 
-  // STABILIZE REFS
-  const usersRef = useMemo(() => collection(db, 'users'), [db]);
-  const ordersRef = useMemo(() => collection(db, 'orders'), [db]);
-  const transactionsRef = useMemo(() => collection(db, 'transactions'), [db]);
+  // OPTIMIZATION: Temporal Capping to reduce initial data payload
+  const thirtyDaysAgo = useMemo(() => subDays(new Date(), 30).toISOString(), []);
+
+  const usersRef = useMemo(() => query(collection(db, 'users'), limit(100)), [db]);
+  const ordersRef = useMemo(() => query(
+    collection(db, 'orders'), 
+    where('createdAt', '>=', thirtyDaysAgo)
+  ), [db, thirtyDaysAgo]);
+  
+  const transactionsRef = useMemo(() => query(
+    collection(db, 'transactions'), 
+    where('createdAt', '>=', thirtyDaysAgo),
+    limit(500)
+  ), [db, thirtyDaysAgo]);
 
   const { data: users } = useCollection(usersRef);
   const { data: orders } = useCollection(ordersRef);
@@ -51,7 +91,6 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Non-blocking fetch for non-critical status
     getDoc(doc(db, 'settings', 'telegram')).then(snap => {
       if (snap.exists()) setTgStatus(snap.data());
     });
@@ -63,10 +102,10 @@ export default function AdminDashboard() {
     const totalDeposits = transactions?.filter(t => t.type === 'deposit' && t.status === 'success').reduce((acc, t) => acc + (t.amount || 0), 0) || 0;
 
     return [
-      { label: 'Revenue', value: `₹${totalRevenue.toLocaleString()}`, icon: IndianRupee, color: 'text-primary' },
-      { label: 'Users', value: users?.length || 0, icon: Users, color: 'text-accent' },
-      { label: 'Orders', value: orders?.length || 0, icon: ShoppingCart, color: 'text-white' },
-      { label: 'Deposits', value: `₹${totalDeposits.toLocaleString()}`, icon: TrendingUp, color: 'text-green-400' },
+      { label: 'Revenue (30d)', value: `₹${totalRevenue.toLocaleString()}`, icon: IndianRupee, color: 'text-primary' },
+      { label: 'Active Users', value: users?.length || 0, icon: Users, color: 'text-accent' },
+      { label: 'Recent Orders', value: orders?.length || 0, icon: ShoppingCart, color: 'text-white' },
+      { label: 'Deposits (30d)', value: `₹${totalDeposits.toLocaleString()}`, icon: TrendingUp, color: 'text-green-400' },
     ];
   }, [users, orders, transactions, isMounted]);
 
@@ -150,27 +189,11 @@ export default function AdminDashboard() {
             <h3 className="text-[10px] font-black uppercase tracking-widest">Business Analytics</h3>
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Sales Perf</span>
+              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Sales Perf (7D)</span>
             </div>
           </div>
           <div className="h-[110px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <XAxis dataKey="name" stroke="#444" fontSize={8} tickLine={false} axisLine={false} />
-                <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} content={({ active, payload }) => {
-                  if (active && payload && payload.length) {
-                    return (
-                      <div className="bg-black border border-border p-2 rounded-lg shadow-2xl">
-                        <p className="text-[8px] font-black uppercase text-primary">{payload[0].payload.name}</p>
-                        <p className="text-sm font-black tracking-tighter text-white">₹{payload[0].value}</p>
-                      </div>
-                    );
-                  }
-                  return null;
-                }} />
-                <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <BarChartComponent data={chartData} />
           </div>
         </Card>
 

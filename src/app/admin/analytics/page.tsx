@@ -1,34 +1,78 @@
 'use client';
 
 import { useMemo, useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useFirestore } from '@/firebase/provider';
 import { collection, query, where, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
-  ResponsiveContainer, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Line, 
-  LineChart, 
-  PieChart, 
-  Pie, 
-  Cell,
-  CartesianGrid
-} from 'recharts';
-import { 
-  TrendingUp, 
-  Users, 
   IndianRupee, 
-  Globe2, 
+  Users, 
   Zap, 
   Package,
-  Activity
+  Activity,
+  TrendingUp,
+  Globe2
 } from 'lucide-react';
 import { format, subDays, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const COLORS = ['#DC2626', '#EC4899', '#9333EA', '#2563EB', '#10B981'];
+// Dynamic Imports for Recharts components
+const LineChartComponent = dynamic(() => import('recharts').then(mod => {
+  const { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } = mod;
+  return function LineChartWrapper({ data }: { data: any[] }) {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
+          <XAxis dataKey="name" stroke="#444" fontSize={10} tickLine={false} axisLine={false} />
+          <YAxis stroke="#444" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v}`} />
+          <Tooltip content={({ active, payload }) => {
+            if (active && payload && payload.length) {
+              return (
+                <div className="bg-black border border-border p-3 rounded-xl shadow-2xl">
+                  <p className="text-[10px] font-black uppercase text-primary mb-1">{payload[0].payload.name}</p>
+                  <p className="text-lg font-black tracking-tighter text-white">₹{payload[0].value}</p>
+                </div>
+              );
+            }
+            return null;
+          }} />
+          <Line type="monotone" dataKey="revenue" stroke="hsl(var(--primary))" strokeWidth={4} dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "#000" }} activeDot={{ r: 6, strokeWidth: 0 }} />
+        </LineChart>
+      </ResponsiveContainer>
+    );
+  };
+}), { ssr: false, loading: () => <Skeleton className="w-full h-[300px] bg-white/5 rounded-2xl" /> });
+
+const PieChartComponent = dynamic(() => import('recharts').then(mod => {
+  const { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } = mod;
+  const COLORS = ['#DC2626', '#EC4899', '#9333EA', '#2563EB', '#10B981'];
+  return function PieChartWrapper({ data }: { data: any[] }) {
+    return (
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie data={data} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+            {data.map((_, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+            ))}
+          </Pie>
+          <Tooltip content={({ active, payload }) => {
+            if (active && payload && payload.length) {
+              return (
+                <div className="bg-black border border-border p-2 rounded-lg shadow-2xl">
+                  <p className="text-[9px] font-black uppercase text-white">{payload[0].name}: ₹{payload[0].value}</p>
+                </div>
+              );
+            }
+            return null;
+          }} />
+        </PieChart>
+      </ResponsiveContainer>
+    );
+  };
+}), { ssr: false, loading: () => <Skeleton className="w-full h-[250px] bg-white/5 rounded-full mx-auto" /> });
 
 export default function AnalyticsPage() {
   const db = useFirestore();
@@ -38,7 +82,6 @@ export default function AnalyticsPage() {
     setIsMounted(true);
   }, []);
 
-  // OPTIMIZATION: Temporal Filtering (Last 30 Days) to reduce Firestore reads
   const analyticsWindow = useMemo(() => subDays(new Date(), 30).toISOString(), []);
 
   const ordersQuery = useMemo(() => query(
@@ -48,20 +91,14 @@ export default function AnalyticsPage() {
 
   const usersQuery = useMemo(() => query(
     collection(db, 'users'),
-    limit(500) // Caps user analysis for performance
+    limit(500)
   ), [db]);
-
-  const transactionsQuery = useMemo(() => query(
-    collection(db, 'transactions'),
-    where('createdAt', '>=', analyticsWindow)
-  ), [db, analyticsWindow]);
 
   const { data: orders, loading: ordersLoading } = useCollection(ordersQuery);
   const { data: users, loading: usersLoading } = useCollection(usersQuery);
-  const { data: transactions, loading: txLoading } = useCollection(transactionsQuery);
 
   const stats = useMemo(() => {
-    if (!orders || !users || !transactions || !isMounted) return null;
+    if (!orders || !users || !isMounted) return null;
 
     const now = new Date();
     const today = { start: startOfDay(now), end: endOfDay(now) };
@@ -75,12 +112,6 @@ export default function AnalyticsPage() {
     );
     const todayRevenue = todayOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
 
-    const weeklyOrders = completedOrders.filter(o => 
-      isWithinInterval(new Date(o.createdAt), last7Days)
-    );
-    const weeklyRevenue = weeklyOrders.reduce((acc, o) => acc + (o.totalAmount || 0), 0);
-
-    // Group revenue by region
     const regionStats = completedOrders.reduce((acc: any, o) => {
       const region = o.items?.[0]?.region || 'Unknown';
       acc[region] = (acc[region] || 0) + o.totalAmount;
@@ -89,7 +120,6 @@ export default function AnalyticsPage() {
 
     const regionChartData = Object.entries(regionStats).map(([name, value]) => ({ name, value }));
 
-    // Revenue history (Last 7 days)
     const historyData = Array.from({ length: 7 }).map((_, i) => {
       const d = subDays(now, 6 - i);
       const dayStr = format(d, 'EEE');
@@ -104,23 +134,23 @@ export default function AnalyticsPage() {
     return {
       totalRevenue,
       todayRevenue,
-      weeklyRevenue,
       totalOrders: orders.length,
       pendingOrders: orders.filter(o => o.status === 'pending').length,
-      completedOrders: completedOrders.length,
       totalUsers: users.length,
       regionChartData,
       historyData
     };
-  }, [orders, users, transactions, isMounted]);
+  }, [orders, users, isMounted]);
 
-  if (ordersLoading || usersLoading || txLoading || !isMounted) {
+  if (ordersLoading || usersLoading || !isMounted) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Activity className="h-10 w-10 text-primary animate-spin" />
       </div>
     );
   }
+
+  const COLORS = ['#DC2626', '#EC4899', '#9333EA', '#2563EB', '#10B981'];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -129,123 +159,27 @@ export default function AnalyticsPage() {
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Deep System Analytics</p>
       </header>
 
-      {/* Hero Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard 
-          label="Gross Revenue" 
-          value={`₹${stats?.totalRevenue.toLocaleString()}`} 
-          icon={IndianRupee} 
-          trend="+12%" 
-          color="text-primary"
-        />
-        <StatCard 
-          label="Today's Intake" 
-          value={`₹${stats?.todayRevenue.toLocaleString()}`} 
-          icon={Zap} 
-          trend="+5%" 
-          color="text-accent"
-        />
-        <StatCard 
-          label="Total Entities" 
-          value={stats?.totalUsers || 0} 
-          icon={Users} 
-          trend="+24" 
-          color="text-blue-400"
-        />
-        <StatCard 
-          label="Active Cycles" 
-          value={stats?.pendingOrders || 0} 
-          icon={Package} 
-          trend="Live" 
-          color="text-orange-400"
-        />
+        <StatCard label="Gross Revenue" value={`₹${stats?.totalRevenue.toLocaleString()}`} icon={IndianRupee} trend="+12%" color="text-primary" />
+        <StatCard label="Today's Intake" value={`₹${stats?.todayRevenue.toLocaleString()}`} icon={Zap} trend="+5%" color="text-accent" />
+        <StatCard label="Total Entities" value={stats?.totalUsers || 0} icon={Users} trend="+24" color="text-blue-400" />
+        <StatCard label="Active Cycles" value={stats?.pendingOrders || 0} icon={Package} trend="Live" color="text-orange-400" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Revenue Velocity */}
         <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-6">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-xs font-black uppercase tracking-widest">Revenue Velocity (7D)</h3>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-primary" />
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Daily Performance</span>
-            </div>
           </div>
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={stats?.historyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#444" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <YAxis 
-                  stroke="#444" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false}
-                  tickFormatter={(v) => `₹${v}`}
-                />
-                <Tooltip 
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-black border border-border p-3 rounded-xl shadow-2xl">
-                          <p className="text-[10px] font-black uppercase text-primary mb-1">{payload[0].payload.name}</p>
-                          <p className="text-lg font-black tracking-tighter text-white">₹{payload[0].value}</p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="hsl(var(--primary))" 
-                  strokeWidth={4}
-                  dot={{ r: 4, fill: "hsl(var(--primary))", strokeWidth: 2, stroke: "#000" }}
-                  activeDot={{ r: 6, strokeWidth: 0 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <LineChartComponent data={stats?.historyData || []} />
           </div>
         </Card>
 
-        {/* Regional Distribution */}
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col">
           <h3 className="text-xs font-black uppercase tracking-widest mb-8">Regional Dominance</h3>
           <div className="flex-1 h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={stats?.regionChartData}
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {stats?.regionChartData.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip 
-                   content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-black border border-border p-2 rounded-lg shadow-2xl">
-                          <p className="text-[9px] font-black uppercase text-white">{payload[0].name}: ₹{payload[0].value}</p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <PieChartComponent data={stats?.regionChartData || []} />
           </div>
           <div className="mt-4 space-y-2">
              {stats?.regionChartData.slice(0, 4).map((r: any, i: number) => (
@@ -261,7 +195,6 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* Performance Summary Grid */}
       <div className="grid md:grid-cols-2 gap-8">
          <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">

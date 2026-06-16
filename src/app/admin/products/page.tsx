@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, setDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
+import { collection, setDoc, deleteDoc, doc, query, orderBy, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,13 +37,15 @@ export default function AdminProductsPage() {
     status: 'active'
   });
 
-  const productsQuery = useMemo(() => query(collection(db, 'products')), [db]);
+  const productsQuery = useMemo(() => query(
+    collection(db, 'products'),
+    limit(50) // OPTIMIZATION: Pagination Limit
+  ), [db]);
+
   const gamesQuery = useMemo(() => query(collection(db, 'games'), orderBy('sortOrder', 'asc')), [db]);
-  const tabsQuery = useMemo(() => query(collection(db, 'tabs'), orderBy('sortOrder', 'asc')), [db]);
 
   const { data: products, loading: productsLoading } = useCollection(productsQuery);
   const { data: games } = useCollection(gamesQuery);
-  const { data: tabs } = useCollection(tabsQuery);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];

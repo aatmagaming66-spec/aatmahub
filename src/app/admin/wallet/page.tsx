@@ -2,7 +2,7 @@
 
 import { useState, useMemo, memo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, doc, updateDoc, increment, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,8 +51,12 @@ export default function AdminWalletRegistryPage() {
   const [adjustAmount, setAdjustAmount] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const walletsRef = useMemo(() => collection(db, 'wallets'), [db]);
-  const { data: wallets, loading } = useCollection(walletsRef);
+  const walletsQuery = useMemo(() => query(
+    collection(db, 'wallets'),
+    limit(50) // OPTIMIZATION: Pagination Limit
+  ), [db]);
+
+  const { data: wallets, loading } = useCollection(walletsQuery);
 
   const filteredWallets = useMemo(() => {
     if (!wallets) return [];
