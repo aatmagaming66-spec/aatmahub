@@ -35,15 +35,30 @@ export function LiveActivity() {
           <span className="text-[7px] font-black text-white/30 uppercase tracking-[0.3em]">Live Feed Distribution</span>
         </div>
         
-        {/* Compact Vertical Auto-Slider - 2 lines visible, 1 line slide */}
+        {/* Fixed Viewport: Exactly 2 activity items (44px) */}
         <div className="relative h-[44px] overflow-hidden">
-          <div 
-            className="flex flex-col transition-transform duration-700 ease-in-out"
-            style={{ transform: `translateY(-${index * 22}px)` }}
-          >
-            {/* Map activity items - Duplicate first few items at end for smoother visual looping if needed */}
-            {[...RECENT_ACTIVITY, RECENT_ACTIVITY[0]].map((activity, i) => (
-              <div key={i} className="flex items-center justify-between h-[22px] px-0.5 shrink-0">
+          {RECENT_ACTIVITY.map((activity, i) => {
+            // Calculate position relative to current index
+            let position = i - index;
+            
+            // Handle infinite wrap-around smoothly at item level
+            if (position < -2) position += RECENT_ACTIVITY.length;
+            if (position > RECENT_ACTIVITY.length - 2) position -= RECENT_ACTIVITY.length;
+
+            // Only track visibility for items in or near the viewport
+            const isVisible = position >= -1 && position <= 2;
+
+            return (
+              <div 
+                key={i} 
+                className="absolute w-full h-[22px] flex items-center justify-between px-0.5 transition-all duration-700 ease-in-out"
+                style={{ 
+                  transform: `translateY(${position * 22}px)`,
+                  opacity: position >= 0 && position <= 1 ? 1 : 0,
+                  visibility: isVisible ? 'visible' : 'hidden',
+                  zIndex: isVisible ? 10 : 0
+                }}
+              >
                 <div className="flex items-center gap-2 truncate">
                   <Zap size={7} className="text-primary shrink-0" />
                   <span className="text-primary text-[9px] font-black shrink-0">{activity.id}</span>
@@ -53,8 +68,8 @@ export function LiveActivity() {
                   <span className="text-[7px] uppercase font-black">{activity.time}</span>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </div>
     </section>
