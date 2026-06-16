@@ -6,7 +6,6 @@ import { signOut, sendPasswordResetEmail } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
-import { useDoc } from '@/firebase/firestore/use-doc';
 import { useGlobalSettings } from '@/firebase/settings-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +16,6 @@ import {
   LogOut, 
   ArrowRight, 
   ShieldCheck, 
-  Wallet, 
   Loader2, 
   Crown, 
   Copy, 
@@ -29,22 +27,19 @@ import {
   Shield,
   LogIn,
   Key,
-  ShieldAlert,
   Clock,
-  History,
-  PlusCircle,
-  Mail
+  Link as LinkIcon,
+  Fingerprint
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
 import { getRankFromSpend } from '@/lib/ranks';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RankProgressionSlider } from '@/components/wallet/rank-progression-slider';
 import { cn } from '@/lib/utils';
 
 /**
- * AATMA HUB Master Profile Identity Hub
- * Restored features: Membership, Security, Notifications, Activity Logs.
+ * AATMA HUB Simplified Profile Hub
+ * Focused exclusively on account management and security.
  */
 export default function ProfilePage() {
   const { user, profile, initialized } = useUser();
@@ -66,9 +61,6 @@ export default function ProfilePage() {
       setPhoneNumber(profile.phoneNumber || '');
     }
   }, [profile]);
-
-  const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
-  const { data: wallet, loading: walletLoading } = useDoc(walletRef);
 
   const rankInfo = useMemo(() => {
     return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
@@ -101,40 +93,31 @@ export default function ProfilePage() {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  // SHARED SHELL WRAPPER
-  const PageShell = ({ children, headerIcon: HeaderIcon }: { children: React.ReactNode, headerIcon: any }) => (
-    <div className="flex flex-col w-full animate-in fade-in duration-300 pb-24">
-      <div className="relative p-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12">
-          <HeaderIcon size={200} className="text-primary" />
-        </div>
-        {children}
-      </div>
-    </div>
-  );
-
   // GUEST STATE
   if (initialized && !user) {
     return (
-      <PageShell headerIcon={Shield}>
-        <div className="flex flex-col items-center justify-center gap-6 py-10 relative z-10">
-          <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
-            <User size={40} className="text-primary" />
+      <div className="flex flex-col w-full animate-in fade-in duration-300 pb-24">
+        <div className="relative p-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-b-[2.5rem] overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12"><Shield size={200} className="text-primary" /></div>
+          <div className="flex flex-col items-center justify-center gap-6 py-10 relative z-10">
+            <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center border border-primary/20">
+              <User size={40} className="text-primary" />
+            </div>
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-headline font-black uppercase tracking-tighter">Guest Protocol</h2>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Authentication required for Hub access</p>
+            </div>
+            <Link href="/login" className="w-full max-w-xs">
+              <Button className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 gap-3">
+                <LogIn size={18} /> Establish Connection
+              </Button>
+            </Link>
+            <Link href="/register" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors">
+              Initialize New Identity
+            </Link>
           </div>
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-headline font-black uppercase tracking-tighter">Guest Protocol</h2>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Authentication required for Hub access</p>
-          </div>
-          <Link href="/login" className="w-full max-w-xs">
-            <Button className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 gap-3">
-              <LogIn size={18} /> Establish Connection
-            </Button>
-          </Link>
-          <Link href="/register" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors">
-            Initialize New Identity
-          </Link>
         </div>
-      </PageShell>
+      </div>
     );
   }
 
@@ -184,46 +167,7 @@ export default function ProfilePage() {
           </Link>
         )}
 
-        {/* Wallet & Quick Activity Section */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <Wallet size={14} className="text-primary" />
-            <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-white/80">Financial Summary</h3>
-          </div>
-          <div className="grid gap-3">
-            <Link href="/wallet">
-              <Card className="bg-card border-border rounded-3xl p-6 flex items-center justify-between group hover:border-primary/40 transition-all shadow-xl">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Available Credits</p>
-                  {walletLoading ? (
-                    <Skeleton className="h-8 w-24 bg-white/5 mt-1" />
-                  ) : (
-                    <p className="text-3xl font-black text-white">₹{wallet?.balance?.toLocaleString() || '0'}<span className="text-lg text-white/40">.00</span></p>
-                  )}
-                </div>
-                <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20"><PlusCircle className="text-primary h-6 w-6" /></div>
-              </Card>
-            </Link>
-            
-            <div className="grid grid-cols-2 gap-3">
-               <Link href="/wallet/history">
-                 <Button variant="outline" className="w-full h-12 border-white/5 bg-white/5 rounded-2xl text-[9px] font-black uppercase tracking-widest gap-2">
-                   <History size={14} /> Activity Log
-                 </Button>
-               </Link>
-               <Link href="/orders">
-                 <Button variant="outline" className="w-full h-12 border-white/5 bg-white/5 rounded-2xl text-[9px] font-black uppercase tracking-widest gap-2">
-                   <ShieldCheck size={14} /> My Orders
-                 </Button>
-               </Link>
-            </div>
-          </div>
-        </section>
-
-        {/* Membership Progression Section */}
-        <RankProgressionSlider lifetimeSpend={profile?.lifetimeSpend || 0} ranks={ranks} />
-
-        {/* Account Settings Section */}
+        {/* Account Protocols Section */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <Settings size={14} className="text-primary" />
@@ -234,7 +178,7 @@ export default function ProfilePage() {
               <button onClick={() => setEditing(!editing)} className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><User size={16} /></div>
-                  <span className="text-xs font-bold text-white/90 uppercase">Identity Configuration</span>
+                  <span className="text-xs font-bold text-white/90 uppercase">Edit Profile</span>
                 </div>
                 <ChevronRight size={16} className={cn("text-white/20 transition-transform", editing && "rotate-90")} />
               </button>
@@ -242,20 +186,33 @@ export default function ProfilePage() {
               <button onClick={handlePasswordReset} disabled={sendingReset} className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Key size={16} /></div>
-                  <span className="text-xs font-bold text-white/90 uppercase">Change Security Key</span>
+                  <span className="text-xs font-bold text-white/90 uppercase">Change Password</span>
                 </div>
-                {sendingReset ? <Loader2 size={16} className="animate-spin text-accent" /> : <Mail size={16} className="text-white/20" />}
+                {sendingReset ? <Loader2 size={16} className="animate-spin text-accent" /> : <ChevronRight size={16} className="text-white/20" />}
               </button>
 
-              <button className="w-full flex items-center justify-between p-5 opacity-40 cursor-not-allowed">
+              <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                 <div className="flex items-center gap-4">
-                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center"><Bell size={16} /></div>
-                  <div className="text-left">
-                    <span className="text-xs font-bold text-white/90 uppercase block">Notification Sync</span>
-                    <span className="text-[7px] font-black uppercase text-primary">Deployment Pending</span>
-                  </div>
+                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><Bell size={16} /></div>
+                  <span className="text-xs font-bold text-white/90 uppercase">Notification Settings</span>
                 </div>
-                <Lock size={14} className="text-white/20" />
+                <ChevronRight size={16} className="text-white/20" />
+              </button>
+
+              <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Fingerprint size={16} /></div>
+                  <span className="text-xs font-bold text-white/90 uppercase">Security Settings</span>
+                </div>
+                <ChevronRight size={16} className="text-white/20" />
+              </button>
+
+              <button className="w-full flex items-center justify-between p-5 hover:bg-white/5 group transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-primary"><LinkIcon size={16} /></div>
+                  <span className="text-xs font-bold text-white/90 uppercase">Linked Accounts</span>
+                </div>
+                <ChevronRight size={16} className="text-white/20" />
               </button>
             </CardContent>
           </Card>
