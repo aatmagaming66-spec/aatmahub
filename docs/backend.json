@@ -58,7 +58,10 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "slug": { "type": "string" },
-        "icon": { "type": "string" },
+        "icon": { "type": "string", "description": "Main product icon" },
+        "cardImage": { "type": "string", "description": "Image used on marketplace cards" },
+        "banner": { "type": "string", "description": "Banner used on detail pages" },
+        "thumbnail": { "type": "string", "description": "Small preview image" },
         "status": { "type": "string", "enum": ["active", "inactive"] },
         "requirePlayerId": { "type": "boolean" },
         "requireServerId": { "type": "boolean" },
@@ -78,6 +81,10 @@
         "category": { "type": "string" },
         "region": { "type": "string" },
         "tab": { "type": "string" },
+        "icon": { "type": "string" },
+        "cardImage": { "type": "string" },
+        "banner": { "type": "string" },
+        "thumbnail": { "type": "string" },
         "status": { "type": "string", "enum": ["active", "inactive"] }
       }
     },

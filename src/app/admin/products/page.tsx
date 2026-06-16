@@ -16,8 +16,9 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Globe } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Globe, Upload, ImageIcon, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 export default function AdminProductsPage() {
   const db = useFirestore();
@@ -34,7 +35,11 @@ export default function AdminProductsPage() {
     price: '',
     category: 'Game',
     region: 'Global',
-    imageUrl: ''
+    imageUrl: '',
+    icon: '',
+    cardImage: '',
+    banner: '',
+    thumbnail: ''
   });
 
   const productsQuery = useMemo(() => query(
@@ -52,6 +57,22 @@ export default function AdminProductsPage() {
     );
   }, [products, searchQuery]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum size is 5MB.' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, [key]: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleOpenModal = (product: any = null) => {
     if (product) {
       setEditingProduct(product);
@@ -61,11 +82,15 @@ export default function AdminProductsPage() {
         price: product.price.toString(),
         category: product.category,
         region: product.region,
-        imageUrl: product.imageUrl || ''
+        imageUrl: product.imageUrl || '',
+        icon: product.icon || '',
+        cardImage: product.cardImage || '',
+        banner: product.banner || '',
+        thumbnail: product.thumbnail || ''
       });
     } else {
       setEditingProduct(null);
-      setFormData({ id: '', name: '', price: '', category: 'Game', region: 'Global', imageUrl: '' });
+      setFormData({ id: '', name: '', price: '', category: 'Game', region: 'Global', imageUrl: '', icon: '', cardImage: '', banner: '', thumbnail: '' });
     }
     setIsModalOpen(true);
   };
@@ -141,8 +166,8 @@ export default function AdminProductsPage() {
               <CardContent className="p-6 space-y-5">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-4">
-                    <div className="h-14 w-14 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner">
-                      <Tag className="h-6 w-6 text-primary" />
+                    <div className="h-14 w-14 bg-black/40 rounded-2xl flex items-center justify-center border border-white/5 shadow-inner overflow-hidden relative">
+                      {p.icon ? <Image src={p.icon} alt={p.name} fill className="object-cover" /> : <Tag className="h-6 w-6 text-primary" />}
                     </div>
                     <div>
                       <h3 className="text-sm font-black uppercase tracking-tight">{p.name}</h3>
@@ -185,62 +210,135 @@ export default function AdminProductsPage() {
 
       {/* Product Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-lg">
-          <DialogHeader>
+        <DialogContent className="bg-card border-border rounded-3xl p-0 max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="p-8 pb-4">
             <DialogTitle className="text-xl font-black uppercase tracking-tighter">
               {editingProduct ? 'Update Product Protocol' : 'Deploy New Entity'}
             </DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-6 py-6">
-            <div className="space-y-2">
-              <Label className="text-[9px] font-black uppercase tracking-widest">Internal ID</Label>
-              <Input 
-                disabled={!!editingProduct}
-                value={formData.id}
-                onChange={(e) => setFormData({...formData, id: e.target.value})}
-                placeholder="mlbb-86-diamonds" 
-                className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[9px] font-black uppercase tracking-widest">Product Name</Label>
-              <Input 
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                placeholder="86 Diamonds" 
-                className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[9px] font-black uppercase tracking-widest">Price (INR)</Label>
-              <div className="relative">
-                <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary" />
+          
+          <div className="flex-1 overflow-y-auto p-8 pt-0 space-y-8 no-scrollbar">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Internal ID</Label>
                 <Input 
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  placeholder="99" 
-                  className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold pl-10"
+                  disabled={!!editingProduct}
+                  value={formData.id}
+                  onChange={(e) => setFormData({...formData, id: e.target.value})}
+                  placeholder="mlbb-86-diamonds" 
+                  className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Product Name</Label>
+                <Input 
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  placeholder="86 Diamonds" 
+                  className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Price (INR)</Label>
+                <div className="relative">
+                  <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary" />
+                  <Input 
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({...formData, price: e.target.value})}
+                    placeholder="99" 
+                    className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold pl-10"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Distribution Region</Label>
+                <Input 
+                  value={formData.region}
+                  onChange={(e) => setFormData({...formData, region: e.target.value})}
+                  placeholder="India, Global..." 
+                  className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold"
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[9px] font-black uppercase tracking-widest">Distribution Region</Label>
-              <Input 
-                value={formData.region}
-                onChange={(e) => setFormData({...formData, region: e.target.value})}
-                placeholder="India, Global..." 
-                className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold"
-              />
+
+            {/* Media Protocols Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
+                <h3 className="text-[10px] font-black uppercase tracking-widest">Media Protocols</h3>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <MediaUploadField 
+                  label="Product Icon" 
+                  description="Tiny list identity"
+                  value={formData.icon} 
+                  onChange={(e) => handleFileChange(e, 'icon')}
+                  onRemove={() => setFormData({...formData, icon: ''})}
+                />
+                <MediaUploadField 
+                  label="Card Image" 
+                  description="Marketplace display"
+                  value={formData.cardImage} 
+                  onChange={(e) => handleFileChange(e, 'cardImage')}
+                  onRemove={() => setFormData({...formData, cardImage: ''})}
+                />
+                <MediaUploadField 
+                  label="Product Banner" 
+                  description="Cinematic detail header"
+                  value={formData.banner} 
+                  onChange={(e) => handleFileChange(e, 'banner')}
+                  onRemove={() => setFormData({...formData, banner: ''})}
+                />
+                <MediaUploadField 
+                  label="Thumbnail" 
+                  description="Search preview"
+                  value={formData.thumbnail} 
+                  onChange={(e) => handleFileChange(e, 'thumbnail')}
+                  onRemove={() => setFormData({...formData, thumbnail: ''})}
+                />
+              </div>
             </div>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="p-8 pt-4 border-t border-border">
             <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
               {saving ? <Loader2 className="animate-spin" /> : "Commit to Catalog"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function MediaUploadField({ label, description, value, onChange, onRemove }: any) {
+  return (
+    <div className="bg-black/20 border border-white/5 p-4 rounded-2xl space-y-3">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-[9px] font-black uppercase text-white/90">{label}</p>
+          <p className="text-[7px] font-bold text-muted-foreground uppercase">{description}</p>
+        </div>
+        {value && (
+          <button onClick={onRemove} className="text-primary hover:text-white transition-colors">
+            <X size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="relative aspect-video rounded-xl overflow-hidden bg-black/40 border border-dashed border-white/10 flex items-center justify-center group">
+        {value ? (
+          <Image src={value} alt={label} fill className="object-contain" />
+        ) : (
+          <Upload size={16} className="text-muted-foreground opacity-20" />
+        )}
+        <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Upload size={20} className="text-white" />
+          <input type="file" className="hidden" accept="image/*" onChange={onChange} />
+        </label>
+      </div>
     </div>
   );
 }

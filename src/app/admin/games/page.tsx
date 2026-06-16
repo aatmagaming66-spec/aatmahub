@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Save, Globe } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Save, Globe, ImageIcon, Upload, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
@@ -35,6 +35,9 @@ export default function GameManagementPage() {
     slug: '',
     status: 'active',
     icon: '',
+    cardImage: '',
+    banner: '',
+    thumbnail: '',
     requirePlayerId: true,
     requireServerId: true,
     requireVerifyId: false,
@@ -54,14 +57,43 @@ export default function GameManagementPage() {
     return games.filter(g => g.name?.toLowerCase().includes(searchQuery.toLowerCase()));
   }, [games, searchQuery]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum size is 5MB.' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, [key]: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleOpenModal = (game: any = null) => {
     if (game) {
       setEditingGame(game);
-      setFormData(game);
+      setFormData({
+        id: game.id || '',
+        name: game.name || '',
+        slug: game.slug || '',
+        status: game.status || 'active',
+        icon: game.icon || '',
+        cardImage: game.cardImage || '',
+        banner: game.banner || '',
+        thumbnail: game.thumbnail || '',
+        requirePlayerId: game.requirePlayerId !== undefined ? game.requirePlayerId : true,
+        requireServerId: game.requireServerId !== undefined ? game.requireServerId : true,
+        requireVerifyId: game.requireVerifyId !== undefined ? game.requireVerifyId : false,
+        sortOrder: game.sortOrder || 0
+      });
     } else {
       setEditingGame(null);
       setFormData({
-        id: '', name: '', slug: '', status: 'active', icon: '', 
+        id: '', name: '', slug: '', status: 'active', icon: '', cardImage: '', banner: '', thumbnail: '',
         requirePlayerId: true, requireServerId: true, requireVerifyId: false, sortOrder: games.length + 1
       });
     }
@@ -166,22 +198,68 @@ export default function GameManagementPage() {
       )}
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
-          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">{editingGame ? 'Update Protocol' : 'Deploy New Game'}</DialogTitle></DialogHeader>
-          <div className="grid grid-cols-2 gap-6 py-6">
-            <div className="space-y-2">
-              <Label className="text-[9px] font-black uppercase tracking-widest">Game Title</Label>
-              <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Mobile Legends" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+        <DialogContent className="bg-card border-border rounded-3xl p-0 max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="p-8 pb-4">
+            <DialogTitle className="text-xl font-black uppercase tracking-tighter">
+              {editingGame ? 'Update Protocol' : 'Deploy New Game'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-8 pt-0 space-y-8 no-scrollbar">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Game Title</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Mobile Legends" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest">Slug / ID</Label>
+                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="mlbb-global" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[9px] font-black uppercase tracking-widest">Slug / ID</Label>
-              <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="mlbb-global" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+
+            {/* Media Protocols Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-primary" />
+                <h3 className="text-[10px] font-black uppercase tracking-widest">Media Protocols</h3>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <MediaUploadField 
+                  label="Game Icon" 
+                  description="Tiny list identity"
+                  value={formData.icon} 
+                  onChange={(e) => handleFileChange(e, 'icon')}
+                  onRemove={() => setFormData({...formData, icon: ''})}
+                />
+                <MediaUploadField 
+                  label="Card Image" 
+                  description="Marketplace display"
+                  value={formData.cardImage} 
+                  onChange={(e) => handleFileChange(e, 'cardImage')}
+                  onRemove={() => setFormData({...formData, cardImage: ''})}
+                />
+                <MediaUploadField 
+                  label="Game Banner" 
+                  description="Cinematic detail header"
+                  value={formData.banner} 
+                  onChange={(e) => handleFileChange(e, 'banner')}
+                  onRemove={() => setFormData({...formData, banner: ''})}
+                />
+                <MediaUploadField 
+                  label="Thumbnail" 
+                  description="Search preview"
+                  value={formData.thumbnail} 
+                  onChange={(e) => handleFileChange(e, 'thumbnail')}
+                  onRemove={() => setFormData({...formData, thumbnail: ''})}
+                />
+              </div>
             </div>
-            
-            <div className="col-span-2 space-y-4 pt-4 border-t border-border">
+
+            <div className="space-y-4 pt-4 border-t border-border">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-[10px] font-black uppercase">Enable Game</Label>
+                  <Label className="text-10px] font-black uppercase">Enable Game</Label>
                   <p className="text-[8px] text-muted-foreground uppercase font-black">Visibility on frontend</p>
                 </div>
                 <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
@@ -196,13 +274,44 @@ export default function GameManagementPage() {
               </div>
             </div>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="p-8 pt-4 border-t border-border">
             <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
               {saving ? <Loader2 className="animate-spin" /> : "Commit to Registry"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function MediaUploadField({ label, description, value, onChange, onRemove }: any) {
+  return (
+    <div className="bg-black/20 border border-white/5 p-4 rounded-2xl space-y-3">
+      <div className="flex justify-between items-start">
+        <div>
+          <p className="text-[9px] font-black uppercase text-white/90">{label}</p>
+          <p className="text-[7px] font-bold text-muted-foreground uppercase">{description}</p>
+        </div>
+        {value && (
+          <button onClick={onRemove} className="text-primary hover:text-white transition-colors">
+            <X size={12} />
+          </button>
+        )}
+      </div>
+
+      <div className="relative aspect-video rounded-xl overflow-hidden bg-black/40 border border-dashed border-white/10 flex items-center justify-center group">
+        {value ? (
+          <Image src={value} alt={label} fill className="object-contain" />
+        ) : (
+          <Upload size={16} className="text-muted-foreground opacity-20" />
+        )}
+        <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Upload size={20} className="text-white" />
+          <input type="file" className="hidden" accept="image/*" onChange={onChange} />
+        </label>
+      </div>
     </div>
   );
 }
