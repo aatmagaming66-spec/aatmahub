@@ -83,80 +83,64 @@ function RankCard({ rank, lifetimeSpend, isCurrent, isUnlocked }: {
   return (
     <div className="flex-[0_0_80%] sm:flex-[0_0_300px] min-w-0 select-none">
       <Card className={cn(
-        "bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl relative transition-all duration-500",
+        "bg-card border-border rounded-[1.375rem] overflow-hidden shadow-2xl relative transition-all duration-500 min-h-[140px]",
         isCurrent ? "ring-1 ring-primary/40 shadow-primary/10 scale-100" : "opacity-40 scale-95",
       )}>
-        {/* Floating Discount Badge - TOP RIGHT */}
-        <div className="absolute top-0 right-0 z-20">
-           <div className="bg-primary px-3 py-1.5 rounded-bl-[1.5rem] border-l border-b border-white/10 shadow-xl">
-              <span className="text-[9px] font-black text-white uppercase tracking-tighter">{rank.discount}% OFF</span>
-           </div>
-        </div>
-
-        {/* Floating Rank Emblem - TOP RIGHT (Large) */}
+        {/* Floating Rank Emblem Background (Compressed) */}
         <div className={cn(
-          "absolute top-6 right-6 z-10 opacity-20 pointer-events-none transition-all duration-700",
-          isCurrent && "opacity-60 scale-125"
+          "absolute top-4 right-4 z-10 opacity-20 pointer-events-none transition-all duration-700",
+          isCurrent && "opacity-40 scale-110"
         )} style={{ color: rank.color }}>
-           {isImmortal ? <Crown size={64} className="fill-current" /> : <Star size={64} className="fill-current" />}
+           {isImmortal ? <Crown size={48} className="fill-current" /> : <Star size={48} className="fill-current" />}
         </div>
 
-        <CardContent className="p-5 space-y-4 relative z-10">
-          {/* Header Row */}
+        <CardContent className="p-4 space-y-4 relative z-10 flex flex-col justify-between h-full">
+          {/* TOP ROW: Icon + Name (Left), Discount Badge (Right) */}
           <div className="flex justify-between items-start">
-            <div className="space-y-0.5">
-              <h4 className="text-sm font-black uppercase tracking-tight text-white leading-none">{rank.name}</h4>
-              <div className="flex items-center gap-1.5">
-                 {isUnlocked ? (
-                   <CheckCircle2 size={9} className="text-green-500" />
-                 ) : (
-                   <Lock size={9} className="text-muted-foreground" />
-                 )}
-                 <span className={cn(
-                   "text-[7px] font-black uppercase tracking-widest",
-                   isCurrent ? "text-primary" : (isUnlocked ? "text-green-500" : "text-muted-foreground")
-                 )}>
-                   {isCurrent ? 'Current Tier' : (isUnlocked ? 'Unlocked' : 'Requirement')}
-                 </span>
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/5" style={{ color: rank.color }}>
+                 {isImmortal ? <Crown size={14} /> : <Star size={14} />}
               </div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-black uppercase tracking-tight text-white leading-none">{rank.name}</h4>
+                <p className={cn(
+                  "text-[7px] font-black uppercase tracking-widest",
+                  isCurrent ? "text-primary" : (isUnlocked ? "text-green-500" : "text-muted-foreground")
+                )}>
+                  {isCurrent ? 'Active Status' : (isUnlocked ? 'Unlocked' : 'Requirement')}
+                </p>
+              </div>
+            </div>
+            
+            <div className="bg-primary/20 border border-primary/30 px-2.5 py-1 rounded-lg">
+               <span className="text-[8px] font-black text-primary uppercase tracking-tighter">{rank.discount}% REWARD</span>
             </div>
           </div>
 
-          {/* Progress Section - Middle */}
-          <div className="space-y-3">
+          {/* MIDDLE: Requirement + Progress Bar */}
+          <div className="space-y-2">
             <div className="flex justify-between items-end">
-              <p className="text-[9px] font-black text-white uppercase">Min Spend: ₹{rank.threshold.toLocaleString()}</p>
+              <p className="text-[9px] font-black text-white/80 uppercase">
+                 ₹{lifetimeSpend.toLocaleString()} <span className="text-white/30 mx-1">/</span> ₹{rank.threshold.toLocaleString()}
+              </p>
               <span className="text-[9px] font-black text-primary tracking-tighter">{progressPercent}%</span>
             </div>
 
-            <div className="space-y-2">
-              <div className="relative">
-                <Progress value={progressPercent} className="h-1 bg-white/5 rounded-full" />
-                {isUnlocked && <div className="absolute inset-0 bg-green-500/10 blur-sm rounded-full pointer-events-none" />}
-              </div>
-              <p className="text-[8px] font-black text-white/40 text-left uppercase tracking-[0.1em]">
-                ₹{lifetimeSpend.toLocaleString()} / ₹{rank.threshold.toLocaleString()}
-              </p>
+            <div className="relative">
+              <Progress value={progressPercent} className="h-1 bg-white/5 rounded-full" />
+              {isUnlocked && <div className="absolute inset-0 bg-green-500/10 blur-sm rounded-full pointer-events-none" />}
             </div>
           </div>
 
-          {/* Benefits - Bottom (Limited to 2) */}
-          <div className="pt-3 border-t border-white/5 flex gap-4">
-            {rank.benefits.slice(0, 2).map((benefit, i) => (
-              <div key={i} className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg border border-white/5">
+          {/* BOTTOM: Next Tier Note (Compact) */}
+          <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest">
+             <div className="flex items-center gap-1.5">
                 <Zap size={8} className="text-primary fill-primary" />
-                <span className="text-[8px] font-bold text-white/70 uppercase tracking-tighter whitespace-nowrap">{benefit}</span>
-              </div>
-            ))}
+                <span>{rank.benefits[0] || 'Member Rewards'}</span>
+             </div>
+             {isUnlocked && <ShieldCheck size={10} className="text-green-500/30" />}
           </div>
         </CardContent>
-
-        {/* Decorative Watermark */}
-        {isUnlocked && (
-          <div className="absolute -bottom-6 -right-6 opacity-[0.03] pointer-events-none -rotate-12">
-            <ShieldCheck size={120} />
-          </div>
-        )}
       </Card>
     </div>
   );

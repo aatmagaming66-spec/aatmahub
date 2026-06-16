@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useUser } from '@/firebase/auth/use-user';
@@ -140,7 +141,7 @@ export default function WalletDashboard() {
           
           {/* FRONT SIDE */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[2rem] overflow-hidden shadow-2xl border",
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border",
             cardTheme.bg,
             cardTheme.border
           )}>
@@ -152,8 +153,9 @@ export default function WalletDashboard() {
                   <span className="font-headline font-black text-sm sm:text-base tracking-tighter text-white uppercase truncate">AATMA HUB</span>
                   <span className="text-[5px] font-black text-white/50 uppercase tracking-[0.4em]">Digital Gaming Bank</span>
                 </div>
+                {/* Floating Rank Badge Top-Right */}
                 <div className={cn(
-                  "backdrop-blur-md border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xl bg-black/20 shrink-0 text-white",
+                  "backdrop-blur-md border px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-xl bg-black/40 shrink-0 text-white metallic-badge",
                   cardTheme.border
                 )}>
                    <Crown size={8} className="fill-white/20 text-white" />
@@ -161,7 +163,7 @@ export default function WalletDashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 py-4">
+              <div className="flex items-center gap-4 py-2">
                 <div className={cn(
                   "h-8 w-11 bg-gradient-to-br rounded-md relative overflow-hidden flex items-center justify-center border border-white/20 shadow-inner shrink-0",
                   cardTheme.chip
@@ -200,7 +202,7 @@ export default function WalletDashboard() {
 
           {/* BACK SIDE */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[2rem] overflow-hidden shadow-2xl border",
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border",
             cardTheme.bg,
             cardTheme.border
           )}>
@@ -225,12 +227,12 @@ export default function WalletDashboard() {
 
       <div className="flex gap-4">
         <Link href="/wallet/deposit" className="flex-1">
-          <Button className="w-full h-16 bg-primary hover:bg-secondary text-white font-black text-xs uppercase tracking-[0.2em] rounded-3xl transition-all shadow-xl shadow-primary/20 gap-3 group">
+          <Button className="w-full h-16 bg-primary hover:bg-secondary text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-primary/20 gap-3 group">
             <PlusCircle className="h-5 w-5 group-hover:rotate-90 transition-transform" /> Deposit
           </Button>
         </Link>
         <Link href="/wallet/history" className="flex-1">
-          <Button variant="outline" className="w-full h-16 border-border bg-card text-white hover:bg-white/5 font-black text-xs uppercase tracking-[0.2em] rounded-3xl transition-all gap-3">
+          <Button variant="outline" className="w-full h-16 border-border bg-card text-white hover:bg-white/5 font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all gap-3">
             <History className="h-5 w-5" /> Statement
           </Button>
         </Link>
@@ -252,12 +254,12 @@ export default function WalletDashboard() {
           {transactionsLoading ? (
             <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 text-primary animate-spin" /></div>
           ) : recentTransactions.length === 0 ? (
-            <div className="bg-card/20 border border-dashed border-border p-10 rounded-3xl text-center">
+            <div className="bg-card/20 border border-dashed border-border p-10 rounded-2xl text-center">
               <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">No financial records found</p>
             </div>
           ) : (
             recentTransactions.map((tx) => (
-              <div key={tx.transactionId} className="bg-card border border-border p-5 rounded-3xl flex items-center justify-between shadow-lg hover:border-primary/30 transition-all">
+              <div key={tx.transactionId} className="bg-card border border-border p-5 rounded-2xl flex items-center justify-between shadow-lg hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-4">
                   <div className={cn(
                     "h-12 w-12 rounded-2xl flex items-center justify-center border",
