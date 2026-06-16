@@ -1,15 +1,31 @@
 "use client"
 
+import { useEffect, useState } from "react";
 import { Zap } from "lucide-react";
 
 const RECENT_ACTIVITY = [
   { id: "AH_88**", product: "86 Diamonds", time: "1m ago" },
   { id: "AH_12**", product: "Weekly Pass", time: "3m ago" },
+  { id: "AH_45**", product: "Monthly Pass", time: "5m ago" },
+  { id: "AH_99**", product: "172 Diamonds", time: "7m ago" },
+  { id: "AH_32**", product: "Netflix Prem", time: "10m ago" },
+  { id: "AH_21**", product: "86 Diamonds", time: "12m ago" },
+  { id: "AH_67**", product: "Spotify Prem", time: "15m ago" },
+  { id: "AH_54**", product: "Genshin Welkin", time: "18m ago" },
 ];
 
 export function LiveActivity() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setIndex((prev) => (prev + 1) % (RECENT_ACTIVITY.length - 1));
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <section className="px-4 mt-8 mb-2">
+    <section className="px-4 mt-6 mb-2">
       <div className="bg-card/30 border border-white/5 rounded-2xl p-3 flex flex-col gap-2 relative overflow-hidden">
         <div className="flex items-center gap-2 mb-1">
           <div className="relative flex h-2 w-2">
@@ -19,19 +35,25 @@ export function LiveActivity() {
           <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Live Feed Distribution</span>
         </div>
         
-        <div className="space-y-1.5">
-          {RECENT_ACTIVITY.map((activity, i) => (
-            <div key={i} className="flex items-center justify-between text-[10px] font-bold">
-              <div className="flex items-center gap-2">
-                <span className="text-primary">{activity.id}</span>
-                <span className="text-white/60 tracking-tight">purchased {activity.product}</span>
+        {/* Compact Vertical Auto-Slider */}
+        <div className="relative h-[42px] overflow-hidden">
+          <div 
+            className="flex flex-col gap-1 transition-transform duration-700 ease-in-out"
+            style={{ transform: `translateY(-${index * 21}px)` }}
+          >
+            {RECENT_ACTIVITY.map((activity, i) => (
+              <div key={i} className="flex items-center justify-between text-[10px] font-bold h-[20px] px-0.5">
+                <div className="flex items-center gap-2 truncate">
+                  <Zap size={8} className="text-primary shrink-0" />
+                  <span className="text-primary shrink-0">{activity.id}</span>
+                  <span className="text-white/60 tracking-tight truncate">purchased {activity.product}</span>
+                </div>
+                <div className="flex items-center gap-1 text-white/20 shrink-0 ml-2">
+                  <span className="text-[8px] uppercase font-black">{activity.time}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1 text-accent">
-                <Zap size={8} />
-                <span className="text-[8px] uppercase">{activity.time}</span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </section>
