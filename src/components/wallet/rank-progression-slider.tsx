@@ -30,8 +30,11 @@ interface RankProgressionSliderProps {
 }
 
 export function RankProgressionSlider({ lifetimeSpend, ranks = DEFAULT_RANKS }: RankProgressionSliderProps) {
-  const sortedRanks = useMemo(() => [...ranks].sort((a, b) => a.sortOrder - b.sortOrder), [ranks]);
-  const currentRank = useMemo(() => getRankFromSpend(lifetimeSpend, ranks), [lifetimeSpend, ranks]);
+  // Safety check: ensure ranks is an array to prevent "not iterable" error
+  const safeRanks = Array.isArray(ranks) && ranks.length > 0 ? ranks : DEFAULT_RANKS;
+  
+  const sortedRanks = useMemo(() => [...safeRanks].sort((a, b) => a.sortOrder - b.sortOrder), [safeRanks]);
+  const currentRank = useMemo(() => getRankFromSpend(lifetimeSpend, safeRanks), [lifetimeSpend, safeRanks]);
   
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'center',
