@@ -188,7 +188,7 @@ export default function ProfilePage() {
         {/* QUICK STATUS ROW */}
         <div className="flex items-center gap-2 mt-8">
            <StatusBadge label={profile?.role?.replace('_', ' ') || 'User'} icon={isAdmin ? Crown : User} active />
-           <StatusBadge label={`Prestige Lvl: ${rankInfo.sortOrder + 1}`} icon={Star} active={rankInfo.sortOrder > 0} />
+           <StatusBadge label={`Level ${rankInfo.sortOrder + 1}`} icon={Star} active={rankInfo.sortOrder > 0} />
            <StatusBadge label="Verified" icon={CheckCircle2} active />
         </div>
       </div>
@@ -211,7 +211,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20"><Wallet className="text-primary h-6 w-6" /></div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Available Credits</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Wallet Balance</p>
                 <p className="text-2xl font-black text-white">₹{wallet?.balance?.toLocaleString() || '0'}.00</p>
               </div>
             </div>
@@ -276,12 +276,12 @@ export default function ProfilePage() {
         )}
 
         <Button variant="outline" onClick={handleLogout} className="w-full h-14 border-white/5 text-muted-foreground hover:text-primary hover:bg-primary/5 font-black text-[10px] uppercase tracking-[0.2em] gap-3 rounded-2xl transition-all">
-          <LogOut size={18} /> Terminate Session
+          <LogOut size={18} /> Logout
         </Button>
 
         <div className="flex flex-col items-center justify-center gap-2 pt-4 opacity-20">
            <Zap size={12} className="text-primary" />
-           <p className="text-[7px] font-black uppercase tracking-[0.4em]">AATMA HUB Core v2.5.0 STABLE</p>
+           <p className="text-[7px] font-black uppercase tracking-[0.4em]">Aatma HUB</p>
         </div>
       </div>
     </div>
