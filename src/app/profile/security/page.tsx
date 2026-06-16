@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -13,6 +14,7 @@ import {
   ShieldAlert,
   Trash2
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 /**
  * Security Sector Page

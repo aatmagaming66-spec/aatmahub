@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -135,17 +136,17 @@ export default function ProfilePage() {
                   {/* Identity Badge Matrix */}
                   {profile && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {/* Role */}
+                      {/* Role Badge */}
                       <div className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md flex items-center gap-1">
                         <ShieldCheck size={8} className="text-white/40" />
                         <span className="text-[7px] font-black uppercase text-white/70 tracking-widest">{profile.role.replace('_', ' ')}</span>
                       </div>
-                      {/* Level */}
+                      {/* Level Badge */}
                       <div className="px-2 py-0.5 bg-accent/20 border border-accent/30 rounded-md flex items-center gap-1">
                         <Zap size={8} className="text-accent" />
                         <span className="text-[7px] font-black uppercase text-accent tracking-widest">Level {userLevel}</span>
                       </div>
-                      {/* Rank */}
+                      {/* Rank Badge */}
                       <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-md flex items-center gap-1">
                         <Star size={8} className="text-primary fill-primary" />
                         <span className="text-[7px] font-black uppercase text-primary tracking-widest">{rankInfo.name}</span>
