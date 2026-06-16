@@ -24,9 +24,13 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Layers, Globe } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Layers, Globe, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+/**
+ * PACKAGE REGISTRY (Admin)
+ * Central management for all digital SKUs across Games, OTT, and Social.
+ */
 export default function AdminProductsPage() {
   const db = useFirestore();
   const { toast } = useToast();
@@ -45,9 +49,10 @@ export default function AdminProductsPage() {
     status: 'active'
   });
 
+  // DATA SOURCE: Master Products Collection
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
-    limit(100)
+    limit(500) // Increased limit for full registry visibility
   ), [db]);
 
   const gamesQuery = useMemo(() => query(collection(db, 'games')), [db]);
@@ -59,6 +64,7 @@ export default function AdminProductsPage() {
   const { data: ott } = useCollection(ottQuery);
   const { data: social } = useCollection(socialQuery);
 
+  // Cross-reference categories for the selector
   const categories = useMemo(() => {
     return [
       ...(games || []).map(g => ({ id: g.id, name: g.name, type: 'Game' })),
@@ -71,7 +77,8 @@ export default function AdminProductsPage() {
     if (!products) return [];
     return products.filter(p => 
       p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      p.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.id?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [products, searchQuery]);
 
@@ -113,7 +120,7 @@ export default function AdminProductsPage() {
       };
 
       await setDoc(doc(db, 'products', pId), dataToSave, { merge: true });
-      toast({ title: "Package Registry Updated", description: `${formData.name} is now live.` });
+      toast({ title: "Registry Synchronized", description: `${formData.name} updated.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
@@ -123,10 +130,10 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently remove this package from the registry?')) return;
+    if (!confirm('Permanently remove this SKU from the registry?')) return;
     try {
       await deleteDoc(doc(db, 'products', id));
-      toast({ title: "Package Purged" });
+      toast({ title: "SKU Purged" });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Delete Failed', description: e.message });
     }
@@ -137,7 +144,7 @@ export default function AdminProductsPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Package Registry</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital SKU Management</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital SKU Hub</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
           <Plus size={16} /> Deploy New SKU
@@ -147,7 +154,7 @@ export default function AdminProductsPage() {
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Search SKUs or Categories..." 
+          placeholder="Search Registry by Name, ID or Category..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
@@ -155,11 +162,14 @@ export default function AdminProductsPage() {
       </div>
 
       {productsLoading ? (
-        <div className="flex h-64 items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        </div>
       ) : filteredProducts.length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-[2rem] p-20 text-center space-y-4">
            <Package className="h-12 w-12 text-muted-foreground mx-auto opacity-20" />
            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">Registry Empty</p>
+           <p className="text-[9px] text-muted-foreground uppercase max-w-xs mx-auto">No products found in the database matching your criteria.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -173,10 +183,11 @@ export default function AdminProductsPage() {
                         <span className="text-[8px] font-black uppercase tracking-widest">{p.category}</span>
                       </div>
                       <h3 className="text-sm font-black uppercase tracking-tight text-white">{p.name}</h3>
+                      <p className="text-[7px] text-white/20 font-mono uppercase truncate max-w-[150px]">ID: {p.id}</p>
                    </div>
                    <div className="text-right">
                       <p className="text-lg font-black text-primary leading-none">₹{p.price}</p>
-                      <p className="text-[7px] font-black uppercase opacity-40 mt-1">{p.tab}</p>
+                      <p className="text-[7px] font-black uppercase opacity-40 mt-1">{p.tab} • {p.region}</p>
                    </div>
                 </div>
 
@@ -194,6 +205,16 @@ export default function AdminProductsPage() {
         </div>
       )}
 
+      <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-primary" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Data Integrity Note</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
+          SKUs are filtered on public pages based on their 'Category' ID. If a product is missing from a game page, verify that its Category ID matches the Game Slug exactly.
+        </p>
+      </div>
+
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
           <DialogHeader>
@@ -210,7 +231,7 @@ export default function AdminProductsPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Parent Category</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest">Parent Category (Game/Service ID)</Label>
                 <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
                   <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
                     <SelectValue placeholder="Select Title" />
@@ -265,7 +286,7 @@ export default function AdminProductsPage() {
 
             <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
               <div className="space-y-0.5">
-                <Label className="text-[10px] font-black uppercase">SKU Operational Status</Label>
+                <Label className="text-[10px] font-black uppercase">Operational Status</Label>
                 <p className="text-[8px] text-muted-foreground uppercase font-black">Visibility in catalog</p>
               </div>
               <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
