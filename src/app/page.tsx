@@ -1,26 +1,16 @@
+
 "use client"
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { HeroBanner } from "@/components/home/hero-banner";
 import { QuickActions } from "@/components/home/quick-actions";
 import { GameGrid } from "@/components/home/game-grid";
 import { ServiceCarousel } from "@/components/home/service-carousel";
-import { ShieldCheck, Zap, Lock, Headphones } from "lucide-react";
+import { ShieldCheck, Zap, Lock, Headphones, Loader2 } from "lucide-react";
 import Link from 'next/link';
-
-const OTT_SERVICES = [
-  { id: "netflix", name: "Netflix Premium", imgId: "ott-netflix" },
-  { id: "prime", name: "Amazon Prime", imgId: "ott-prime" },
-  { id: "yt-prem", name: "YouTube Premium", imgId: "ott-yt" },
-  { id: "spotify", name: "Spotify Premium", imgId: "ott-spotify" },
-];
-
-const SOCIAL_SERVICES = [
-  { id: "ig-serv", name: "Instagram", imgId: "social-ig" },
-  { id: "fb-serv", name: "Facebook", imgId: "social-fb" },
-  { id: "tg-serv", name: "Telegram", imgId: "social-fb" },
-  { id: "yt-serv", name: "YouTube", imgId: "ott-yt" },
-];
+import { useFirestore } from "@/firebase/provider";
+import { collection, query, orderBy } from "firebase/firestore";
+import { useCollection } from "@/firebase/firestore/use-collection";
 
 declare global {
   interface Window {
@@ -29,14 +19,21 @@ declare global {
 }
 
 export default function Home() {
+  const db = useFirestore();
+
+  // Real-time listeners for service collections
+  const ottQuery = useMemo(() => query(collection(db, 'ott_services'), orderBy('sortOrder', 'asc')), [db]);
+  const socialQuery = useMemo(() => query(collection(db, 'social_services'), orderBy('sortOrder', 'asc')), [db]);
+
+  const { data: ottItems, loading: ottLoading } = useCollection(ottQuery);
+  const { data: socialItems, loading: socialLoading } = useCollection(socialQuery);
+
   useEffect(() => {
     const mountTime = performance.now();
     if (window.__nav_click_time) {
       const duration = mountTime - window.__nav_click_time;
       console.log(`[PERF_HUB] Homepage Navigation Load: ${duration.toFixed(2)}ms ${duration > 1000 ? '⚠️ SLOW' : '✅ OK'}`);
       window.__nav_click_time = undefined;
-    } else {
-      console.log(`[PERF_HUB] Homepage Direct Mount: ${mountTime.toFixed(2)}ms`);
     }
   }, []);
 
@@ -77,9 +74,23 @@ export default function Home() {
       </section>
       
       <QuickActions />
+      
+      {/* Mobile Games Grid (Internal Firestore Fetch) */}
       <GameGrid />
-      <ServiceCarousel title="OTT Services" items={OTT_SERVICES} />
-      <ServiceCarousel title="Social Services" items={SOCIAL_SERVICES} />
+
+      {/* OTT Services Carousel */}
+      {ottLoading ? (
+        <div className="px-4 py-10 flex justify-center"><Loader2 className="animate-spin text-accent" /></div>
+      ) : (
+        <ServiceCarousel title="OTT Services" items={ottItems} />
+      )}
+
+      {/* Social Services Carousel */}
+      {socialLoading ? (
+        <div className="px-4 py-10 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
+      ) : (
+        <ServiceCarousel title="Social Services" items={socialItems} />
+      )}
 
       <footer className="px-6 py-10 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
         <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 leading-none">
