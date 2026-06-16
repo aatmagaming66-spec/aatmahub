@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect } from "react";
@@ -6,10 +5,8 @@ import { HeroBanner } from "@/components/home/hero-banner";
 import { QuickActions } from "@/components/home/quick-actions";
 import { GameGrid } from "@/components/home/game-grid";
 import { ServiceCarousel } from "@/components/home/service-carousel";
-import { LiveActivity } from "@/components/home/live-activity";
 import { ShieldCheck, Zap, Lock, Headphones } from "lucide-react";
 import Link from 'next/link';
-import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 const OTT_SERVICES = [
   { id: "netflix", name: "Netflix Premium", imgId: "ott-netflix" },
@@ -83,7 +80,6 @@ export default function Home() {
       <GameGrid />
       <ServiceCarousel title="OTT Services" items={OTT_SERVICES} />
       <ServiceCarousel title="Social Services" items={SOCIAL_SERVICES} />
-      <LiveActivity />
 
       <footer className="px-6 py-10 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
         <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 leading-none">
