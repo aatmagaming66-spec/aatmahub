@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { signOut, sendPasswordResetEmail } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
@@ -53,7 +53,6 @@ export default function ProfilePage() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [sendingReset, setSendingReset] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -72,22 +71,6 @@ export default function ProfilePage() {
       router.replace('/login'); 
     } catch (e) { 
       toast({ variant: 'destructive', title: 'Logout Failed' }); 
-    }
-  };
-
-  const handlePasswordReset = async () => {
-    if (!user?.email) return;
-    setSendingReset(true);
-    try {
-      await sendPasswordResetEmail(auth, user.email);
-      toast({
-        title: "Security Link Dispatched",
-        description: `Reset protocol sent to ${user.email}`,
-      });
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Reset Failed', description: e.message });
-    } finally {
-      setSendingReset(false);
     }
   };
 
@@ -183,13 +166,15 @@ export default function ProfilePage() {
                 <ChevronRight size={16} className={cn("text-white/20 transition-transform", editing && "rotate-90")} />
               </button>
 
-              <button onClick={handlePasswordReset} disabled={sendingReset} className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Key size={16} /></div>
-                  <span className="text-xs font-bold text-white/90 uppercase">Change Password</span>
-                </div>
-                {sendingReset ? <Loader2 size={16} className="animate-spin text-accent" /> : <ChevronRight size={16} className="text-white/20" />}
-              </button>
+              <Link href="/profile/change-password">
+                <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-9 w-9 rounded-xl bg-white/5 flex items-center justify-center text-accent"><Key size={16} /></div>
+                    <span className="text-xs font-bold text-white/90 uppercase">Change Password</span>
+                  </div>
+                  <ChevronRight size={16} className="text-white/20" />
+                </button>
+              </Link>
 
               <button className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                 <div className="flex items-center gap-4">
