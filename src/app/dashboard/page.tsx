@@ -8,7 +8,7 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 import { doc, query, collection, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, Loader2, ArrowLeft, Crown, Cpu, Target, Zap } from 'lucide-react';
+import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, Loader2, ArrowLeft, Crown, Cpu, Target, Zap, ShieldCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -62,18 +62,81 @@ export default function DashboardPage() {
     return { ...current, next: next?.name || 'MAX RANK', nextThreshold: next?.threshold || current.threshold, progress };
   }, [lifetimeSpend]);
 
-  const getRankStyle = (rankName: string) => {
+  const getCardTheme = (rankName: string) => {
     const name = rankName.toLowerCase();
-    if (name.includes('warrior')) return 'text-slate-400 border-slate-400/40 bg-slate-400/10 shadow-[0_0_10px_rgba(148,163,184,0.2)]';
-    if (name.includes('elite')) return 'text-slate-100 border-slate-200/30 bg-slate-200/10';
-    if (name.includes('master')) return 'text-orange-400 border-orange-400/30 bg-orange-400/10';
-    if (name.includes('grandmaster')) return 'text-cyan-400 border-cyan-400/30 bg-cyan-400/10';
-    if (name.includes('epic')) return 'text-emerald-400 border-emerald-400/30 bg-emerald-400/10';
-    if (name.includes('legend')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
-    if (name.includes('mythical immortal')) return 'text-red-600 border-red-600/40 bg-red-600/20 shadow-[0_0_10px_rgba(220,38,38,0.3)]';
-    if (name.includes('mythic')) return 'text-red-500 border-red-500/30 bg-red-500/10';
-    return 'text-primary border-primary/20 bg-primary/10';
+    if (name.includes('immortal')) return {
+      bg: 'bg-gradient-to-br from-yellow-600 via-red-900 to-yellow-700 animate-pulse',
+      border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]',
+      chip: 'from-yellow-400 via-yellow-200 to-yellow-500',
+      shine: 'via-white/30',
+      text: 'text-yellow-100'
+    };
+    if (name.includes('glory')) return {
+      bg: 'bg-gradient-to-br from-red-700 via-zinc-950 to-red-900',
+      border: 'border-yellow-600/40',
+      chip: 'from-yellow-500 via-yellow-300 to-yellow-600',
+      shine: 'via-white/20',
+      text: 'text-red-100'
+    };
+    if (name.includes('honor')) return {
+      bg: 'bg-gradient-to-br from-orange-700 via-zinc-950 to-orange-900',
+      border: 'border-orange-500/40',
+      chip: 'from-orange-400 via-orange-200 to-orange-500',
+      shine: 'via-white/15',
+      text: 'text-orange-100'
+    };
+    if (name.includes('mythic')) return {
+      bg: 'bg-gradient-to-br from-red-800 via-zinc-950 to-red-950',
+      border: 'border-red-500/40',
+      chip: 'from-red-400 via-red-200 to-red-500',
+      shine: 'via-white/15',
+      text: 'text-red-100'
+    };
+    if (name.includes('legend')) return {
+      bg: 'bg-gradient-to-br from-yellow-700 via-zinc-950 to-yellow-900',
+      border: 'border-yellow-500/40',
+      chip: 'from-yellow-400 via-yellow-200 to-yellow-500',
+      shine: 'via-white/15',
+      text: 'text-yellow-100'
+    };
+    if (name.includes('epic')) return {
+      bg: 'bg-gradient-to-br from-pink-800 via-zinc-950 to-pink-900',
+      border: 'border-pink-500/30',
+      chip: 'from-pink-400 via-pink-200 to-pink-500',
+      shine: 'via-white/10',
+      text: 'text-pink-100'
+    };
+    if (name.includes('grandmaster')) return {
+      bg: 'bg-gradient-to-br from-purple-800 via-zinc-950 to-purple-900',
+      border: 'border-purple-500/30',
+      chip: 'from-purple-400 via-purple-200 to-purple-500',
+      shine: 'via-white/10',
+      text: 'text-purple-100'
+    };
+    if (name.includes('master')) return {
+      bg: 'bg-gradient-to-br from-blue-800 via-zinc-950 to-blue-900',
+      border: 'border-blue-500/30',
+      chip: 'from-blue-400 via-blue-200 to-blue-500',
+      shine: 'via-white/10',
+      text: 'text-blue-100'
+    };
+    if (name.includes('elite')) return {
+      bg: 'bg-gradient-to-br from-emerald-800 via-zinc-950 to-emerald-900',
+      border: 'border-emerald-500/30',
+      chip: 'from-emerald-400 via-emerald-200 to-emerald-500',
+      shine: 'via-white/10',
+      text: 'text-emerald-100'
+    };
+    return { // Warrior default
+      bg: 'bg-gradient-to-br from-zinc-800 via-zinc-950 to-zinc-700',
+      border: 'border-zinc-500/30',
+      chip: 'from-zinc-400 via-zinc-200 to-zinc-500',
+      shine: 'via-white/5',
+      text: 'text-zinc-100'
+    };
   };
+
+  const cardTheme = getCardTheme(rankInfo.name);
 
   if (userLoading || walletLoading) {
     return (
@@ -118,19 +181,23 @@ export default function DashboardPage() {
         )}>
           
           {/* FRONT SIDE */}
-          <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[2rem] overflow-hidden shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-black via-zinc-900 to-[#8b0000]" />
+          <div className={cn(
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[2rem] overflow-hidden shadow-2xl border",
+            cardTheme.bg,
+            cardTheme.border
+          )}>
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
             
             <div className="relative h-full p-5 flex flex-col justify-between z-10">
               <div className="flex justify-between items-start">
                 <div className="flex flex-col">
                   <span className="font-headline font-black text-sm tracking-tighter text-white/90 uppercase">AATMA HUB</span>
-                  <span className="text-[5px] font-black text-primary uppercase tracking-[0.4em]">Digital Gaming Bank</span>
+                  <span className="text-[5px] font-black text-white/50 uppercase tracking-[0.4em]">Digital Gaming Bank</span>
                 </div>
                 <div className={cn(
-                  "backdrop-blur-md border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xl transition-colors duration-500",
-                  getRankStyle(rankInfo.name)
+                  "backdrop-blur-md border px-3 py-1 rounded-full flex items-center gap-1.5 shadow-xl transition-colors duration-500 bg-black/20",
+                  cardTheme.border,
+                  cardTheme.text
                 )}>
                    <Crown size={8} className="fill-current/20" />
                    <span className="text-[8px] font-black uppercase tracking-widest">{rankInfo.name}</span>
@@ -138,7 +205,10 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="h-8 w-11 bg-gradient-to-br from-yellow-600 via-yellow-400 to-yellow-700 rounded-md relative overflow-hidden flex items-center justify-center border border-yellow-200/30 shadow-inner opacity-90">
+                <div className={cn(
+                  "h-8 w-11 bg-gradient-to-br rounded-md relative overflow-hidden flex items-center justify-center border border-white/20 shadow-inner",
+                  cardTheme.chip
+                )}>
                    <div className="grid grid-cols-3 gap-0.5 w-full h-full p-1 opacity-20">
                       {[...Array(9)].map((_, i) => <div key={i} className="border border-black/40 rounded-sm" />)}
                    </div>
@@ -165,7 +235,6 @@ export default function DashboardPage() {
                     </div>
                  </div>
                  
-                 {/* Compact Info Row */}
                  <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-2">
                    <span>Rank: <span className="text-white/60">{rankInfo.name}</span></span>
                    <span>Discount: <span className="text-green-500/60">{rankInfo.discount}%</span></span>
@@ -173,26 +242,31 @@ export default function DashboardPage() {
                  </div>
               </div>
             </div>
-            <div className="absolute inset-0 translate-x-[-100%] hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 z-20" />
+            <div className={cn(
+              "absolute inset-0 translate-x-[-100%] hover:translate-x-[150%] transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent to-transparent -skew-x-12 z-20",
+              cardTheme.shine
+            )} />
           </div>
 
           {/* BACK SIDE */}
-          <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[2rem] overflow-hidden shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a1a1a] to-black" />
-            
+          <div className={cn(
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[2rem] overflow-hidden shadow-2xl border",
+            cardTheme.bg,
+            cardTheme.border
+          )}>
             <div className="relative h-full flex flex-col z-10">
-              <div className="w-full h-10 bg-zinc-900 mt-6 shadow-inner" />
+              <div className="w-full h-10 bg-black/60 mt-6 shadow-inner" />
               
               <div className="flex-1 p-6 flex flex-col justify-center">
                  <div className="flex items-center gap-4 mb-3">
                     <div className="flex-1 h-6 bg-white/10 rounded flex items-center px-3 border border-white/5">
                        <span className="text-[6px] font-black text-white/20 uppercase">Signature Area</span>
                     </div>
-                    <div className="bg-white/5 border border-white/10 px-2 py-1 rounded text-[8px] font-black">247</div>
+                    <div className="bg-white/5 border border-white/10 px-2 py-1 rounded text-[8px] font-black text-white/60">247</div>
                  </div>
 
                  <div className="text-center space-y-2 py-2">
-                    <span className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Available Credits</span>
+                    <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Credits</span>
                     <h2 className="text-3xl font-black text-white tracking-tighter leading-none truncate px-4">
                       ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
                     </h2>
