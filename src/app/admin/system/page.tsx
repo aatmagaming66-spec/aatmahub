@@ -6,9 +6,11 @@ import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ShieldCheck, Database, Bot, Terminal, Loader2, ImageIcon, DatabaseZap, History } from 'lucide-react';
+import { Activity, ShieldCheck, Database, Bot, Terminal, Loader2, ImageIcon, DatabaseZap, History, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function SystemHealthPage() {
   const db = useFirestore();
@@ -16,6 +18,7 @@ export default function SystemHealthPage() {
   const [loading, setLoading] = useState(true);
   const [repairing, setRepairing] = useState(false);
   const [syncingMedia, setSyncMedia] = useState(false);
+  const [testingWrite, setTestingWrite] = useState(false);
   const [health, setHealth] = useState<any>({
     firestore: 'checking',
     telegram: 'checking'
@@ -40,6 +43,25 @@ export default function SystemHealthPage() {
     } catch (e) { newHealth.firestore = 'degraded'; }
     setHealth(newHealth);
     setLoading(false);
+  };
+
+  const testPermission = async () => {
+    setTestingWrite(true);
+    const testDoc = doc(db, 'media_assets', 'test_document');
+    const testData = { test: true, timestamp: new Date().toISOString() };
+    
+    try {
+      await setDoc(testDoc, testData);
+      toast({ title: "Write Success", description: "Admin permissions verified." });
+    } catch (e: any) {
+      errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: testDoc.path,
+        operation: 'write',
+        requestResourceData: testData
+      }));
+    } finally {
+      setTestingWrite(false);
+    }
   };
 
   const repairRegistry = async () => {
@@ -92,7 +114,6 @@ export default function SystemHealthPage() {
             updatedAt: new Date().toISOString()
           };
 
-          // CRITICAL: Align with imageUrl schema for marketplace rendering
           if (legacyUrl) {
             updateData.imageUrl = legacyUrl;
             updateData.logoUrl = legacyUrl;
@@ -102,13 +123,22 @@ export default function SystemHealthPage() {
             updateData.bannerUrl = data.banner || data.bannerUrl;
           }
 
-          await setDoc(doc(db, 'media_assets', d.id), updateData, { merge: true });
+          // Batch write with error propagation
+          await setDoc(doc(db, 'media_assets', d.id), updateData, { merge: true })
+            .catch(async (err) => {
+               errorEmitter.emit('permission-error', new FirestorePermissionError({
+                 path: `media_assets/${d.id}`,
+                 operation: 'write',
+                 requestResourceData: updateData
+               }));
+               throw err;
+            });
           count++;
         }
       }
       toast({ title: "Media Registry Rebuilt", description: `Synchronized ${count} asset profiles.` });
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Media Sync Failed', description: e.message });
+      console.error('Media Sync Interrupted:', e);
     } finally {
       setSyncMedia(false);
     }
@@ -124,6 +154,9 @@ export default function SystemHealthPage() {
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">System Core Control</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={testPermission} disabled={testingWrite} className="h-10 px-4 rounded-xl border-green-500/20 bg-green-500/5 text-green-500 font-black uppercase text-[9px] tracking-widest gap-2">
+            {testingWrite ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />} Test Write
+          </Button>
           <Button variant="outline" onClick={syncMediaAssets} disabled={syncingMedia} className="h-10 px-4 rounded-xl border-accent/20 bg-accent/5 text-accent font-black uppercase text-[9px] tracking-widest gap-2">
             {syncingMedia ? <Loader2 size={12} className="animate-spin" /> : <ImageIcon size={12} />} Sync Media Hub
           </Button>
@@ -146,14 +179,14 @@ export default function SystemHealthPage() {
                 <Activity className="h-5 w-5 text-primary" />
                 <h3 className="text-xs font-black uppercase tracking-widest">Operations Hub</h3>
              </div>
-             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v3.0.1-STABLE</span>
+             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v3.1.0-AUTH-FIX</span>
           </div>
           
           <div className="space-y-6">
             <p className="text-[11px] text-muted-foreground uppercase leading-relaxed font-medium">
-              AATMA HUB has transitioned to a <b>Native Image Rendering Pipeline</b>. All marketplace branding is resolved through the centralized Media Registry. 
+              Permissions have been elevated. All marketplace branding is resolved through the centralized Media Registry. 
               <br/><br/>
-              <b>Important:</b> If images are not appearing on the homepage, click "Sync Media Hub" to initialize the registry from existing game data.
+              <b>Action Required:</b> Click "Test Write" to verify your admin privileges. If successful, click "Sync Media Hub" to populate the cloud registry.
             </p>
           </div>
         </Card>

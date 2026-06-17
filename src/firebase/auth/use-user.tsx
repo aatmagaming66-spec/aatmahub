@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
@@ -44,7 +45,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       
       setUser(firebaseUser);
       // PERFORMANCE: We are now "initialized" as soon as we know IF there is a user.
-      // We do not wait for the profile snapshot to mount the app shell.
       setInitialized(true);
       
       if (!firebaseUser) {
@@ -70,8 +70,15 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       if (docSnap.exists()) {
         const data = docSnap.data();
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
+        
+        // CRITICAL: Force role elevation for the authenticated super_admin account
         if (isSuperAdminTarget && data.role !== 'super_admin') {
-           updateDoc(userDocRef, { role: 'super_admin', active: true }).catch(() => {});
+           console.log('[PERF_HUB] Elevating session to super_admin...');
+           updateDoc(userDocRef, { 
+             role: 'super_admin', 
+             active: true,
+             updatedAt: new Date().toISOString()
+           }).catch((e) => console.error('Role elevation rejected by rules', e));
         }
         setProfile(data);
       } else {

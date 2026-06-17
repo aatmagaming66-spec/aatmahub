@@ -36,6 +36,17 @@ service cloud.firestore {
       allow update: if request.auth != null && request.auth.token.role == 'admin';
     }
 
+    // SYSTEM ENTITIES: Explicit admin access to registry
+    match /media_assets/{assetId} {
+      allow write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
+    }
+
+    match /automationLogs/{logId} {
+      allow read, write: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
+    }
+
     // ADMIN ACCESS: Comprehensive permissions for system entities
     match /{document=**} {
       allow read, write: if request.auth != null && 
