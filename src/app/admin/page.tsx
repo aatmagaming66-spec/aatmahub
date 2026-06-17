@@ -24,7 +24,6 @@ import {
   ChevronRight,
   Tv,
   Share2,
-  ImageIcon,
   Home as HomeIcon,
   Layers,
   Trophy
@@ -132,7 +131,6 @@ export default function AdminDashboard() {
     { label: 'OTT Management', href: '/admin/ott', icon: Tv, desc: 'Manage streaming services' },
     { label: 'Social Management', href: '/admin/social', icon: Share2, desc: 'Manage growth services' },
     { label: 'Tab Management', href: '/admin/tabs', icon: Layers, desc: 'Manage catalog tabs' },
-    { label: 'Media Hub', href: '/admin/media', icon: ImageIcon, desc: 'Manage branding assets' },
     { label: 'Home Control', href: '/admin/homepage', icon: HomeIcon, desc: 'Manage homepage sections' },
     { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },
     { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Website & system configuration' },

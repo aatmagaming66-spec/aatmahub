@@ -15,7 +15,6 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where, doc } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
-import { useMarketplaceAssets } from "@/hooks/use-marketplace-assets";
 
 /**
  * PRODUCT DETAIL PAGE
@@ -41,9 +40,6 @@ export default function ProductPage() {
 
   const { data: gameInfo } = useDoc(gameDocRef);
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
-  const { assetsMap, loading: assetsLoading } = useMarketplaceAssets();
-
-  const asset = assetsMap.get(id as string);
 
   const [selectedPack, setSelectedPack] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("small");
@@ -86,7 +82,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.imageUrl || "",
+      image: "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -106,7 +102,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.imageUrl || "",
+      image: "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -116,20 +112,10 @@ export default function ProductPage() {
     toast({ title: "Added to Hub" });
   };
 
-  const bannerUrl = asset?.imageUrl;
-
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <div className="relative w-full aspect-video bg-neutral-900 overflow-hidden border-b border-white/5 shadow-2xl">
-        {bannerUrl ? (
-          <img 
-            src={bannerUrl} 
-            alt={productName} 
-            className="block w-full h-full object-cover" 
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
-        )}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
       </div>
 
       <div className="p-4 pt-6 space-y-6 max-w-4xl mx-auto w-full">

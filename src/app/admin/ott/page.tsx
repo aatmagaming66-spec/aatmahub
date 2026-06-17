@@ -96,16 +96,6 @@ export default function OttManagementPage() {
       const serviceRef = doc(db, 'ott_services', id);
       await setDoc(serviceRef, { ...formData, id, updatedAt: new Date().toISOString() }, { merge: true });
 
-      // SYNC TO MEDIA HUB
-      const mediaRef = doc(db, 'media_assets', id);
-      await setDoc(mediaRef, {
-        entityId: id,
-        entityType: 'ott',
-        entityName: formData.name,
-        isEnabled: formData.status === 'active',
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-
       toast({ title: 'Service Updated', description: `${formData.name} configuration saved.` });
       setIsModalOpen(false);
     } catch (e: any) {
@@ -119,7 +109,6 @@ export default function OttManagementPage() {
     if (!confirm('Permanently remove this OTT service?')) return;
     try {
       await deleteDoc(doc(db, 'ott_services', id));
-      await deleteDoc(doc(db, 'media_assets', id));
       toast({ title: 'Service Purged' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Error', description: e.message });

@@ -66,8 +66,8 @@ export default function SystemHealthPage() {
           
           <div className="space-y-6">
             <p className="text-[11px] text-muted-foreground uppercase leading-relaxed font-medium">
-              The AATMA HUB kernel is active. All legacy media registries have been decommissioned. 
-              The system is awaiting deployment of the new Integrated Management Protocol.
+              The AATMA HUB kernel is active. All digital management systems are synchronized. 
+              The core identity and financial registries are operating at peak efficiency.
             </p>
           </div>
         </Card>

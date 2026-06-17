@@ -1,12 +1,8 @@
 'use client';
-
 /**
- * DEPRECATED: This hook has been decommissioned as part of the Media Hub removal.
- * Returning empty map to maintain interface compatibility during Phase 1.
+ * DECOMMISSIONED: Marketplace Assets Hook
+ * Legacy logic removed. Returning empty state.
  */
 export function useMarketplaceAssets() {
-  return { 
-    assetsMap: new Map<string, any>(), 
-    loading: false 
-  };
+  return { assetsMap: new Map<string, any>(), loading: false };
 }
