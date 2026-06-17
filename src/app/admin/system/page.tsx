@@ -70,7 +70,7 @@ export default function SystemHealthPage() {
   };
 
   const syncMediaAssets = async () => {
-    if (!confirm('Rebuild Media Asset Registry from existing entities?')) return;
+    if (!confirm('Rebuild Media Asset Registry from existing entities? (Safe Sync)')) return;
     setSyncMedia(true);
     try {
       const types = [
@@ -83,19 +83,35 @@ export default function SystemHealthPage() {
         const snap = await getDocs(collection(db, t.col));
         for (const d of snap.docs) {
           const data = d.data();
-          await setDoc(doc(db, 'media_assets', d.id), {
+          
+          // NON-DESTRUCTIVE SYNC PAYLOAD
+          const updateData: any = {
             entityId: d.id,
             entityType: t.type,
             entityName: data.name || data.id,
             isEnabled: data.status === 'active',
-            logoUrl: data.icon || data.logoUrl || null,
-            bannerUrl: data.banner || data.bannerUrl || null,
             updatedAt: new Date().toISOString()
-          }, { merge: true });
+          };
+
+          // ONLY write URLs if they exist in source, NEVER overwrite with null
+          const sourceLogo = data.icon || data.logoUrl || data.cardImage || data.thumbnail;
+          if (sourceLogo) {
+            updateData.logoUrl = sourceLogo;
+            updateData.thumbnailUrl = sourceLogo;
+            updateData.imageUrl = sourceLogo;
+            updateData.icon = sourceLogo;
+          }
+
+          const sourceBanner = data.banner || data.bannerUrl;
+          if (sourceBanner) {
+            updateData.bannerUrl = sourceBanner;
+          }
+
+          await setDoc(doc(db, 'media_assets', d.id), updateData, { merge: true });
           count++;
         }
       }
-      toast({ title: "Media Sync Complete", description: `Rebuilt ${count} media profiles.` });
+      toast({ title: "Media Sync Complete", description: `Synchronized ${count} media profiles without overwriting uploads.` });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Media Sync Failed', description: e.message });
     } finally {

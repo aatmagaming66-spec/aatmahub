@@ -126,10 +126,13 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [uncommitted, setUncommitted] = useState(false);
 
   useEffect(() => {
-    setLocalLogo(asset.logoUrl || null);
-    setLocalBanner(asset.bannerUrl || null);
-    setEnabled(asset.isEnabled);
-  }, [asset]);
+    // Only update local state if user doesn't have uncommitted changes
+    if (!uncommitted) {
+      setLocalLogo(asset.logoUrl || null);
+      setLocalBanner(asset.bannerUrl || null);
+      setEnabled(asset.isEnabled);
+    }
+  }, [asset, uncommitted]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     const file = e.target.files?.[0];
@@ -173,18 +176,27 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     }
 
     setIsSaving(true);
-    const assetData = {
+    
+    // BUILD NON-DESTRUCTIVE PAYLOAD
+    const assetData: any = {
       entityId: asset.entityId,
       entityType: asset.entityType,
       entityName: asset.entityName,
-      logoUrl: localLogo,
-      thumbnailUrl: localLogo, 
-      imageUrl: localLogo,
-      icon: localLogo,
-      bannerUrl: localBanner,
       isEnabled: enabled,
       updatedAt: new Date().toISOString()
     };
+
+    // Only include URLs if they are present, preserving existing DB values if state is empty
+    if (localLogo) {
+      assetData.logoUrl = localLogo;
+      assetData.thumbnailUrl = localLogo; 
+      assetData.imageUrl = localLogo;
+      assetData.icon = localLogo;
+    }
+
+    if (localBanner) {
+      assetData.bannerUrl = localBanner;
+    }
 
     try {
       await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
@@ -207,7 +219,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         ) : <div className="flex flex-col items-center gap-2 opacity-10"><ImageIcon size={40} /><span className="text-[8px] font-black uppercase tracking-[0.3em]">No Banner</span></div>}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
           <div className="bg-black/60 backdrop-blur-md p-1 px-3 rounded-lg border border-white/10 text-[7px] font-black uppercase text-primary">{asset.entityType}</div>
-          <div className="bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-xl"><Switch checked={enabled} onCheckedChange={setEnabled} /></div>
+          <div className="bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-xl"><Switch checked={enabled} onCheckedChange={(v) => { setEnabled(v); setUncommitted(true); }} /></div>
         </div>
       </div>
 
