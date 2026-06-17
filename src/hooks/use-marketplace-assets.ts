@@ -7,15 +7,13 @@ import { useCollection } from '@/firebase/firestore/use-collection';
 
 /**
  * useMarketplaceAssets Hook
- * Single source of truth for all marketplace branding.
- * Responsibilities:
- * 1. Load media_assets collection directly.
- * 2. Create a high-performance lookup Map.
- * 3. Return direct asset objects.
+ * Memoizes the collection reference to prevent infinite render loops.
  */
 export function useMarketplaceAssets() {
   const db = useFirestore();
-  const { data: assets, loading } = useCollection(collection(db, 'media_assets'));
+  
+  const assetsQuery = useMemo(() => collection(db, 'media_assets'), [db]);
+  const { data: assets, loading } = useCollection(assetsQuery);
 
   const assetsMap = useMemo(() => {
     const map = new Map<string, any>();

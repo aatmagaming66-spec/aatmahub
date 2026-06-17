@@ -10,14 +10,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 /**
- * GAME GRID - REBUILT NATIVE STRUCTURE
- * Directly matches games to media_assets using entityId.
+ * GAME GRID - NATIVE STRUCTURE
+ * Uses memoized query to prevent infinite update loops.
  */
 export function GameGrid() {
   const db = useFirestore();
-  const { data: games, loading: gamesLoading } = useCollection(
-    query(collection(db, 'games'), orderBy('sortOrder', 'asc'))
-  );
+  
+  const gamesQuery = useMemo(() => 
+    query(collection(db, 'games'), orderBy('sortOrder', 'asc')), 
+  [db]);
+
+  const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
   const { assetsMap, loading: assetsLoading } = useMarketplaceAssets();
 
   if (gamesLoading || assetsLoading) {
@@ -44,9 +47,8 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          // Direct Map matching using game.id (which aligns with entityId)
           const asset = assetsMap.get(game.id);
-          const imageUrl = asset?.imageUrl || asset?.logoUrl;
+          const imageUrl = asset?.imageUrl;
 
           return (
             <Link 
@@ -54,17 +56,15 @@ export function GameGrid() {
               href={`/product/${game.id}`} 
               className="group flex flex-col active:scale-95 transition-transform"
             >
-              {/* IMAGE LAYER (LAYER 0) */}
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 border border-white/5 shadow-xl">
                 {imageUrl && (
                   <img 
                     src={imageUrl} 
                     alt={game.name} 
-                    className="block w-full h-full object-cover z-0" 
+                    className="block w-full h-full object-cover" 
                   />
                 )}
                 
-                {/* OVERLAYS (LAYER 1) */}
                 <div className="absolute top-2 left-2 z-10">
                   {game.flag && (
                     <div className="bg-black/60 rounded-lg p-1 flex items-center justify-center border border-white/10 min-w-[22px] min-h-[22px]">
@@ -83,7 +83,6 @@ export function GameGrid() {
                 </div>
               </div>
 
-              {/* TITLE LAYER (LAYER 1) */}
               <div className="text-center mt-2.5 px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
                   {game.name}
