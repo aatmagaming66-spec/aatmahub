@@ -43,11 +43,11 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          // Resolve asset using robust map lookup
-          const asset = assetsMap.get(game.id) || assetsMap.get(game.slug);
+          // Robust Asset Resolution: Document ID Match -> Slug Match -> Data Identity Match
+          const asset = assetsMap.get(game.id) || assetsMap.get(game.slug) || (game.id ? assetsMap.get(game.id.toString()) : null);
           
-          // Image Priority: imageUrl -> logoUrl -> legacy game.icon
-          const imageUrl = asset?.imageUrl || asset?.logoUrl || game.icon;
+          // Field Priority: Direct Registry Image -> Legacy Game Icon
+          const imageUrl = asset?.imageUrl || asset?.logoUrl || game.icon || game.cardImage || game.thumbnail;
 
           return (
             <Link 

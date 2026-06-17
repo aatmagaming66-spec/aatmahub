@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -105,7 +104,8 @@ export default function SystemHealthPage() {
         const snap = await getDocs(collection(db, t.col));
         for (const d of snap.docs) {
           const data = d.data();
-          const legacyUrl = data.icon || data.logoUrl || data.cardImage || data.thumbnail;
+          // Comprehensive Legacy Field Mapping
+          const legacyUrl = data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.banner;
           
           const updateData: any = {
             entityId: d.id,
