@@ -30,7 +30,7 @@ export function GameGrid() {
       });
       setMedia(mediaMap);
     }, (error) => {
-      console.error("[MediaRegistry] Error:", error);
+      console.error("[MediaRegistry] Connection Error:", error);
     });
     return () => unsubscribe();
   }, [db]);
@@ -59,13 +59,14 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const gameMedia = media[game.id];
+          // Use firestoreId for lookup to guarantee match with Media Hub Document IDs
+          const gameMedia = media[game.firestoreId];
           const url = gameMedia?.logoUrl || gameMedia?.thumbnailUrl || gameMedia?.icon || gameMedia?.imageUrl || game.cardImage || game.icon || game.thumbnail || null;
 
           return (
             <Link 
-              key={game.id}
-              href={`/product/${game.id}`} 
+              key={game.firestoreId}
+              href={`/product/${game.firestoreId}`} 
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
               <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">

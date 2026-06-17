@@ -5,6 +5,11 @@ import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
+/**
+ * useCollection Hook
+ * Optimized to preserve the actual Firestore Document ID in 'firestoreId'
+ * to prevent collisions with document data properties.
+ */
 export function useCollection<T = any>(query: Query | null) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,10 +26,6 @@ export function useCollection<T = any>(query: Query | null) {
       return;
     }
 
-    const startTime = performance.now();
-    const queryPath = (query as any)._query?.path?.toString() || 'unknown';
-    console.log(`[PERF] Firestore Query Started: ${queryPath}`);
-
     setLoading(true);
 
     const unsubscribe = onSnapshot(
@@ -32,12 +33,11 @@ export function useCollection<T = any>(query: Query | null) {
       (snapshot) => {
         if (!isMounted) return;
         
-        const fetchTime = performance.now() - startTime;
-        console.log(`[PERF] Query Result: ${queryPath} returned ${snapshot.docs.length} docs in ${fetchTime.toFixed(2)}ms`);
-        
         const results = snapshot.docs.map((doc) => ({
-          id: doc.id,
           ...doc.data(),
+          // Always set ID fields last to ensure they reflect the Firestore Document ID
+          id: doc.id,
+          firestoreId: doc.id,
         })) as T[];
         
         setData(results);
@@ -47,6 +47,7 @@ export function useCollection<T = any>(query: Query | null) {
       async (err) => {
         if (!isMounted) return;
         if (err.code === 'permission-denied') {
+          const queryPath = (query as any)._query?.path?.toString() || 'unknown';
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: queryPath,
             operation: 'list',

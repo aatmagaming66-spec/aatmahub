@@ -41,8 +41,8 @@ export default function GamesPage() {
           {games.map((game) => {
             return (
               <Link 
-                key={game.id} 
-                href={`/product/${game.id}`} 
+                key={game.firestoreId} 
+                href={`/product/${game.firestoreId}`} 
                 className="group transition-all duration-300 active:scale-95"
               >
                 <div className="relative aspect-[3/4] w-full rounded-[24px] overflow-hidden mb-3 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">

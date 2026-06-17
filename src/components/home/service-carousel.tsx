@@ -10,10 +10,12 @@ import { cn } from "@/lib/utils";
 
 interface ServiceItem {
   id: string;
+  firestoreId: string;
   name: string;
   status?: string;
   icon?: string;
   cardImage?: string;
+  thumbnail?: string;
 }
 
 interface ServiceCarouselProps {
@@ -49,13 +51,14 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
-          const itemMedia = media[item.id];
-          const url = itemMedia?.logoUrl || itemMedia?.thumbnailUrl || itemMedia?.icon || itemMedia?.imageUrl || item.cardImage || item.icon || null;
+          // Use firestoreId for lookup to guarantee match with Media Hub Document IDs
+          const itemMedia = media[item.firestoreId];
+          const url = itemMedia?.logoUrl || itemMedia?.thumbnailUrl || itemMedia?.icon || itemMedia?.imageUrl || item.cardImage || item.icon || item.thumbnail || null;
 
           return (
             <Link 
-              key={item.id}
-              href={`/product/${item.id}`} 
+              key={item.firestoreId}
+              href={`/product/${item.firestoreId}`} 
               className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95 flex flex-col"
             >
               <div className={`relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500 ${isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'}`}>

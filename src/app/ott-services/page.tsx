@@ -41,8 +41,8 @@ export default function OttServicesPage() {
           {items.map((item) => {
             return (
               <Link 
-                key={item.id} 
-                href={`/product/${item.id}`} 
+                key={item.firestoreId} 
+                href={`/product/${item.firestoreId}`} 
                 className="group transition-all duration-300 active:scale-95"
               >
                 <div className="relative aspect-video w-full rounded-[24px] overflow-hidden mb-3 border border-border shadow-2xl bg-card group-hover:border-accent/50 transition-all duration-500">
