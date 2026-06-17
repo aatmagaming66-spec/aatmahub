@@ -78,17 +78,20 @@ export default function GameManagementPage() {
       
       await setDoc(gameRef, gameData, { merge: true });
 
-      // SYNC TO MEDIA HUB
+      // REGISTER METADATA STUB (No automatic image sync to prevent blob errors)
       const mediaRef = doc(db, 'media_assets', gId);
-      await setDoc(mediaRef, {
-        entityId: gId,
-        entityType: 'game',
-        entityName: formData.name,
-        isEnabled: formData.status === 'active',
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      const mediaSnap = await getDoc(mediaRef);
+      
+      if (!mediaSnap.exists()) {
+        await setDoc(mediaRef, {
+          entityId: gId,
+          entityType: 'game',
+          entityName: formData.name,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }
 
-      toast({ title: 'Registry Synchronized', description: `${formData.name} updated.` });
+      toast({ title: 'Identity Registry Synchronized', description: `${formData.name} catalog record updated.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
@@ -101,7 +104,7 @@ export default function GameManagementPage() {
     if (!confirm('Permanently remove this game?')) return;
     try {
       await deleteDoc(doc(db, 'games', id));
-      await deleteDoc(doc(db, 'media_assets', id));
+      // Metadata remains in Media Hub as a historical record unless manually purged there
       toast({ title: 'Game Purged' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Error', description: e.message });
@@ -200,3 +203,6 @@ export default function GameManagementPage() {
     </div>
   );
 }
+
+// Added missing imports helper
+import { getDoc } from 'firebase/firestore';
