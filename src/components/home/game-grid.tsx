@@ -7,7 +7,6 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gamepad2 } from "lucide-react";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 export function GameGrid() {
@@ -57,9 +56,9 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const gameMedia = media[game.firestoreId];
+          const gameMedia = media[game.firestoreId || game.id];
           
-          // Image Resolution Chain: Registry -> Legacy Field Fallbacks
+          // Image Resolution Chain
           const url = gameMedia?.logoUrl || 
                       gameMedia?.thumbnailUrl || 
                       gameMedia?.icon || 
@@ -71,25 +70,17 @@ export function GameGrid() {
 
           return (
             <Link 
-              key={game.firestoreId}
-              href={`/product/${game.firestoreId}`} 
+              key={game.firestoreId || game.id}
+              href={`/product/${game.firestoreId || game.id}`} 
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
               <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
                 <div className="absolute inset-0 w-full h-full">
-                  {url ? (
-                    <Image 
-                      src={url} 
-                      alt={game.name} 
-                      fill 
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      sizes="(max-width: 768px) 33vw, 20vw"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card flex items-center justify-center opacity-20">
-                       <Gamepad2 size={24} className="text-white" />
-                    </div>
-                  )}
+                  <img 
+                    src={url || ""} 
+                    alt={game.name} 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
