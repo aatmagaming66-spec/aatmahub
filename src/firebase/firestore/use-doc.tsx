@@ -16,6 +16,10 @@ export function useDoc<T = any>(docRef: DocumentReference | null) {
   
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
+  // Use the document path as a stable key to prevent re-subscribing 
+  // if the docRef object is recreated by the parent component.
+  const docPath = docRef?.path;
+
   useEffect(() => {
     let isMounted = true;
 
@@ -65,7 +69,8 @@ export function useDoc<T = any>(docRef: DocumentReference | null) {
         unsubscribeRef.current = null;
       }
     };
-  }, [docRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [docPath]);
 
   return { data, loading, error };
 }
