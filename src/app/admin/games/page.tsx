@@ -81,11 +81,10 @@ export default function GameManagementPage() {
 
   const handleOpenModal = (game: any = null) => {
     if (game) {
-      console.log('[Debug] Opening Edit Mode for:', game.id);
       setEditingGame(game);
       setFormData({
         id: game.id || '',
-        name: game.name || game.displayName || '',
+        name: game.name || '',
         slug: game.slug || game.id || '',
         category: game.category || 'Mobile Games',
         status: game.status || 'active',
@@ -95,7 +94,6 @@ export default function GameManagementPage() {
         tabs: game.tabs || ['small', 'large', 'pass', 'promo']
       });
     } else {
-      console.log('[Debug] Opening Create Mode');
       setEditingGame(null);
       setFormData({
         id: '', 
@@ -115,9 +113,12 @@ export default function GameManagementPage() {
   };
 
   const handleFileUpload = async (file: File, path: string) => {
+    console.log(`[UPLOAD_CORE] Starting upload for path: ${path}`);
     const storageRef = ref(storage, path);
     await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
+    const url = await getDownloadURL(storageRef);
+    console.log(`[UPLOAD_CORE] Finished. URL received: ${url}`);
+    return url;
   };
 
   const addTab = () => {
@@ -131,20 +132,10 @@ export default function GameManagementPage() {
   };
 
   const handleSave = async () => {
-    // 1. Validate using strict trimmed state values
     const cleanName = formData.name?.trim();
     const cleanSlug = formData.slug?.trim();
 
-    console.log('[Debug] Preparing Submit Payload:', {
-      name: cleanName,
-      slug: cleanSlug,
-      category: formData.category,
-      tabs: formData.tabs,
-      isEdit: !!editingGame
-    });
-
     if (!cleanName || !cleanSlug) {
-      console.error('[Validation Failure]', { cleanName, cleanSlug });
       toast({ 
         variant: 'destructive', 
         title: 'Validation Error', 
@@ -154,19 +145,26 @@ export default function GameManagementPage() {
     }
     
     setSaving(true);
+    console.log('[SAVE_START] Initiating save process...');
+    
     try {
       const gId = formData.id || cleanSlug;
       let logoUrl = formData.logo;
       let bannerUrl = formData.banner;
 
+      console.log('[BEFORE_UPLOAD] Checking for files to upload...');
       if (files.logo) {
         logoUrl = await handleFileUpload(files.logo, `games/${gId}/logo_${Date.now()}`);
       }
       if (files.banner) {
         bannerUrl = await handleFileUpload(files.banner, `games/${gId}/banner_${Date.now()}`);
       }
+      console.log('[AFTER_UPLOAD] File handling cycle complete.');
 
+      console.log('[BEFORE_FIRESTORE] Preparing Firestore document...');
       const gameRef = doc(db, 'games', gId);
+      const existingGame = games?.find(g => g.id === gId);
+      
       const gameData = { 
         ...formData, 
         name: cleanName,
@@ -175,18 +173,20 @@ export default function GameManagementPage() {
         logo: logoUrl, 
         banner: bannerUrl,
         updatedAt: new Date().toISOString(),
-        createdAt: formData.id ? (games.find(g => g.id === formData.id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+        createdAt: existingGame?.createdAt || new Date().toISOString()
       };
       
-      console.log('[Commit] Final Object:', gameData);
       await setDoc(gameRef, gameData, { merge: true });
+      console.log('[AFTER_FIRESTORE] Firestore write acknowledged.');
 
       toast({ title: 'Record Secured', description: `${cleanName} has been updated in the catalog.` });
+      console.log('[SAVE_SUCCESS] Modal closing...');
       setIsModalOpen(false);
     } catch (e: any) {
-      console.error('[Commit Error]', e);
+      console.error('[SAVE_ERROR] Caught exception during commit:', e);
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
     } finally {
+      console.log('[SAVE_FINALLY] Resetting loading state.');
       setSaving(false);
     }
   };
@@ -308,7 +308,6 @@ export default function GameManagementPage() {
                   onChange={(e) => setFormData({...formData, slug: e.target.value})} 
                   placeholder="mlbb-global" 
                   className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" 
-                  disabled={false} 
                 />
               </div>
             </div>
@@ -382,7 +381,6 @@ export default function GameManagementPage() {
               </div>
             </div>
 
-            {/* LIVE DEBUG PANEL */}
             <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 space-y-2">
                <div className="flex items-center gap-2 text-primary">
                  <Bug size={12} />
