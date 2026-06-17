@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from "react";
@@ -44,9 +43,11 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const asset = assetsMap.get(game.id);
-          // Redundancy: check imageUrl, then logoUrl
-          const imageUrl = asset?.imageUrl || asset?.logoUrl;
+          // Resolve asset using robust map lookup
+          const asset = assetsMap.get(game.id) || assetsMap.get(game.slug);
+          
+          // Image Priority: imageUrl -> logoUrl -> legacy game.icon
+          const imageUrl = asset?.imageUrl || asset?.logoUrl || game.icon;
 
           return (
             <Link 

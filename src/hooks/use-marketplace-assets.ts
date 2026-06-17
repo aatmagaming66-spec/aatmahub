@@ -6,7 +6,8 @@ import { collection } from 'firebase/firestore';
 
 /**
  * useMarketplaceAssets Hook
- * Optimized to prevent infinite render loops by stabilizing Firestore references.
+ * Optimized to provide a high-performance lookup map for marketplace images.
+ * Indexes assets by both Document ID and entityId field for maximum reliability.
  */
 export function useMarketplaceAssets() {
   const db = useFirestore();
@@ -25,7 +26,12 @@ export function useMarketplaceAssets() {
     if (!assets || assets.length === 0) return map;
     
     assets.forEach((asset: any) => {
-      if (asset.entityId) {
+      // 1. Index by Firestore Document ID (Primary identifier used by sync tools)
+      if (asset.id) {
+        map.set(asset.id, asset);
+      }
+      // 2. Index by entityId field (Secondary identifier for manual mappings)
+      if (asset.entityId && asset.entityId !== asset.id) {
         map.set(asset.entityId, asset);
       }
     });
