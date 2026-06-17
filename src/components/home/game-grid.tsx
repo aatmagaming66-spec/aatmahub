@@ -44,17 +44,18 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const media = getMediaAsset(game.id);
+          const media = getMediaAsset(game.firestoreId || game.id);
           const imageUrl = media?.logoUrl || media?.thumbnailUrl || null;
 
           return (
             <Link 
               key={game.firestoreId}
               href={`/product/${game.firestoreId}`} 
-              className="group transition-all duration-300 active:scale-95 flex flex-col"
+              className="group flex flex-col relative transition-transform active:scale-95"
             >
-              <div className="relative aspect-[2/3] w-full mb-2.5">
-                <div className="relative h-full w-full overflow-hidden rounded-xl border border-border shadow-2xl group-hover:border-primary/50 transition-all duration-500 bg-neutral-900">
+              {/* 1. Image Area (Base Layer) */}
+              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-white/5 bg-neutral-900 shadow-xl">
+                <div className="relative w-full h-full overflow-hidden rounded-xl">
                   {imageUrl ? (
                     <img
                       src={imageUrl}
@@ -62,25 +63,34 @@ export function GameGrid() {
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
-                  ) : null}
-                </div>
-                
-                <div className="absolute inset-x-2 top-2 z-10 flex justify-between items-start pointer-events-none">
-                  {game.flag && (
-                    <div className="bg-black/60 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center border border-white/10">
-                      <span className="text-xs leading-none">{game.flag}</span>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-white/5 opacity-10">
+                      <span className="text-[10px] font-black uppercase">{game.name.substring(0, 2)}</span>
                     </div>
                   )}
-                  <div className={cn(
-                    "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
-                    game.status === 'active' ? 'bg-green-500' : 'bg-primary'
-                  )}>
-                    {game.status || 'Active'}
+                </div>
+                
+                {/* 2. ACTIVE Badge & 3. Flag (Overlay Layer) */}
+                <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
+                  <div className="flex justify-between items-start">
+                    {game.flag ? (
+                      <div className="bg-black/60 backdrop-blur-md rounded-lg p-1 flex items-center justify-center border border-white/10 min-w-[22px] min-h-[22px]">
+                        <span className="text-xs leading-none">{game.flag}</span>
+                      </div>
+                    ) : <div />}
+                    
+                    <div className={cn(
+                      "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
+                      game.status === 'active' ? 'bg-green-500' : 'bg-primary'
+                    )}>
+                      {game.status || 'Active'}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="text-center px-1">
+              {/* 4. Game Name (Footer) */}
+              <div className="text-center mt-2.5 px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
                   {game.name}
                 </span>
