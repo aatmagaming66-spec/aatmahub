@@ -8,6 +8,10 @@ import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
+/**
+ * GAME GRID - REBUILT NATIVE STRUCTURE
+ * This component uses a direct <img> pipeline with zero CSS masks or absolute wrappers.
+ */
 export function GameGrid() {
   const db = useFirestore();
   
@@ -30,10 +34,10 @@ export function GameGrid() {
   }
 
   return (
-    <section className="py-4 overflow-hidden">
+    <section className="py-4">
       <div className="flex items-center justify-between mb-4 px-4">
         <h2 className="text-sm font-headline font-black uppercase tracking-tighter flex items-center gap-2">
-          <span className="w-1 h-4 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
+          <span className="w-1 h-4 bg-primary rounded-full" />
           Mobile Games
         </h2>
         <Link href="/games" className="text-[9px] font-black text-primary uppercase tracking-widest">View All</Link>
@@ -42,7 +46,7 @@ export function GameGrid() {
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
           const media = mediaAssets.find(m => m.entityId === game.id);
-          const imageUrl = media?.logoUrl;
+          const imageUrl = media?.imageUrl;
 
           return (
             <Link 
@@ -50,35 +54,36 @@ export function GameGrid() {
               href={`/product/${game.id}`} 
               className="group flex flex-col active:scale-95 transition-transform"
             >
+              {/* IMAGE CONTAINER (LAYER 0) */}
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 border border-white/5 shadow-xl">
-                {imageUrl ? (
+                {imageUrl && (
                   <img 
                     src={imageUrl} 
                     alt={game.name} 
-                    className="w-full h-full object-cover" 
+                    className="block w-full h-full object-cover z-0" 
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center opacity-5">
-                    <span className="text-[8px] font-black uppercase">{game.name.substring(0, 2)}</span>
-                  </div>
                 )}
                 
-                <div className="absolute inset-0 p-2 flex flex-col justify-between pointer-events-none z-10">
-                  <div className="flex justify-between items-start">
-                    {game.flag && (
-                      <div className="bg-black/60 backdrop-blur-md rounded-lg p-1 flex items-center justify-center border border-white/10 min-w-[22px] min-h-[22px]">
-                        <span className="text-xs leading-none">{game.flag}</span>
-                      </div>
-                    )}
-                    <div className={cn(
-                      "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
-                      game.status === 'active' ? 'bg-green-500' : 'bg-primary'
-                    )}>
-                      {game.status || 'Active'}
+                {/* OVERLAYS (LAYER 1 / Z-10) */}
+                <div className="absolute top-2 left-2 z-10">
+                  {game.flag && (
+                    <div className="bg-black/60 rounded-lg p-1 flex items-center justify-center border border-white/10 min-w-[22px] min-h-[22px]">
+                      <span className="text-xs leading-none">{game.flag}</span>
                     </div>
+                  )}
+                </div>
+
+                <div className="absolute top-2 right-2 z-10">
+                  <div className={cn(
+                    "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
+                    game.status === 'active' ? 'bg-green-500' : 'bg-primary'
+                  )}>
+                    {game.status || 'Active'}
                   </div>
                 </div>
               </div>
+
+              {/* FOOTER (LAYER 1) */}
               <div className="text-center mt-2.5 px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
                   {game.name}

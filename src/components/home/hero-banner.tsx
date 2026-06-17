@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react";
-import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
@@ -29,23 +28,13 @@ const SLIDES = [
     description: "Netflix • Prime • Spotify",
     cta: "Explore Plans",
     imgId: "hero-ott"
-  },
-  {
-    id: "hero-social",
-    title: "Social Media Growth",
-    description: "Instagram • Telegram • YouTube",
-    cta: "View Services",
-    imgId: "hero-social"
-  },
-  {
-    id: "hero-trust",
-    title: "Trusted Digital Hub",
-    description: "India's Premier Digital Marketplace",
-    cta: "Get Started",
-    imgId: "hero-trust"
   }
 ];
 
+/**
+ * HERO BANNER - REBUILT NATIVE STRUCTURE
+ * Uses direct HTML <img> tags to avoid nested absolute wrappers.
+ */
 export function HeroBanner() {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, duration: 30 },
@@ -77,31 +66,26 @@ export function HeroBanner() {
             const img = PlaceHolderImages.find(img => img.id === slide.imgId);
             return (
               <div key={slide.id} className="relative flex-[0_0_100%] min-w-0 h-full">
-                <Image
+                {/* DIRECT IMAGE RENDER (LAYER 0) */}
+                <img
                   src={img?.imageUrl || "https://picsum.photos/seed/aatma/1200/600"}
                   alt={slide.title}
-                  fill
-                  className="object-cover"
-                  priority={index === 0}
-                  data-ai-hint={img?.imageHint}
+                  className="block w-full h-full object-cover z-0"
                 />
                 
-                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/40 to-transparent z-10" />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10" />
+                {/* SEMI-TRANSPARENT LAYER (LAYER 1) - ONLY TEXT READABILITY */}
+                <div className="absolute inset-0 bg-black/40 z-10" />
                 
+                {/* CONTENT LAYER (LAYER 2) */}
                 <div className="absolute inset-0 z-20 flex flex-col justify-center px-8">
                   <h2 className="text-2xl font-headline font-black text-white mb-1.5 leading-tight tracking-tighter max-w-[200px] uppercase">
-                    {slide.title.split(' ').map((word, i) => (
-                      <span key={i} className={i % 2 !== 0 ? "text-accent" : ""}>{word} </span>
-                    ))}
+                    {slide.title}
                   </h2>
                   <p className="text-[10px] text-white/70 max-w-[240px] font-black uppercase tracking-widest leading-none mb-5">
                     {slide.description}
                   </p>
                   <div>
-                    <Button 
-                      className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg shadow-primary/20 border-none transition-all active:scale-95"
-                    >
+                    <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-full border-none">
                       {slide.cta}
                     </Button>
                   </div>
@@ -118,11 +102,8 @@ export function HeroBanner() {
               onClick={() => scrollTo(index)}
               className={cn(
                 "h-1 transition-all rounded-full",
-                selectedIndex === index 
-                  ? "w-4 bg-primary shadow-[0_0_8px_#DC2626]" 
-                  : "w-1.5 bg-white/20 hover:bg-white/40"
+                selectedIndex === index ? "w-4 bg-primary" : "w-1.5 bg-white/20"
               )}
-              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
