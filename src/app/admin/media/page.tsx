@@ -15,13 +15,9 @@ import {
   uploadBytesResumable, 
   getDownloadURL 
 } from 'firebase/storage';
-import { 
-  Card, 
-  CardContent 
-} from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { 
   Search, 
@@ -32,7 +28,8 @@ import {
   Share2, 
   ImageIcon,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -40,20 +37,19 @@ import { cn } from '@/lib/utils';
 interface MediaAsset {
   id: string;
   entityId: string;
-  entityType: 'game' | 'ott' | 'social' | 'branding';
+  entityType: string;
   entityName: string;
   logoUrl: string;
   bannerUrl: string;
   thumbnailUrl: string;
-  isEnabled: boolean;
   updatedAt: string;
 }
 
-export default function DynamicMediaHub() {
+export default function RebuiltMediaHub() {
   const db = useFirestore();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'game' | 'ott' | 'social'>('all');
+  const [filterType, setFilterType] = useState('all');
   const [loading, setLoading] = useState(true);
   const [assets, setAssets] = useState<MediaAsset[]>([]);
 
@@ -63,11 +59,9 @@ export default function DynamicMediaHub() {
       const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as MediaAsset));
       setAssets(data);
       setLoading(false);
-    }, (error) => {
-      toast({ variant: 'destructive', title: 'Connection Error', description: error.message });
     });
     return () => unsubscribe();
-  }, [db, toast]);
+  }, [db]);
 
   const filteredAssets = useMemo(() => {
     return assets.filter(a => {
@@ -81,19 +75,19 @@ export default function DynamicMediaHub() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
+      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Media Hub</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60 mt-2">Protocol: Central Asset Pipeline</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Media Registry</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Native Asset Pipeline</p>
         </div>
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64 group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <input placeholder="Search assets..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-10 h-12 rounded-2xl text-xs font-bold focus:border-primary shadow-xl ring-0 w-full outline-none" />
+            <input placeholder="Search entities..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-10 h-12 rounded-2xl text-xs font-bold focus:border-primary shadow-xl ring-0 w-full outline-none" />
           </div>
-          <div className="flex gap-2 bg-card p-1 rounded-2xl border border-border overflow-x-auto no-scrollbar">
+          <div className="flex gap-2 bg-card p-1 rounded-2xl border border-border">
             {['all', 'game', 'ott', 'social'].map((t) => (
-              <button key={t} onClick={() => setFilterType(t as any)} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shrink-0", filterType === t ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-white")}>{t}</button>
+              <button key={t} onClick={() => setFilterType(t)} className={cn("px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all", filterType === t ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-white")}>{t}</button>
             ))}
           </div>
         </div>
@@ -113,51 +107,31 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const storage = useStorage();
   const { toast } = useToast();
 
-  const [isSaving, setIsSaving] = useState(false);
-  const [logoProgress, setLogoProgress] = useState(0);
-  const [bannerProgress, setBannerProgress] = useState(0);
-  
-  const [localLogo, setLocalLogo] = useState<string>(asset.logoUrl || "");
-  const [localBanner, setLocalBanner] = useState<string>(asset.bannerUrl || "");
-  const [enabled, setEnabled] = useState(asset.isEnabled);
-  const [uncommitted, setUncommitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploads, setUploads] = useState<{ [key: string]: number }>({});
+  const [form, setForm] = useState({
+    logoUrl: asset.logoUrl || '',
+    bannerUrl: asset.bannerUrl || '',
+    thumbnailUrl: asset.thumbnailUrl || ''
+  });
 
-  useEffect(() => {
-    if (!uncommitted) {
-      setLocalLogo(asset.logoUrl || "");
-      setLocalBanner(asset.bannerUrl || "");
-      setEnabled(asset.isEnabled);
-    }
-  }, [asset, uncommitted]);
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const previewUrl = URL.createObjectURL(file);
-    if (type === 'logo') setLocalLogo(previewUrl);
-    else setLocalBanner(previewUrl);
-
     try {
-      const storagePath = `media_assets/${asset.entityType}/${asset.entityId}/${type}_${Date.now()}`;
-      const storageRef = ref(storage, storagePath);
-      const uploadTask = uploadBytesResumable(storageRef, file);
+      const path = `media_assets/${asset.entityType}/${asset.entityId}/${type}_${Date.now()}`;
+      const sRef = ref(storage, path);
+      const task = uploadBytesResumable(sRef, file);
 
-      uploadTask.on('state_changed', 
-        (snapshot) => {
-          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          if (type === 'logo') setLogoProgress(progress);
-          else setBannerProgress(progress);
-        }, 
-        (error) => {
-          toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
-        }, 
+      task.on('state_changed', 
+        (snap) => setUploads(v => ({ ...v, [type]: (snap.bytesTransferred / snap.totalBytes) * 100 })),
+        (err) => toast({ variant: 'destructive', title: 'Upload Failed', description: err.message }),
         async () => {
-          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          if (type === 'logo') { setLocalLogo(downloadURL); setLogoProgress(0); }
-          else { setLocalBanner(downloadURL); setBannerProgress(0); }
-          setUncommitted(true);
-          toast({ title: 'Upload Success', description: 'Click commit to save permanently.' });
+          const url = await getDownloadURL(task.snapshot.ref);
+          setForm(v => ({ ...v, [type === 'logo' ? 'logoUrl' : type === 'banner' ? 'bannerUrl' : 'thumbnailUrl']: url }));
+          setUploads(v => ({ ...v, [type]: 0 }));
+          toast({ title: 'Transfer Complete', description: 'URL registered in memory.' });
         }
       );
     } catch (e: any) {
@@ -165,84 +139,66 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     }
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    
-    const assetData = {
-      entityId: asset.entityId,
-      entityType: asset.entityType,
-      entityName: asset.entityName,
-      logoUrl: localLogo,
-      bannerUrl: localBanner,
-      thumbnailUrl: localLogo,
-      isEnabled: enabled,
-      updatedAt: new Date().toISOString()
-    };
-
+  const handleCommit = async () => {
+    setSaving(true);
     try {
-      await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
-      setUncommitted(false);
-      toast({ title: 'Changes Saved' });
+      const data = {
+        ...asset,
+        ...form,
+        updatedAt: new Date().toISOString()
+      };
+      await setDoc(doc(db, 'media_assets', asset.id), data, { merge: true });
+      toast({ title: 'Registry Updated', description: 'Changes are now live.' });
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
-    } finally { 
-      setIsSaving(false); 
+      toast({ variant: 'destructive', title: 'Commit Failed', description: e.message });
+    } finally {
+      setSaving(false);
     }
   };
 
-  const Icon = asset.entityType === 'game' ? Gamepad2 : (asset.entityType === 'ott' ? Tv : Share2);
-
   return (
-    <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all flex flex-col">
-      <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
-        {localBanner ? (
-          <img src={localBanner} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
-        ) : <div className="flex flex-col items-center gap-2 opacity-10"><ImageIcon size={40} /><span className="text-[8px] font-black uppercase tracking-[0.3em]">No Banner</span></div>}
-        <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
-          <div className="bg-black/60 backdrop-blur-md p-1 px-3 rounded-lg border border-white/10 text-[7px] font-black uppercase text-primary">{asset.entityType}</div>
-          <div className="bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-xl"><Switch checked={enabled} onCheckedChange={(v) => { setEnabled(v); setUncommitted(true); }} /></div>
+    <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl flex flex-col group hover:border-primary/20 transition-all">
+      <div className="relative aspect-video bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
+        {form.bannerUrl ? (
+          <img src={form.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        ) : <ImageIcon size={40} className="opacity-10" />}
+        <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-[7px] font-black uppercase text-primary border border-white/10">
+          {asset.entityType}
         </div>
       </div>
 
-      <CardContent className="p-6 space-y-6 flex-1 flex flex-col">
+      <CardContent className="p-6 space-y-6 flex-1">
         <div className="flex items-center gap-4">
-          <div className="relative aspect-[2/3] h-20 shrink-0 rounded-xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center">
-            {localLogo ? <img src={localLogo} alt="Logo" className="absolute inset-0 w-full h-full object-cover" /> : <Icon size={20} className="opacity-20 text-primary" />}
+          <div className="h-16 w-12 rounded-xl bg-black/60 border border-white/5 overflow-hidden flex items-center justify-center shrink-0">
+            {form.logoUrl ? <img src={form.logoUrl} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={20} className="opacity-20" />}
           </div>
           <div className="min-w-0">
             <h3 className="text-sm font-black uppercase tracking-tight text-white truncate">{asset.entityName}</h3>
-            <p className="text-[7px] text-white/20 font-mono uppercase truncate">REF: {asset.id}</p>
+            <p className="text-[7px] text-white/20 font-mono truncate">REF: {asset.entityId}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo (2:3)</Label>
-            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-              <Upload size={12} className="mr-1.5" /> Select
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
+            <Button variant="outline" className="w-full h-10 rounded-xl bg-white/5 border-border text-[8px] font-black uppercase relative overflow-hidden">
+              <Upload size={12} className="mr-1" /> {uploads.logo > 0 ? `${Math.round(uploads.logo)}%` : 'Select'}
+              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
             </Button>
-            {logoProgress > 0 && <Progress value={logoProgress} className="h-1" />}
+            {uploads.logo > 0 && <Progress value={uploads.logo} className="h-1" />}
           </div>
           <div className="space-y-2">
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner (16:9)</Label>
-            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-              <ImageIcon size={12} className="mr-1.5" /> Select
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
+            <Button variant="outline" className="w-full h-10 rounded-xl bg-white/5 border-border text-[8px] font-black uppercase relative overflow-hidden">
+              <ImageIcon size={12} className="mr-1" /> {uploads.banner > 0 ? `${Math.round(uploads.banner)}%` : 'Select'}
+              <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
             </Button>
-            {bannerProgress > 0 && <Progress value={bannerProgress} className="h-1" />}
+            {uploads.banner > 0 && <Progress value={uploads.banner} className="h-1" />}
           </div>
         </div>
 
-        {uncommitted && (
-          <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl flex items-center gap-2">
-            <AlertCircle size={10} className="text-primary" />
-            <span className="text-[8px] font-black text-primary uppercase">Uncommitted Changes</span>
-          </div>
-        )}
-
-        <Button onClick={handleSave} disabled={isSaving || logoProgress > 0 || bannerProgress > 0} className="w-full h-12 bg-primary hover:bg-secondary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 gap-2 mt-auto">
-          {isSaving ? <Loader2 className="animate-spin h-4 w-4" /> : <><Save size={14} /> Commit Changes</>}
+        <Button onClick={handleCommit} disabled={saving} className="w-full h-12 bg-primary hover:bg-secondary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 gap-2">
+          {saving ? <Loader2 className="animate-spin h-4 w-4" /> : <><Save size={14} /> Commit to Hub</>}
         </Button>
       </CardContent>
     </Card>
