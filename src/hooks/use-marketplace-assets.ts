@@ -1,8 +1,5 @@
 'use client';
 /**
- * DECOMMISSIONED: Marketplace Assets Hook
- * Legacy logic removed. Returning empty state.
+ * DECOMMISSIONED
  */
-export function useMarketplaceAssets() {
-  return { assetsMap: new Map<string, any>(), loading: false };
-}
+export const useMarketplace = () => ({ dataMap: new Map(), loading: false });
