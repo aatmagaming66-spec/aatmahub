@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useMarketplaceAssets } from "@/hooks/use-marketplace-assets";
 import { cn } from "@/lib/utils";
 
@@ -16,10 +17,6 @@ interface ServiceCarouselProps {
   items: ServiceItem[];
 }
 
-/**
- * SERVICE CAROUSEL - REBUILT NATIVE STRUCTURE
- * Uses direct Map lookup from useMarketplaceAssets.
- */
 export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
   const { assetsMap, loading } = useMarketplaceAssets();
   const isOtt = title.toLowerCase().includes('ott');
@@ -35,7 +32,8 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
           const asset = assetsMap.get(item.id);
-          const imageUrl = asset?.imageUrl || asset?.logoUrl;
+          const rawUrl = asset?.imageUrl || asset?.logoUrl;
+          const imageUrl = (rawUrl && !rawUrl.startsWith('blob:')) ? rawUrl : null;
 
           return (
             <Link 
@@ -48,10 +46,12 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
                 isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'
               )}>
                 {imageUrl && (
-                  <img 
+                  <Image 
                     src={imageUrl} 
                     alt={item.name} 
-                    className="block w-full h-full object-cover z-0" 
+                    fill
+                    className="object-cover transition-opacity duration-300"
+                    sizes="(max-width: 768px) 33vw, 20vw"
                   />
                 )}
                 

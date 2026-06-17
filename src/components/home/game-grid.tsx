@@ -1,8 +1,8 @@
-
 'use client';
 
 import { useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useFirestore } from "@/firebase/provider";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
@@ -44,19 +44,11 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          // Robust Asset Resolution: Document ID Match -> Slug Match -> Data Identity Match
-          const asset = assetsMap.get(game.id) || assetsMap.get(game.slug) || (game.id ? assetsMap.get(game.id.toString()) : null);
+          const asset = assetsMap.get(game.id) || assetsMap.get(game.slug);
+          const rawUrl = asset?.imageUrl || asset?.logoUrl || game.icon || game.cardImage || game.thumbnail;
           
-          // Field Priority: Direct Registry Image -> Legacy Game Icon
-          const imageUrl = asset?.imageUrl || asset?.logoUrl || game.icon || game.cardImage || game.thumbnail;
-
-          // RUNTIME TRACE FOR BGMI
-          if (game.id === 'bgmi') {
-            console.log('[BGMI_RUNTIME_TRACE] game.id:', game.id);
-            console.log('[BGMI_RUNTIME_TRACE] asset object keys:', asset ? Object.keys(asset) : 'null');
-            console.log('[BGMI_RUNTIME_TRACE] asset.logoUrl:', asset?.logoUrl);
-            console.log('[BGMI_RUNTIME_TRACE] imageUrl evaluated to:', imageUrl);
-          }
+          // Guard against invalid session-specific blob URLs
+          const imageUrl = (rawUrl && !rawUrl.startsWith('blob:')) ? rawUrl : null;
 
           return (
             <Link 
@@ -66,12 +58,12 @@ export function GameGrid() {
             >
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 border border-white/5 shadow-xl">
                 {imageUrl && (
-                  <img 
+                  <Image 
                     src={imageUrl} 
                     alt={game.name} 
-                    className="block w-full h-full object-cover z-0" 
-                    onLoad={() => game.id === 'bgmi' && console.log('[BGMI_RUNTIME_TRACE] <img> load event fired')}
-                    onError={(e) => game.id === 'bgmi' && console.error('[BGMI_RUNTIME_TRACE] <img> error event fired. Src:', (e.target as HTMLImageElement).src)}
+                    fill
+                    className="object-cover transition-opacity duration-300"
+                    sizes="(max-width: 768px) 33vw, 20vw"
                   />
                 )}
                 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -50,7 +49,6 @@ export default function MediaHub() {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
 
   useEffect(() => {
-    // Audit check: Order by entityId since entityName might be missing in broken docs
     const q = query(collection(db, 'media_assets'), orderBy('entityId', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as MediaAsset));
@@ -140,13 +138,18 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const handleCommit = async () => {
     setSaving(true);
     try {
+      // Final sanitization check: Do not allow blob URLs to be saved to the database
+      const sanitizedLogo = form.logoUrl.startsWith('blob:') ? '' : form.logoUrl;
+      const sanitizedBanner = form.bannerUrl.startsWith('blob:') ? '' : form.bannerUrl;
+
       const data = {
         ...asset,
-        ...form,
-        // CRITICAL: Ensure imageUrl matches logoUrl for marketplace compatibility
-        imageUrl: form.logoUrl,
+        logoUrl: sanitizedLogo,
+        bannerUrl: sanitizedBanner,
+        imageUrl: sanitizedLogo, // Standard field for marketplace
         updatedAt: new Date().toISOString()
       };
+      
       await setDoc(doc(db, 'media_assets', asset.id), data, { merge: true });
       toast({ title: 'Registry Updated' });
     } catch (e: any) {
@@ -159,7 +162,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   return (
     <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl flex flex-col group hover:border-primary/20 transition-all">
       <div className="relative aspect-video bg-neutral-900 border-b border-white/5 flex items-center justify-center overflow-hidden">
-        {form.bannerUrl ? (
+        {form.bannerUrl && !form.bannerUrl.startsWith('blob:') ? (
           <img src={form.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : <ImageIcon size={40} className="opacity-10" />}
         <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-[7px] font-black uppercase text-primary border border-white/10">
@@ -170,7 +173,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
       <CardContent className="p-6 space-y-6 flex-1">
         <div className="flex items-center gap-4">
           <div className="h-16 w-12 rounded-xl bg-black/60 border border-white/5 overflow-hidden flex items-center justify-center shrink-0">
-            {form.logoUrl ? <img src={form.logoUrl} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={20} className="opacity-20" />}
+            {form.logoUrl && !form.logoUrl.startsWith('blob:') ? <img src={form.logoUrl} alt="" className="w-full h-full object-cover" /> : <ImageIcon size={20} className="opacity-20" />}
           </div>
           <div className="min-w-0">
             <h3 className="text-sm font-black uppercase tracking-tight text-white truncate">{asset.entityName}</h3>

@@ -104,8 +104,12 @@ export default function SystemHealthPage() {
         const snap = await getDocs(collection(db, t.col));
         for (const d of snap.docs) {
           const data = d.data();
-          // Comprehensive Legacy Field Mapping
-          const legacyUrl = data.imageUrl || data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.banner;
+          
+          // Field Mapping Strategy
+          const rawLegacyUrl = data.imageUrl || data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.banner;
+          
+          // SANITIZATION: Do not sync session-specific blob URLs to the cloud registry
+          const legacyUrl = (rawLegacyUrl && !rawLegacyUrl.startsWith('blob:')) ? rawLegacyUrl : null;
           
           const updateData: any = {
             entityId: d.id,
@@ -119,11 +123,10 @@ export default function SystemHealthPage() {
             updateData.logoUrl = legacyUrl;
           }
 
-          if (data.banner || data.bannerUrl) {
-            updateData.bannerUrl = data.banner || data.bannerUrl;
+          if (data.banner && !data.banner.startsWith('blob:')) {
+            updateData.bannerUrl = data.banner;
           }
 
-          // Batch write with explicit field presence
           await setDoc(doc(db, 'media_assets', d.id), updateData, { merge: true })
             .catch(async (err) => {
                errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -179,14 +182,14 @@ export default function SystemHealthPage() {
                 <Activity className="h-5 w-5 text-primary" />
                 <h3 className="text-xs font-black uppercase tracking-widest">Operations Hub</h3>
              </div>
-             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v3.1.0-AUTH-FIX</span>
+             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v3.2.0-MEDIA-FIX</span>
           </div>
           
           <div className="space-y-6">
             <p className="text-[11px] text-muted-foreground uppercase leading-relaxed font-medium">
-              Permissions have been elevated. All marketplace branding is resolved through the centralized Media Registry. 
+              Sanitization protocols are active. The Media Registry now automatically filters out invalid session-specific blob URLs to prevent rendering failures on the marketplace.
               <br/><br/>
-              <b>Action Required:</b> Click "Test Write" to verify your admin privileges. If successful, click "Sync Media Hub" to populate the cloud registry.
+              <b>System Check:</b> Click "Sync Media Hub" to perform a clean synchronization of all game icons to the distribution registry.
             </p>
           </div>
         </Card>
