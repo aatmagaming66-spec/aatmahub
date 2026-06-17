@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 export function GameGrid() {
   const db = useFirestore();
   
+  // High-performance real-time sync with master registry
   const gamesQuery = useMemo(() => query(
     collection(db, 'games'),
     orderBy('sortOrder', 'asc')
@@ -45,13 +46,13 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          // Resolve lookup identifier
+          // Robust identifier resolution: Priority for user-defined entityId
           const lookupId = game.entityId || game.firestoreId || game.id;
           
-          // Match media asset from registry
+          // Direct matching with Media Hub registry
           const media = mediaAssets.find(item => item.entityId === lookupId);
           
-          // Resolve exact image URL with strict priority
+          // Strict URL resolution: Logo -> Thumbnail -> Banner
           const imageUrl = media?.logoUrl || media?.thumbnailUrl || media?.bannerUrl || null;
 
           return (
@@ -60,39 +61,38 @@ export function GameGrid() {
               href={`/product/${game.firestoreId}`} 
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
-              <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                {/* Native Image Rendering */}
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt={game.name}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                    <span className="text-[10px] font-black uppercase">{game.name.substring(0, 2)}</span>
-                  </div>
-                )}
+              {/* PRIMARY IMAGE CONTAINER */}
+              <div className="relative aspect-[2/3] w-full mb-2.5">
+                <div className="relative h-full w-full overflow-hidden rounded-xl border border-border shadow-2xl group-hover:border-primary/50 transition-all duration-500">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={game.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-neutral-900" />
+                  )}
+                </div>
                 
-                {/* Badge & Label Overlay */}
-                <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
-                  <div className="flex justify-between items-start">
-                    {game.flag && (
-                      <div className="bg-black/60 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center border border-white/10">
-                        <span className="text-xs leading-none">{game.flag}</span>
-                      </div>
-                    )}
-                    <div className={cn(
-                      "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
-                      game.status === 'active' ? 'bg-green-500' : 'bg-primary'
-                    )}>
-                      {game.status || 'Active'}
+                {/* OVERLAY LAYER: Badges and Flags (z-10 above image) */}
+                <div className="absolute inset-x-2 top-2 z-10 flex justify-between items-start pointer-events-none">
+                  {game.flag && (
+                    <div className="bg-black/60 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center border border-white/10">
+                      <span className="text-xs leading-none">{game.flag}</span>
                     </div>
+                  )}
+                  <div className={cn(
+                    "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
+                    game.status === 'active' ? 'bg-green-500' : 'bg-primary'
+                  )}>
+                    {game.status || 'Active'}
                   </div>
                 </div>
               </div>
 
-              {/* Game Identity Label */}
+              {/* PRODUCT LABEL */}
               <div className="text-center px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
                   {game.name}
