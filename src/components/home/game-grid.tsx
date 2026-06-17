@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo } from "react";
@@ -45,7 +46,8 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const media = mediaAssets.find(item => item.entityId === game.id);
+          const lookupId = game.entityId ?? game.firestoreId ?? game.id;
+          const media = mediaAssets.find(item => item.entityId === lookupId);
           const logoUrl = media?.logoUrl || "";
 
           return (

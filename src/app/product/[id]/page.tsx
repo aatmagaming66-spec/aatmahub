@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -12,7 +13,7 @@ import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, where, doc, onSnapshot } from "firebase/firestore";
+import { collection, query, where, doc } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
 
@@ -34,21 +35,20 @@ export default function ProductPage() {
   const { data: gameInfo } = useDoc(gameRef);
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
 
+  const mediaAssetsQuery = useMemo(() => collection(db, 'media_assets'), [db]);
+  const { data: mediaAssets } = useCollection(mediaAssetsQuery);
+
+  const media = useMemo(() => {
+    const lookupId = id as string;
+    return mediaAssets.find(m => m.entityId === lookupId);
+  }, [mediaAssets, id]);
+
   const [selectedPack, setSelectedPack] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("small");
   const [playerId, setPlayerId] = useState("");
   const [serverId, setServerId] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [media, setMedia] = useState<any>(null);
-
-  useEffect(() => {
-    if (!id) return;
-    const unsubscribe = onSnapshot(doc(db, 'media_assets', id as string), (snap) => {
-      if (snap.exists()) setMedia(snap.data());
-    });
-    return () => unsubscribe();
-  }, [db, id]);
 
   const productName = gameInfo?.name || id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
 

@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo } from "react";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 interface ServiceItem {
   id: string;
   firestoreId: string;
+  entityId?: string;
   name: string;
   status?: string;
 }
@@ -34,7 +36,8 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
-          const media = mediaAssets.find(m => m.entityId === item.firestoreId);
+          const lookupId = item.entityId ?? item.firestoreId ?? item.id;
+          const media = mediaAssets.find(m => m.entityId === lookupId);
           const logoUrl = media?.logoUrl || "";
 
           return (
