@@ -1,9 +1,9 @@
 "use client"
 
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -16,20 +16,10 @@ export function GameGrid() {
     orderBy('sortOrder', 'asc')
   ), [db]);
 
-  const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
-  const [media, setMedia] = useState<Record<string, any>>({});
+  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
 
-  useEffect(() => {
-    const q = collection(db, 'media_assets');
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const mediaMap: Record<string, any> = {};
-      snap.docs.forEach(d => {
-        mediaMap[d.id] = d.data();
-      });
-      setMedia(mediaMap);
-    });
-    return () => unsubscribe();
-  }, [db]);
+  const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
+  const { data: mediaAssets } = useCollection(mediaQuery);
 
   if (gamesLoading) {
     return (
@@ -55,29 +45,27 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const gameMedia = media[game.firestoreId || game.id];
-          
-          const url = 
-            gameMedia?.logoUrl || 
-            gameMedia?.imageUrl || 
-            gameMedia?.thumbnailUrl || 
-            game.cardImage ||
-            null;
+          const media = mediaAssets.find(item => item.entityId === game.id);
+          const logoUrl = media?.logoUrl || "";
 
           return (
             <Link 
-              key={game.firestoreId || game.id}
-              href={`/product/${game.firestoreId || game.id}`} 
+              key={game.firestoreId}
+              href={`/product/${game.firestoreId}`} 
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                {url ? (
+                {logoUrl ? (
                   <img
-                    src={url}
+                    src={logoUrl}
                     alt={game.name}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
-                ) : null}
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                    <span className="text-[10px] font-black uppercase">{game.name.substring(0, 2)}</span>
+                  </div>
+                )}
                 
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
                   <div className="flex justify-between items-start">

@@ -15,7 +15,6 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where, doc, onSnapshot } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
-import Image from "next/image";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -41,12 +40,12 @@ export default function ProductPage() {
   const [serverId, setServerId] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [asset, setAsset] = useState<any>(null);
+  const [media, setMedia] = useState<any>(null);
 
   useEffect(() => {
     if (!id) return;
     const unsubscribe = onSnapshot(doc(db, 'media_assets', id as string), (snap) => {
-      if (snap.exists()) setAsset(snap.data());
+      if (snap.exists()) setMedia(snap.data());
     });
     return () => unsubscribe();
   }, [db, id]);
@@ -91,7 +90,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.logoUrl || gameInfo?.cardImage || asset?.thumbnailUrl || "",
+      image: media?.logoUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -111,7 +110,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.logoUrl || gameInfo?.cardImage || asset?.thumbnailUrl || "",
+      image: media?.logoUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -121,19 +120,16 @@ export default function ProductPage() {
     toast({ title: "Added to Hub" });
   };
 
-  const bannerUrl = asset?.bannerUrl || gameInfo?.banner || null;
+  const bannerUrl = media?.bannerUrl || media?.logoUrl || "";
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <div className="relative w-full aspect-video bg-black overflow-hidden shadow-2xl border-b border-white/5">
         {bannerUrl ? (
-          <Image 
+          <img 
             src={bannerUrl} 
             alt={productName} 
-            fill 
-            className="object-contain"
-            priority 
-            sizes="100vw"
+            className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />

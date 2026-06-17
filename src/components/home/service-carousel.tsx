@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import { useFirestore } from "@/firebase/provider";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection } from "firebase/firestore";
+import { useCollection } from "@/firebase/firestore/use-collection";
 import { cn } from "@/lib/utils";
 
 interface ServiceItem {
@@ -22,19 +23,8 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
   const db = useFirestore();
   const isOtt = title.toLowerCase().includes('ott');
   
-  const [media, setMedia] = useState<Record<string, any>>({});
-
-  useEffect(() => {
-    const q = collection(db, 'media_assets');
-    const unsubscribe = onSnapshot(q, (snap) => {
-      const mediaMap: Record<string, any> = {};
-      snap.docs.forEach(d => {
-        mediaMap[d.id] = d.data();
-      });
-      setMedia(mediaMap);
-    });
-    return () => unsubscribe();
-  }, [db]);
+  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
+  const { data: mediaAssets } = useCollection(mediaQuery);
 
   return (
     <section className="py-4 overflow-hidden">
@@ -44,13 +34,8 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
-          const itemMedia = media[item.firestoreId];
-          
-          const imageUrl = 
-            itemMedia?.logoUrl || 
-            itemMedia?.imageUrl || 
-            itemMedia?.thumbnailUrl || 
-            null;
+          const media = mediaAssets.find(m => m.entityId === item.firestoreId);
+          const logoUrl = media?.logoUrl || "";
 
           return (
             <Link 
@@ -62,15 +47,17 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
                 "relative aspect-[2/3] overflow-hidden rounded-xl mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500",
                 isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'
               )}>
-                <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
-                  {imageUrl ? (
-                    <img 
-                      src={imageUrl} 
-                      alt={item.name} 
-                      className="absolute inset-0 w-full h-full object-cover" 
-                    />
-                  ) : null}
-                </div>
+                {logoUrl ? (
+                  <img 
+                    src={logoUrl} 
+                    alt={item.name} 
+                    className="absolute inset-0 w-full h-full object-cover" 
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                    <span className="text-[10px] font-black uppercase">{item.name.substring(0, 2)}</span>
+                  </div>
+                )}
                 
                 <div className="absolute top-2 right-2 z-10 pointer-events-none">
                   <div className={`text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg ${

@@ -36,18 +36,15 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 
 interface MediaAsset {
   id: string;
   entityId: string;
   entityType: 'game' | 'ott' | 'social' | 'branding';
   entityName: string;
-  logoUrl?: string;
-  thumbnailUrl?: string; 
-  imageUrl?: string; 
-  icon?: string;     
-  bannerUrl?: string;
+  logoUrl: string;
+  bannerUrl: string;
+  thumbnailUrl: string;
   isEnabled: boolean;
   updatedAt: string;
 }
@@ -120,16 +117,15 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [logoProgress, setLogoProgress] = useState(0);
   const [bannerProgress, setBannerProgress] = useState(0);
   
-  const [localLogo, setLocalLogo] = useState<string | null>(asset.logoUrl || null);
-  const [localBanner, setLocalBanner] = useState<string | null>(asset.bannerUrl || null);
+  const [localLogo, setLocalLogo] = useState<string>(asset.logoUrl || "");
+  const [localBanner, setLocalBanner] = useState<string>(asset.bannerUrl || "");
   const [enabled, setEnabled] = useState(asset.isEnabled);
   const [uncommitted, setUncommitted] = useState(false);
 
   useEffect(() => {
-    // Only update local state if user doesn't have uncommitted changes
     if (!uncommitted) {
-      setLocalLogo(asset.logoUrl || null);
-      setLocalBanner(asset.bannerUrl || null);
+      setLocalLogo(asset.logoUrl || "");
+      setLocalBanner(asset.bannerUrl || "");
       setEnabled(asset.isEnabled);
     }
   }, [asset, uncommitted]);
@@ -170,33 +166,18 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   };
 
   const handleSave = async () => {
-    if (localLogo?.startsWith('blob:') || localBanner?.startsWith('blob:')) {
-      toast({ variant: 'destructive', title: 'Save Blocked', description: 'Wait for upload to complete.' });
-      return;
-    }
-
     setIsSaving(true);
     
-    // BUILD NON-DESTRUCTIVE PAYLOAD
-    const assetData: any = {
+    const assetData = {
       entityId: asset.entityId,
       entityType: asset.entityType,
       entityName: asset.entityName,
+      logoUrl: localLogo,
+      bannerUrl: localBanner,
+      thumbnailUrl: localLogo,
       isEnabled: enabled,
       updatedAt: new Date().toISOString()
     };
-
-    // Only include URLs if they are present, preserving existing DB values if state is empty
-    if (localLogo) {
-      assetData.logoUrl = localLogo;
-      assetData.thumbnailUrl = localLogo; 
-      assetData.imageUrl = localLogo;
-      assetData.icon = localLogo;
-    }
-
-    if (localBanner) {
-      assetData.bannerUrl = localBanner;
-    }
 
     try {
       await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
@@ -215,7 +196,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all flex flex-col">
       <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {localBanner ? (
-          <Image src={localBanner} alt="Banner" fill className="object-cover" unoptimized={localBanner.startsWith('blob:')} />
+          <img src={localBanner} alt="Banner" className="absolute inset-0 w-full h-full object-cover" />
         ) : <div className="flex flex-col items-center gap-2 opacity-10"><ImageIcon size={40} /><span className="text-[8px] font-black uppercase tracking-[0.3em]">No Banner</span></div>}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
           <div className="bg-black/60 backdrop-blur-md p-1 px-3 rounded-lg border border-white/10 text-[7px] font-black uppercase text-primary">{asset.entityType}</div>
@@ -226,7 +207,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
       <CardContent className="p-6 space-y-6 flex-1 flex flex-col">
         <div className="flex items-center gap-4">
           <div className="relative aspect-[2/3] h-20 shrink-0 rounded-xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center">
-            {localLogo ? <Image src={localLogo} alt="Logo" fill className="object-cover" unoptimized={localLogo.startsWith('blob:')} /> : <Icon size={20} className="opacity-20 text-primary" />}
+            {localLogo ? <img src={localLogo} alt="Logo" className="absolute inset-0 w-full h-full object-cover" /> : <Icon size={20} className="opacity-20 text-primary" />}
           </div>
           <div className="min-w-0">
             <h3 className="text-sm font-black uppercase tracking-tight text-white truncate">{asset.entityName}</h3>
