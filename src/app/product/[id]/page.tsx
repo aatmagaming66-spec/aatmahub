@@ -17,6 +17,10 @@ import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import Image from "next/image";
 
+/**
+ * PRODUCT PAGE (Public)
+ * Optimized Hero Header with high-visibility banner support.
+ */
 export default function ProductPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -123,27 +127,48 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      <div className="relative w-full h-48 border-b border-white/5 overflow-hidden flex flex-col justify-end p-6">
+      {/* HIGH VISIBILITY DYNAMIC HERO HEADER */}
+      <div className="relative w-full h-[260px] md:h-[320px] border-b border-white/5 overflow-hidden flex flex-col justify-end p-6 md:p-10">
         {asset?.bannerUrl ? (
-          <Image src={asset.bannerUrl} alt="Banner" fill className="object-cover opacity-40" priority />
+          <Image 
+            src={asset.bannerUrl} 
+            alt={productName} 
+            fill 
+            className="object-cover object-center" 
+            priority 
+          />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-background to-background" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
         
-        <div className="relative z-10">
-          <h1 className="text-3xl font-headline font-black text-white uppercase tracking-tighter leading-none mb-2">{productName}</h1>
-          <div className="flex gap-2">
-            <span className="px-2 py-0.5 bg-primary/10 border border-primary/20 rounded-md text-[8px] font-black uppercase text-primary tracking-widest flex items-center gap-1"><Zap size={10} /> Instant</span>
-            <span className="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-md text-[8px] font-black uppercase text-green-500 tracking-widest flex items-center gap-1"><ShieldCheck size={10} /> Verified</span>
+        {/* Calibrated 45% Alpha Overlay for High Visibility */}
+        <div className="absolute inset-0 bg-black/45 z-[1]" />
+        
+        {/* Soft bottom blend to background */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-[2] opacity-80" />
+        
+        <div className="relative z-10 space-y-3">
+          <div className="flex flex-wrap gap-2 mb-1">
+            <span className="px-2 py-0.5 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-md text-[8px] font-black uppercase text-white tracking-widest flex items-center gap-1 shadow-lg">
+              <Zap size={10} className="text-primary fill-primary" /> Instant Delivery
+            </span>
+            <span className="px-2 py-0.5 bg-green-500/20 backdrop-blur-md border border-green-500/30 rounded-md text-[8px] font-black uppercase text-white tracking-widest flex items-center gap-1 shadow-lg">
+              <ShieldCheck size={10} className="text-green-500" /> Secure Verified
+            </span>
           </div>
+          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-none drop-shadow-2xl">
+            {productName}
+          </h1>
         </div>
       </div>
 
-      <div className="p-4 space-y-8">
+      <div className="p-4 space-y-8 max-w-4xl mx-auto w-full">
         <section className="bg-card border border-border p-6 rounded-[2rem] space-y-4 shadow-xl">
-          <div className="flex items-center gap-2"><Smartphone size={14} className="text-primary" /><h3 className="text-[10px] font-black uppercase tracking-widest">Player Verification</h3></div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center gap-2">
+            <Smartphone size={14} className="text-primary" />
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/70">Account Verification</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-1">
                <Label className="text-[8px] font-black uppercase text-muted-foreground ml-1">Player ID</Label>
                <Input value={playerId} onChange={(e) => handleInputChange('player', e.target.value)} placeholder="Enter ID" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
@@ -153,16 +178,18 @@ export default function ProductPage() {
                <Input value={serverId} onChange={(e) => handleInputChange('server', e.target.value)} placeholder="Server" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
              </div>
           </div>
-          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest", isVerified ? "bg-green-500 hover:bg-green-500" : "bg-primary")}>
+          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg transition-all", isVerified ? "bg-green-500 hover:bg-green-500" : "bg-primary")}>
             {verifying ? <Loader2 className="animate-spin h-4 w-4" /> : (isVerified ? "ID Verified: AATMA_USER" : "Verify Account")}
           </Button>
         </section>
 
         <section className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full bg-card border border-border h-12 p-1 rounded-2xl mb-6">
+            <TabsList className="w-full bg-card border border-border h-12 p-1 rounded-2xl mb-6 shadow-inner">
               {['small', 'large', 'pass', 'promo'].map(t => (
-                <TabsTrigger key={t} value={t} className="flex-1 text-[9px] font-black uppercase rounded-xl data-[state=active]:bg-primary">{t}</TabsTrigger>
+                <TabsTrigger key={t} value={t} className="flex-1 text-[9px] font-black uppercase rounded-xl data-[state=active]:bg-primary transition-all">
+                  {t}
+                </TabsTrigger>
               ))}
             </TabsList>
             
@@ -171,15 +198,28 @@ export default function ProductPage() {
             ) : packs.filter(p => p.tab === activeTab).length === 0 ? (
               <div className="bg-card/20 border border-dashed border-border rounded-3xl p-10 text-center">
                 <PackageSearch className="mx-auto h-8 w-8 text-muted-foreground opacity-20 mb-2" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No SKUs in this tab</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No packages in this tab</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {packs.filter(p => p.tab === activeTab).map((pack) => (
-                  <button key={pack.id} onClick={() => setSelectedPack(pack)} className={cn("p-4 rounded-2xl border transition-all text-left bg-card group relative", selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border")}>
-                    <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight mb-2">{pack.name}</p>
-                    <p className="text-lg font-black text-primary leading-none">₹{pack.price}</p>
-                    {selectedPack?.id === pack.id && <div className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />}
+                  <button 
+                    key={pack.id} 
+                    onClick={() => setSelectedPack(pack)} 
+                    className={cn(
+                      "p-5 rounded-2xl border transition-all text-left bg-card group relative shadow-lg active:scale-95", 
+                      selectedPack?.id === pack.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border hover:border-white/10"
+                    )}
+                  >
+                    <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight mb-2 uppercase">
+                      {pack.name}
+                    </p>
+                    <p className="text-xl font-black text-primary leading-none tracking-tighter">
+                      ₹{pack.price}
+                    </p>
+                    {selectedPack?.id === pack.id && (
+                      <div className="absolute top-2 right-2 h-2 w-2 bg-primary rounded-full shadow-[0_0_10px_#DC2626] animate-pulse" />
+                    )}
                   </button>
                 ))}
               </div>
@@ -187,11 +227,11 @@ export default function ProductPage() {
           </Tabs>
         </section>
 
-        <div className="flex flex-col gap-3 pb-20">
-          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 group">
+        <div className="flex flex-col gap-3 pb-24">
+          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-primary/20 group transition-all">
             Buy Now <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <Button variant="outline" onClick={handleAddToCart} disabled={!selectedPack || !isVerified} className="w-full h-14 border-border bg-transparent text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-white/5">
+          <Button variant="outline" onClick={handleAddToCart} disabled={!selectedPack || !isVerified} className="w-full h-14 border-border bg-transparent text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-white/5 transition-all">
             Add to Hub
           </Button>
         </div>
