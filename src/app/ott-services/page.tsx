@@ -1,9 +1,11 @@
+
 'use client';
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { collection, query, orderBy, where } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tv } from 'lucide-react';
@@ -12,7 +14,9 @@ export default function OttServicesPage() {
   const db = useFirestore();
   
   const ottQuery = useMemo(() => query(
-    collection(db, 'ott_services'),
+    collection(db, 'games'),
+    where('category', '==', 'OTT Services'),
+    where('status', '==', 'active'),
     orderBy('sortOrder', 'asc')
   ), [db]);
 
@@ -41,24 +45,22 @@ export default function OttServicesPage() {
           {items.map((item) => {
             return (
               <Link 
-                key={item.firestoreId} 
-                href={`/product/${item.firestoreId}`} 
+                key={item.id} 
+                href={`/product/${item.id}`} 
                 className="group transition-all duration-300 active:scale-95"
               >
                 <div className="relative aspect-video w-full rounded-[24px] overflow-hidden mb-3 border border-border shadow-2xl bg-card group-hover:border-accent/50 transition-all duration-500">
                   <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-black to-card" />
                   
-                  <div className="absolute top-3 right-3 z-10 pointer-events-none">
-                    <div className={`text-white text-[8px] font-black px-2 py-1 rounded-md uppercase tracking-tighter shadow-lg ${
-                      item.status === 'active' ? 'bg-green-500' : 'bg-primary'
-                    }`}>
-                      {item.status || 'Active'}
+                  {item.logo ? (
+                    <Image src={item.logo} alt={item.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                      <Tv size={40} className="text-white" />
                     </div>
-                  </div>
+                  )}
 
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                    <Tv size={40} className="text-white" />
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
                 </div>
                 <div className="text-center px-1">
                   <h3 className="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-accent transition-colors">

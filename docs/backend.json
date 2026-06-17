@@ -52,12 +52,13 @@
     },
     "Game": {
       "title": "Game",
-      "description": "Managed game titles in the hub",
+      "description": "Managed game titles or services in the hub",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "slug": { "type": "string" },
+        "category": { "type": "string", "enum": ["Mobile Games", "OTT Services", "Social Services"] },
         "logo": { "type": "string", "description": "HTTPS URL for the game logo" },
         "banner": { "type": "string", "description": "HTTPS URL for the product page banner" },
         "status": { "type": "string", "enum": ["active", "inactive"] },
@@ -65,7 +66,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "name", "slug", "status"]
+      "required": ["id", "name", "slug", "category", "status"]
     },
     "Product": {
       "title": "Product",
@@ -86,7 +87,7 @@
   "firestore": {
     "/users/{userId}": { "schema": "UserProfile", "description": "User profiles" },
     "/orders/{orderId}": { "schema": "Order", "description": "Customer orders" },
-    "/games/{gameId}": { "schema": "Game", "description": "Managed games" },
+    "/games/{gameId}": { "schema": "Game", "description": "Managed games and services" },
     "/products/{productId}": { "schema": "Product", "description": "Managed products" },
     "/wallets/{userId}": { "schema": "object", "description": "User wallets" },
     "/transactions/{txId}": { "schema": "object", "description": "Wallet tx" },

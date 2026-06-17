@@ -1,35 +1,68 @@
 
 'use client';
 
+import { useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { useFirestore } from "@/firebase/provider";
+import { collection, query, orderBy, where } from "firebase/firestore";
+import { useCollection } from "@/firebase/firestore/use-collection";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tv, Share2 } from "lucide-react";
-
-interface ServiceItem {
-  id: string;
-  name: string;
-  status?: string;
-}
 
 interface ServiceCarouselProps {
   title: string;
-  items: ServiceItem[];
+  category: "OTT Services" | "Social Services";
 }
 
-export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
-  const isOtt = title.toLowerCase().includes('ott');
+export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
+  const db = useFirestore();
+  const isOtt = category === 'OTT Services';
   const Icon = isOtt ? Tv : Share2;
 
-  // No hardcoded data here. If items is empty, render nothing.
+  const servicesQuery = useMemo(() => 
+    query(
+      collection(db, 'games'), 
+      where('status', '==', 'active'),
+      where('category', '==', category),
+      orderBy('sortOrder', 'asc')
+    ), 
+  [db, category]);
+
+  const { data: items, loading } = useCollection(servicesQuery);
+
+  if (loading) {
+    return (
+      <section className="py-6 px-4">
+        <div className="flex items-center gap-2 mb-6">
+          <div className={isOtt ? "w-1 h-5 bg-accent rounded-full shadow-[0_0_8px_#EC4899]" : "w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]"} />
+          <h2 className="text-base font-headline font-black uppercase tracking-tighter">{title}</h2>
+        </div>
+        <div className="flex gap-4 overflow-x-auto no-scrollbar">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="flex-shrink-0 w-[120px] aspect-[2/3] rounded-xl bg-white/5" />
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   if (!items || items.length === 0) {
     return null;
   }
 
   return (
-    <section className="py-4 overflow-hidden">
-      <h2 className="text-sm font-headline font-black uppercase tracking-tighter mb-4 px-4 flex items-center gap-2">
-        <span className={isOtt ? "w-1 h-4 bg-accent rounded-full" : "w-1 h-4 bg-primary rounded-full"} />
-        {title}
-      </h2>
+    <section className="py-6 overflow-hidden">
+      <div className="flex items-center justify-between mb-6 px-4">
+        <div className="flex items-center gap-2">
+          <div className={isOtt ? "w-1.5 h-5 bg-accent rounded-full shadow-[0_0_12px_rgba(236,72,153,0.5)]" : "w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]"} />
+          <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">
+            {title}
+          </h2>
+        </div>
+        <Link href={isOtt ? "/ott-services" : "/social-services"} className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] hover:text-white transition-colors">Explorer</Link>
+      </div>
+
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => (
           <Link 
@@ -37,11 +70,24 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
             href={`/product/${item.id}`} 
             className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all flex flex-col"
           >
-            <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-2.5 border border-border bg-neutral-900 flex items-center justify-center">
-              <Icon size={20} className="text-white opacity-10" />
+            <div className="relative aspect-[2/3] rounded-[20px] overflow-hidden mb-2.5 border border-white/5 bg-card shadow-xl group-hover:border-white/20 transition-all">
+              <div className={isOtt ? "absolute inset-0 bg-gradient-to-br from-accent/10 via-black to-card" : "absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card"} />
+              
+              {item.logo ? (
+                <Image 
+                  src={item.logo} 
+                  alt={item.name} 
+                  fill 
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                  <Icon size={24} className="text-white" />
+                </div>
+              )}
             </div>
             <div className="text-center px-1">
-              <span className={`text-[8px] font-black text-muted-foreground uppercase tracking-tight transition-colors line-clamp-1`}>
+              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-white transition-colors line-clamp-1">
                 {item.name}
               </span>
             </div>

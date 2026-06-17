@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState, useEffect, memo } from 'react';
@@ -26,7 +27,8 @@ import {
   Share2,
   Home as HomeIcon,
   Layers,
-  Trophy
+  Trophy,
+  Gamepad2
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
@@ -124,12 +126,11 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = useMemo(() => [
+    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage hub titles & services' },
     { label: 'Rank Management', href: '/admin/ranks', icon: Trophy, desc: 'Manage tiers & requirements' },
-    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
     { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage products & pricing' },
+    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
     { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Manage regions & availability' },
-    { label: 'OTT Management', href: '/admin/ott', icon: Tv, desc: 'Manage streaming services' },
-    { label: 'Social Management', href: '/admin/social', icon: Share2, desc: 'Manage growth services' },
     { label: 'Tab Management', href: '/admin/tabs', icon: Layers, desc: 'Manage catalog tabs' },
     { label: 'Home Control', href: '/admin/homepage', icon: HomeIcon, desc: 'Manage homepage sections' },
     { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },

@@ -12,15 +12,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
+import { 
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2, Tag } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+
+const CATEGORIES = ["Mobile Games", "OTT Services", "Social Services"];
 
 export default function GameManagementPage() {
   const db = useFirestore();
@@ -36,6 +45,7 @@ export default function GameManagementPage() {
     id: '',
     name: '',
     slug: '',
+    category: 'Mobile Games',
     status: 'active',
     sortOrder: 0,
     logo: '',
@@ -52,7 +62,10 @@ export default function GameManagementPage() {
 
   const filteredGames = useMemo(() => {
     if (!games) return [];
-    return games.filter(g => g.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+    return games.filter(g => 
+      g.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      g.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   }, [games, searchQuery]);
 
   const handleOpenModal = (game: any = null) => {
@@ -62,6 +75,7 @@ export default function GameManagementPage() {
         id: game.id || '',
         name: game.name || '',
         slug: game.slug || '',
+        category: game.category || 'Mobile Games',
         status: game.status || 'active',
         sortOrder: game.sortOrder || 0,
         logo: game.logo || '',
@@ -70,7 +84,7 @@ export default function GameManagementPage() {
     } else {
       setEditingGame(null);
       setFormData({
-        id: '', name: '', slug: '', status: 'active',
+        id: '', name: '', slug: '', category: 'Mobile Games', status: 'active',
         sortOrder: (games?.length || 0) + 1,
         logo: '', banner: ''
       });
@@ -116,7 +130,7 @@ export default function GameManagementPage() {
       
       await setDoc(gameRef, gameData, { merge: true });
 
-      toast({ title: 'Game Record Secured', description: `${formData.name} is now updated in the registry.` });
+      toast({ title: 'Record Secured', description: `${formData.name} has been updated in the registry.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
@@ -126,7 +140,7 @@ export default function GameManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently remove this game from the hub? This action cannot be undone.')) return;
+    if (!confirm('Permanently remove this record from the hub? This action cannot be undone.')) return;
     try {
       await deleteDoc(doc(db, 'games', id));
       toast({ title: 'Record Purged' });
@@ -150,7 +164,7 @@ export default function GameManagementPage() {
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Search Registry..." 
+          placeholder="Search Registry by Name or Category..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
@@ -177,16 +191,22 @@ export default function GameManagementPage() {
                 <div className="absolute top-4 left-4 h-12 w-12 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 overflow-hidden">
                   {game.logo && <Image src={game.logo} alt={game.name} fill className="object-cover" />}
                 </div>
-                <div className="absolute top-4 right-4">
+                <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
                   <div className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase border shadow-lg ${game.status === 'active' ? 'bg-green-500 border-green-400 text-white' : 'bg-primary border-primary/50 text-white'}`}>
                     {game.status}
+                  </div>
+                  <div className="bg-black/80 px-2 py-0.5 rounded-md border border-white/10 text-[7px] font-black uppercase text-white/60">
+                    {game.category}
                   </div>
                 </div>
               </div>
               <CardContent className="p-6 space-y-4">
                 <div className="space-y-1">
                   <h3 className="text-sm font-black uppercase tracking-tight text-white">{game.name}</h3>
-                  <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest leading-none">Slug: {game.slug}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest leading-none">Slug: {game.slug}</p>
+                    <p className="text-[8px] text-primary font-black uppercase tracking-widest leading-none">Order: {game.sortOrder}</p>
+                  </div>
                 </div>
 
                 <div className="flex gap-2">
@@ -207,7 +227,7 @@ export default function GameManagementPage() {
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl max-h-[90vh] overflow-y-auto no-scrollbar">
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">
-              {editingGame ? 'Edit Game Protocol' : 'Register Title'}
+              {editingGame ? 'Update Record' : 'Register New Entity'}
             </DialogTitle>
           </DialogHeader>
           
@@ -224,16 +244,30 @@ export default function GameManagementPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-6">
-               <div className="space-y-2">
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Hub Category</Label>
+                <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
+                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    {CATEGORIES.map(cat => (
+                      <SelectItem key={cat} value={cat} className="text-[10px] font-black uppercase">{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Sort Priority</Label>
                 <Input type="number" value={formData.sortOrder} onChange={(e) => setFormData({...formData, sortOrder: Number(e.target.value)})} className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
               </div>
-              <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Visibility Status</Label>
-                <div className="flex items-center justify-between bg-black/50 border border-border h-12 rounded-xl px-4">
-                  <span className="text-[10px] font-bold uppercase text-white/60">{formData.status}</span>
-                  <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
-                </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Operational Status</Label>
+              <div className="flex items-center justify-between bg-black/50 border border-border h-12 rounded-xl px-4">
+                <span className="text-[10px] font-bold uppercase text-white/60">{formData.status}</span>
+                <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
               </div>
             </div>
 
@@ -241,7 +275,7 @@ export default function GameManagementPage() {
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl space-y-3">
                  <div className="flex items-center gap-2">
                    <ImageIcon size={14} className="text-primary" />
-                   <span className="text-[10px] font-black uppercase tracking-widest">Logo Upload</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest">Logo Upload (Card Icon)</span>
                  </div>
                  <Input type="file" onChange={(e) => setFiles({...files, logo: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept="image/*" />
                  {formData.logo && !files.logo && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Cloud Asset Linked</p>}
@@ -250,7 +284,7 @@ export default function GameManagementPage() {
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl space-y-3">
                  <div className="flex items-center gap-2">
                    <ImageIcon size={14} className="text-accent" />
-                   <span className="text-[10px] font-black uppercase tracking-widest">Banner Upload</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest">Banner Upload (Product Page)</span>
                  </div>
                  <Input type="file" onChange={(e) => setFiles({...files, banner: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept="image/*" />
                  {formData.banner && !files.banner && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Cloud Asset Linked</p>}

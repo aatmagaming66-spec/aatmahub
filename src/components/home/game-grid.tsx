@@ -17,6 +17,7 @@ export function GameGrid() {
     query(
       collection(db, 'games'), 
       where('status', '==', 'active'),
+      where('category', '==', 'Mobile Games'),
       orderBy('sortOrder', 'asc')
     ), 
   [db]);
@@ -27,8 +28,8 @@ export function GameGrid() {
     return (
       <section className="py-6 px-4">
         <div className="flex items-center gap-2 mb-6">
-          <div className="w-1 h-5 bg-primary rounded-full" />
-          <h2 className="text-sm font-headline font-black uppercase tracking-tighter">Mobile Games</h2>
+          <div className="w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
+          <h2 className="text-base font-headline font-black uppercase tracking-tighter">Mobile Games</h2>
         </div>
         <div className="grid grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
