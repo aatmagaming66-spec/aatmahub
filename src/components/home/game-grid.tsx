@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useMemo } from "react";
 import Link from "next/link";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gamepad2 } from "lucide-react";
@@ -12,7 +13,11 @@ export function GameGrid() {
   const db = useFirestore();
   
   const gamesQuery = useMemo(() => 
-    query(collection(db, 'games'), orderBy('sortOrder', 'asc')), 
+    query(
+      collection(db, 'games'), 
+      where('status', '==', 'active'),
+      orderBy('sortOrder', 'asc')
+    ), 
   [db]);
 
   const { data: games, loading } = useCollection(gamesQuery);
@@ -30,12 +35,7 @@ export function GameGrid() {
   }
 
   if (!games || games.length === 0) {
-    return (
-      <section className="py-10 px-4 text-center border border-dashed border-white/5 rounded-[2rem] mx-4 my-4">
-        <Gamepad2 className="mx-auto h-8 w-8 text-muted-foreground opacity-20 mb-3" />
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Games Hub Offline</p>
-      </section>
-    );
+    return null;
   }
 
   return (

@@ -1,38 +1,18 @@
 
 "use client"
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { HeroBanner } from "@/components/home/hero-banner";
 import { QuickActions } from "@/components/home/quick-actions";
-import { GameGrid } from "@/components/home/game-grid";
-import { ServiceCarousel } from "@/components/home/service-carousel";
-import { ShieldCheck, Zap, Lock, Headphones, Loader2 } from "lucide-react";
+import { ShieldCheck, Zap, Lock, Headphones } from "lucide-react";
 import Link from 'next/link';
-import { useFirestore } from "@/firebase/provider";
-import { collection, query, orderBy } from "firebase/firestore";
-import { useCollection } from "@/firebase/firestore/use-collection";
-
-declare global {
-  interface Window {
-    __nav_click_time?: number;
-  }
-}
 
 export default function Home() {
-  const db = useFirestore();
-
-  // Real-time listeners for service collections
-  const ottQuery = useMemo(() => query(collection(db, 'ott_services'), orderBy('sortOrder', 'asc')), [db]);
-  const socialQuery = useMemo(() => query(collection(db, 'social_services'), orderBy('sortOrder', 'asc')), [db]);
-
-  const { data: ottItems, loading: ottLoading } = useCollection(ottQuery);
-  const { data: socialItems, loading: socialLoading } = useCollection(socialQuery);
-
   useEffect(() => {
     const mountTime = performance.now();
     if (window.__nav_click_time) {
       const duration = mountTime - window.__nav_click_time;
-      console.log(`[PERF_HUB] Homepage Navigation Load: ${duration.toFixed(2)}ms ${duration > 1000 ? '⚠️ SLOW' : '✅ OK'}`);
+      console.log(`[PERF_HUB] Homepage Navigation Load: ${duration.toFixed(2)}ms`);
       window.__nav_click_time = undefined;
     }
   }, []);
@@ -75,22 +55,10 @@ export default function Home() {
       
       <QuickActions />
       
-      {/* Mobile Games Grid (Internal Firestore Fetch) */}
-      <GameGrid />
-
-      {/* OTT Services Carousel */}
-      {ottLoading ? (
-        <div className="px-4 py-10 flex justify-center"><Loader2 className="animate-spin text-accent" /></div>
-      ) : (
-        <ServiceCarousel title="OTT Services" items={ottItems} />
-      )}
-
-      {/* Social Services Carousel */}
-      {socialLoading ? (
-        <div className="px-4 py-10 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
-      ) : (
-        <ServiceCarousel title="Social Services" items={socialItems} />
-      )}
+      {/* Dynamic Sectors - Temporary Purge State */}
+      <div className="py-20 px-6 text-center">
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-20">Registry Sync Pending</p>
+      </div>
 
       <footer className="px-6 py-10 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
         <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 leading-none">
@@ -102,7 +70,7 @@ export default function Home() {
             Premium Digital Solutions for Gaming and Social Needs.
           </p>
           <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest">
-            © 2024 Aatma HUB. All rights reserved.
+            © 2025 Aatma HUB. All rights reserved.
           </p>
         </div>
 

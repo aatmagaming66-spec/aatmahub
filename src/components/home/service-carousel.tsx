@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from "next/link";
@@ -18,6 +19,7 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
   const isOtt = title.toLowerCase().includes('ott');
   const Icon = isOtt ? Tv : Share2;
 
+  // No hardcoded data here. If items is empty, render nothing.
   if (!items || items.length === 0) {
     return null;
   }
