@@ -20,7 +20,7 @@ import Image from "next/image";
 /**
  * PRODUCT PAGE (Public)
  * Redesigned Layout: Clean visual banner first, content identity below.
- * Professional storefront architecture.
+ * Refined for 100% banner visibility (object-contain).
  */
 export default function ProductPage() {
   const { id } = useParams();
@@ -128,14 +128,14 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      {/* 100% CLEAN VISUAL BANNER POSTER */}
-      <div className="relative w-full h-[220px] md:h-[350px] border-b border-white/5 overflow-hidden">
+      {/* 100% VISIBLE BANNER POSTER - NO CROPPING */}
+      <div className="relative w-full h-[180px] md:h-[300px] border-b border-white/5 bg-background overflow-hidden">
         {asset?.bannerUrl ? (
           <Image 
             src={asset.bannerUrl} 
             alt={productName} 
             fill 
-            className="object-cover object-center" 
+            className="object-contain" 
             priority 
           />
         ) : (
@@ -144,25 +144,25 @@ export default function ProductPage() {
       </div>
 
       {/* CONTENT AREA BELOW BANNER */}
-      <div className="p-4 pt-6 space-y-6 max-w-4xl mx-auto w-full">
-        {/* STATUS BADGES SECTION */}
-        <div className="flex flex-wrap gap-2.5">
-          <div className="bg-primary px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg shadow-primary/10">
-            <Zap size={12} className="text-white fill-white" />
-            <span className="text-[10px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
+      <div className="p-4 pt-4 space-y-5 max-w-4xl mx-auto w-full">
+        {/* STATUS BADGES SECTION - SIDE BY SIDE */}
+        <div className="flex flex-row justify-center gap-3">
+          <div className="bg-primary px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-lg">
+            <Zap size={10} className="text-white fill-white" />
+            <span className="text-[9px] font-black uppercase text-white tracking-wider">Instant Delivery</span>
           </div>
-          <div className="bg-green-600 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg shadow-green-900/20">
-            <ShieldCheck size={12} className="text-white fill-white" />
-            <span className="text-[10px] font-black uppercase text-white tracking-widest">Secure Verified</span>
+          <div className="bg-green-600 px-2.5 py-1 rounded-md flex items-center gap-1.5 shadow-lg">
+            <ShieldCheck size={10} className="text-white fill-white" />
+            <span className="text-[9px] font-black uppercase text-white tracking-wider">Secure Verified</span>
           </div>
         </div>
 
-        {/* IDENTITY SECTION */}
-        <div className="space-y-1 px-1">
-          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight">
+        {/* IDENTITY SECTION - CENTERED */}
+        <div className="space-y-0.5 text-center">
+          <h1 className="text-2xl md:text-4xl font-headline font-black text-white uppercase tracking-tighter leading-tight">
             {productName}
           </h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Official Top-Up Channel</p>
+          <p className="text-[8px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-50">Official Top-Up Channel</p>
         </div>
 
         {/* ACCOUNT VERIFICATION SECTION */}
