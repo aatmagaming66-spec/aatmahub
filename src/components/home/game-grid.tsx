@@ -60,8 +60,7 @@ export function GameGrid() {
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
           const gameMedia = media[game.id];
-          // Robust Asset Resolver: Check all possible field naming variants
-          const url = gameMedia?.logoUrl || gameMedia?.thumbnailUrl || gameMedia?.icon || gameMedia?.imageUrl || null;
+          const url = gameMedia?.logoUrl || gameMedia?.thumbnailUrl || gameMedia?.icon || gameMedia?.imageUrl || game.cardImage || game.icon || game.thumbnail || null;
 
           return (
             <Link 

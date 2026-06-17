@@ -21,7 +21,6 @@ import {
   CardContent 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
@@ -64,29 +63,12 @@ export default function DynamicMediaHub() {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
 
   useEffect(() => {
-    console.log('[AUDIT] Initializing Media Registry Stream...');
     const q = query(collection(db, 'media_assets'), orderBy('entityName', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
-      const data = snap.docs.map(d => {
-        const docData = d.data();
-        return { ...docData, id: d.id } as MediaAsset;
-      });
-      
-      // REQUIREMENT: Print exact database values for audit
-      console.log('--- MEDIA REGISTRY AUDIT TABLE ---');
-      console.table(data.map(a => ({
-        ID: a.id,
-        Name: a.entityName,
-        Logo: a.logoUrl ? 'EXISTS' : 'NULL',
-        Thumb: a.thumbnailUrl ? 'EXISTS' : 'NULL',
-        Image: a.imageUrl ? 'EXISTS' : 'NULL',
-        Banner: a.bannerUrl ? 'EXISTS' : 'NULL'
-      })));
-
+      const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as MediaAsset));
       setAssets(data);
       setLoading(false);
     }, (error) => {
-      console.error('[AUDIT] Stream Error:', error);
       toast({ variant: 'destructive', title: 'Connection Error', description: error.message });
     });
     return () => unsubscribe();
@@ -103,27 +85,23 @@ export default function DynamicMediaHub() {
           { path: 'social_services', type: 'social' }
         ];
         
-        const currentMediaIds = new Set(assets.map(a => a.entityId));
-        
         for (const col of collections) {
           const snap = await getDocs(collection(db, col.path));
           for (const d of snap.docs) {
             const data = d.data();
-            // Deep sync: Update if missing OR if essential field logoUrl is missing
             const existingAsset = assets.find(a => a.entityId === d.id);
-            const needsUpdate = !existingAsset || !existingAsset.logoUrl;
+            const needsUpdate = !existingAsset || (!existingAsset.logoUrl && (data.cardImage || data.icon || data.logoUrl));
 
             if (needsUpdate) {
               const assetRef = doc(db, 'media_assets', d.id);
-              const existingImage = data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.imageUrl || null;
-              const existingBanner = data.banner || data.bannerUrl || null;
+              const existingImage = data.logoUrl || data.cardImage || data.icon || data.thumbnail || data.imageUrl || null;
+              const existingBanner = data.bannerUrl || data.banner || null;
 
               await setDoc(assetRef, {
                 entityId: d.id,
                 entityType: col.type,
                 entityName: data.name || d.id,
                 isEnabled: data.status === 'active' || data.status === 'enabled',
-                // Standardize all alias fields to prevent URL: NULL mismatches
                 logoUrl: existingImage,
                 thumbnailUrl: existingImage,
                 imageUrl: existingImage,
@@ -210,8 +188,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    console.log(`[TRACE] FILE_SELECTED: ${file.name} | Size: ${(file.size / 1024).toFixed(2)}KB | Type: ${file.type}`);
 
     if (file.size > 5 * 1024 * 1024) {
       toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum file size is 5MB.' });
@@ -225,8 +201,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     try {
       const storagePath = `media_assets/${asset.entityType}/${asset.entityId}/${type}_${Date.now()}`;
       const storageRef = ref(storage, storagePath);
-      
-      console.log(`[TRACE] UPLOAD_STARTED: Path -> ${storagePath}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on('state_changed', 
@@ -236,35 +210,28 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           else setBannerProgress(progress);
         }, 
         (error) => {
-          console.error(`[TRACE] UPLOAD_FAILED: ${error.message}`);
           toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
         }, 
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          console.log(`[TRACE] UPLOAD_SUCCESS: Generated Download URL -> ${downloadURL}`);
-          
           if (type === 'logo') { setLocalLogo(downloadURL); setLogoProgress(0); }
           else { setLocalBanner(downloadURL); setBannerProgress(0); }
-          
           setUncommitted(true);
-          toast({ title: 'Upload Ready', description: 'Click "Commit Changes" to finalize.' });
+          toast({ title: 'Upload Ready', description: 'Commit changes to finalize.' });
         }
       );
     } catch (e: any) {
-      console.error(`[TRACE] SYSTEM_ERROR: ${e.message}`);
       toast({ variant: 'destructive', title: 'System Error', description: e.message });
     }
   };
 
   const handleSave = async () => {
     if (localLogo?.startsWith('blob:') || localBanner?.startsWith('blob:')) {
-      toast({ variant: 'destructive', title: 'Save Blocked', description: 'Waiting for upload to complete...' });
+      toast({ variant: 'destructive', title: 'Save Blocked', description: 'Upload still in progress.' });
       return;
     }
 
     setIsSaving(true);
-    
-    // ATOMIC COMMIT: Standardize all naming aliases for total cross-component compatibility
     const assetData = {
       entityId: asset.entityId || asset.id,
       entityType: asset.entityType,
@@ -280,11 +247,9 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
     try {
       await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
-      console.log(`[TRACE] MEDIA_SAVE_SUCCESS: Registry updated for ${asset.id}`);
       setUncommitted(false);
       toast({ title: 'Identity Committed' });
     } catch (e: any) {
-      console.error(`[TRACE] MEDIA_SAVE_FAILED: ${e.message}`);
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
     } finally { 
       setIsSaving(false); 
@@ -318,7 +283,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo (2:3)</Label>
+            <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo</Label>
             <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
               <Upload size={12} className="mr-1.5" /> Select
               <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
@@ -326,7 +291,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
             {logoProgress > 0 && <Progress value={logoProgress} className="h-1" />}
           </div>
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner (16:9)</Label>
+            <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner</Label>
             <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
               <ImageIcon size={12} className="mr-1.5" /> Select
               <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
@@ -336,9 +301,9 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         </div>
 
         {uncommitted && (
-          <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl flex items-center gap-2 animate-pulse">
+          <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl flex items-center gap-2">
             <AlertCircle size={10} className="text-primary" />
-            <span className="text-[8px] font-black text-primary uppercase">File selected but not committed.</span>
+            <span className="text-[8px] font-black text-primary uppercase">Uncommitted Changes</span>
           </div>
         )}
 

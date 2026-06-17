@@ -53,7 +53,7 @@ export default function ProductPage() {
 
   const productName = gameInfo?.name || id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
 
-  useMemo(() => {
+  useEffect(() => {
     if (packs && packs.length > 0 && !selectedPack) {
       const defaultPack = packs.find(p => p.tab === activeTab) || packs[0];
       setSelectedPack(defaultPack);
@@ -91,7 +91,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.logoUrl || asset?.thumbnailUrl || "",
+      image: asset?.logoUrl || gameInfo?.cardImage || asset?.thumbnailUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -111,7 +111,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.logoUrl || asset?.thumbnailUrl || "",
+      image: asset?.logoUrl || gameInfo?.cardImage || asset?.thumbnailUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -121,8 +121,7 @@ export default function ProductPage() {
     toast({ title: "Added to Hub" });
   };
 
-  // Asset Resolution for Hero Section
-  const bannerUrl = asset?.bannerUrl || asset?.banner || null;
+  const bannerUrl = asset?.bannerUrl || gameInfo?.banner || null;
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
@@ -132,7 +131,7 @@ export default function ProductPage() {
             src={bannerUrl} 
             alt={productName} 
             fill 
-            className="object-cover"
+            className="object-contain"
             priority 
             sizes="100vw"
           />
@@ -143,13 +142,13 @@ export default function ProductPage() {
 
       <div className="p-4 pt-6 space-y-6 max-w-4xl mx-auto w-full">
         <div className="flex flex-row justify-center gap-3">
-          <div className="bg-primary px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-xl border border-white/5">
-            <Zap size={12} className="text-white fill-white" />
-            <span className="text-[10px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
+          <div className="bg-primary px-3 py-1 rounded-lg flex items-center gap-2 shadow-xl border border-white/5 h-8">
+            <Zap size={10} className="text-white fill-white" />
+            <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
           </div>
-          <div className="bg-green-600 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-xl border border-white/5">
-            <ShieldCheck size={12} className="text-white fill-white" />
-            <span className="text-[10px] font-black uppercase text-white tracking-widest">Secure Verified</span>
+          <div className="bg-green-600 px-3 py-1 rounded-lg flex items-center gap-2 shadow-xl border border-white/5 h-8">
+            <ShieldCheck size={10} className="text-white fill-white" />
+            <span className="text-[9px] font-black uppercase text-white tracking-widest">Secure Verified</span>
           </div>
         </div>
 

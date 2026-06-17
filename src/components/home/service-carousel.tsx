@@ -12,6 +12,8 @@ interface ServiceItem {
   id: string;
   name: string;
   status?: string;
+  icon?: string;
+  cardImage?: string;
 }
 
 interface ServiceCarouselProps {
@@ -48,8 +50,7 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
           const itemMedia = media[item.id];
-          // Robust Asset Resolver: Standardize field lookup
-          const url = itemMedia?.logoUrl || itemMedia?.thumbnailUrl || itemMedia?.icon || itemMedia?.imageUrl || null;
+          const url = itemMedia?.logoUrl || itemMedia?.thumbnailUrl || itemMedia?.icon || itemMedia?.imageUrl || item.cardImage || item.icon || null;
 
           return (
             <Link 
