@@ -68,6 +68,9 @@ export function GameGrid() {
                       game.thumbnail || 
                       null;
 
+          console.log("GAME:", game.name);
+          console.log("URL:", url);
+
           return (
             <Link 
               key={game.firestoreId || game.id}
