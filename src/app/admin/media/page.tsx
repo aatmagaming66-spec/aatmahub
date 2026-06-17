@@ -45,7 +45,9 @@ interface MediaAsset {
   entityType: 'game' | 'ott' | 'social' | 'branding';
   entityName: string;
   logoUrl?: string;
-  thumbnailUrl?: string; // Standardized alias
+  thumbnailUrl?: string; 
+  imageUrl?: string; // Compatibility Alias
+  icon?: string;     // Compatibility Alias
   bannerUrl?: string;
   isEnabled: boolean;
   updatedAt: string;
@@ -88,14 +90,20 @@ export default function DynamicMediaHub() {
             const data = d.data();
             if (!currentMediaIds.has(d.id)) {
               const assetRef = doc(db, 'media_assets', d.id);
+              // EXHAUSTIVE DISCOVERY: Find value from any possible source field
+              const existingImage = data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.imageUrl || null;
+              const existingBanner = data.banner || data.bannerUrl || null;
+
               await setDoc(assetRef, {
                 entityId: d.id,
                 entityType: col.type,
                 entityName: data.name || d.id,
                 isEnabled: data.status === 'active' || data.status === 'enabled',
-                logoUrl: data.icon || data.logoUrl || null,
-                thumbnailUrl: data.icon || data.logoUrl || null,
-                bannerUrl: data.banner || data.bannerUrl || null,
+                logoUrl: existingImage,
+                thumbnailUrl: existingImage,
+                imageUrl: existingImage,
+                icon: existingImage,
+                bannerUrl: existingBanner,
                 updatedAt: new Date().toISOString()
               }, { merge: true });
             }
@@ -160,7 +168,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [isSaving, setIsSaving] = useState(false);
   const [logoProgress, setLogoProgress] = useState(0);
   const [bannerProgress, setBannerProgress] = useState(0);
-  const [localLogo, setLocalLogo] = useState<string | null>(asset.logoUrl || null);
+  const [localLogo, setLocalLogo] = useState<string | null>(asset.logoUrl || asset.thumbnailUrl || asset.icon || asset.imageUrl || null);
   const [localBanner, setLocalBanner] = useState<string | null>(asset.bannerUrl || null);
   const [enabled, setEnabled] = useState(asset.isEnabled);
   const [uncommitted, setUncommitted] = useState(false);
@@ -207,12 +215,15 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
   const handleSave = async () => {
     setIsSaving(true);
+    // ATOMIC MULTI-ALIAS COMMIT: Ensure 100% compatibility with all reader components
     const assetData = {
       entityId: asset.entityId || asset.id,
       entityType: asset.entityType,
       entityName: asset.entityName,
       logoUrl: localLogo,
-      thumbnailUrl: localLogo, // Aliasing for legacy support
+      thumbnailUrl: localLogo, 
+      imageUrl: localLogo,
+      icon: localLogo,
       bannerUrl: localBanner,
       isEnabled: enabled,
       updatedAt: new Date().toISOString()
