@@ -1,11 +1,13 @@
+
 "use client"
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Tv, Share2 } from "lucide-react";
+import { Tv, Share2, Database, Link as LinkIcon } from "lucide-react";
 import { useFirestore } from "@/firebase/provider";
 import { collection, onSnapshot } from "firebase/firestore";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface ServiceItem {
   id: string;
@@ -25,17 +27,13 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
   const accentColor = isOtt ? 'from-accent/20' : 'from-primary/20';
 
   const [media, setMedia] = useState<Record<string, any>>({});
-  const [imageDims, setImageDims] = useState<Record<string, { w: number, h: number }>>({});
 
   useEffect(() => {
     const q = collection(db, 'media_assets');
     const unsubscribe = onSnapshot(q, (snap) => {
       const mediaMap: Record<string, any> = {};
       snap.docs.forEach(d => {
-        const data = d.data();
-        // DATA AUDIT: Map by Document ID
-        mediaMap[d.id] = data;
-        console.log(`[DATA_AUDIT] Service ${d.id} URL:`, data.logoUrl || 'NULL');
+        mediaMap[d.id] = d.data();
       });
       setMedia(mediaMap);
     });
@@ -51,11 +49,8 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
           const itemMedia = media[item.id];
-          const isEnabled = itemMedia ? itemMedia.isEnabled : true;
-          
-          console.log(`[DATA_AUDIT] Mapping Service ${item.id} -> Mapped URL:`, itemMedia?.logoUrl || 'NULL');
-
-          if (!isEnabled) return null;
+          const hasMedia = !!itemMedia;
+          const url = itemMedia?.logoUrl || null;
 
           return (
             <div key={item.id} className="flex-shrink-0 w-[calc((100%-24px)/3)] flex flex-col">
@@ -65,20 +60,17 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
               >
                 <div className={`relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500 ${isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'}`}>
                   <div className="absolute inset-0 w-full h-full">
-                    {itemMedia?.logoUrl ? (
+                    {url ? (
                       <Image 
-                        src={itemMedia.logoUrl} 
+                        src={url} 
                         alt={item.name} 
                         fill 
-                        style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                        style={{ objectFit: 'cover' }}
                         className="transition-transform duration-700 group-hover:scale-110"
                         sizes="(max-width: 768px) 33vw, 20vw"
-                        onLoadingComplete={(img) => {
-                          setImageDims(prev => ({ ...prev, [item.id]: { w: img.naturalWidth, h: img.naturalHeight } }));
-                        }}
                       />
                     ) : (
-                      <div className={`absolute inset-0 bg-gradient-to-br ${accentColor} via-black to-card transition-all duration-500 flex items-center justify-center opacity-20`}>
+                      <div className={`absolute inset-0 bg-gradient-to-br ${accentColor} via-black to-card flex items-center justify-center opacity-20`}>
                         <Icon size={24} className="text-white" />
                       </div>
                     )}
@@ -91,7 +83,6 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
                       {item.status || 'Active'}
                     </div>
                   </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                 </div>
                 <div className="text-center px-1">
                   <span className={`text-[8px] font-black text-muted-foreground uppercase tracking-tight transition-colors line-clamp-1 ${isOtt ? 'group-hover:text-accent' : 'group-hover:text-primary'}`}>
@@ -100,14 +91,19 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
                 </div>
               </Link>
               
-              {/* DEBUG PANEL */}
-              <div className="mt-1.5 px-2 py-1.5 bg-black/60 rounded-lg border border-white/10 space-y-1">
-                <p className="text-[5px] text-primary font-black uppercase truncate tracking-tighter leading-tight">
-                  URL: {itemMedia?.logoUrl ? 'VALID' : 'NULL'}
-                </p>
-                <p className="text-[5px] text-white/40 font-black uppercase tracking-tighter leading-tight">
-                  DIM: {imageDims[item.id] ? `${imageDims[item.id].w}x${imageDims[item.id].h}` : 'LOADING...'}
-                </p>
+              {/* TRACE PANEL: SERVICE STATUS */}
+              <div className="mt-1.5 p-2 bg-black/60 rounded-xl border border-white/5 space-y-1">
+                 <div className="flex items-center justify-between">
+                    <span className="text-[6px] font-black text-white/30 uppercase flex items-center gap-1"><Database size={6} /> Registry</span>
+                    <div className={cn("h-1 w-1 rounded-full", hasMedia ? "bg-green-500" : "bg-primary")} />
+                 </div>
+                 <p className="text-[5px] text-white/50 font-mono uppercase truncate">ID: {item.id}</p>
+                 <div className="flex items-center gap-1">
+                    <LinkIcon size={6} className={isOtt ? "text-accent" : "text-primary"} />
+                    <p className={cn("text-[5px] font-black uppercase truncate", url ? (isOtt ? "text-accent" : "text-primary") : "text-white/20")}>
+                      {url ? "URL: VALID" : "URL: NULL"}
+                    </p>
+                 </div>
               </div>
             </div>
           );
