@@ -35,7 +35,9 @@ import {
   Share2, 
   ImageIcon,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Terminal,
+  FileCode
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -61,20 +63,19 @@ export default function DynamicMediaHub() {
   const [syncing, setSyncing] = useState(false);
   const [assets, setAssets] = useState<MediaAsset[]>([]);
 
-  // 1. PRIMARY LISTENER: Dynamic Media Assets
   useEffect(() => {
+    console.log('[Media Hub] Starting primary stream listener...');
     const q = query(collection(db, 'media_assets'), orderBy('entityName', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       setAssets(snap.docs.map(d => ({ ...d.data(), id: d.id } as MediaAsset)));
       setLoading(false);
     }, (error) => {
       console.error('[Media Hub] Snapshot error:', error);
-      toast({ variant: 'destructive', title: 'Connection Error', description: 'Failed to stream media registry.' });
+      toast({ variant: 'destructive', title: 'Connection Error', description: error.message });
     });
     return () => unsubscribe();
   }, [db, toast]);
 
-  // 2. AUTO-HYDRATION ENGINE: Reconcile with Source Collections
   useEffect(() => {
     async function reconcileRegistry() {
       if (syncing) return;
@@ -87,7 +88,6 @@ export default function DynamicMediaHub() {
           { path: 'social_services', type: 'social' }
         ];
 
-        let missingCount = 0;
         const currentMediaIds = new Set(assets.map(a => a.entityId));
 
         for (const col of collections) {
@@ -105,15 +105,10 @@ export default function DynamicMediaHub() {
                 bannerUrl: data.banner || null,
                 updatedAt: new Date().toISOString()
               }, { merge: true });
-              missingCount++;
             }
           }
         }
-
-        if (missingCount > 0) {
-          console.log(`[Media Hub] Auto-hydrated ${missingCount} records.`);
-        }
-      } catch (e) {
+      } catch (e: any) {
         console.error('[Media Hub] Auto-sync failure:', e);
       } finally {
         setSyncing(false);
@@ -193,16 +188,6 @@ export default function DynamicMediaHub() {
           ))}
         </div>
       )}
-
-      <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
-        <div className="flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Registry Protocol</span>
-        </div>
-        <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          The registry automatically scans for new marketplace entities. Changes made here reflect instantly across all public headers and detail pages.
-        </p>
-      </div>
     </div>
   );
 }
@@ -219,54 +204,101 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [localLogo, setLocalLogo] = useState<string | null>(asset.logoUrl || null);
   const [localBanner, setLocalBanner] = useState<string | null>(asset.bannerUrl || null);
   const [enabled, setEnabled] = useState(asset.isEnabled);
+  const [uncommitted, setUncommitted] = useState(false);
+
+  // DEBUG STATE
+  const [debug, setDebug] = useState({
+    fileSelected: 'None',
+    previewReady: false,
+    uploadCalled: false,
+    storageSuccess: false,
+    dbSuccess: false,
+    lastError: 'None'
+  });
+
+  const updateDebug = (fields: Partial<typeof debug>) => setDebug(prev => ({ ...prev, ...fields }));
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
+    console.log('FILE_PICKER_EVENT_FIRED');
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('FILE_SELECTION_CANCELLED');
+      return;
+    }
 
-    console.log(`MEDIA_UPLOAD_START: ${file.name} (${type})`);
+    console.log('FILE_SELECTED:', { name: file.name, size: file.size, type: file.type });
+    updateDebug({ fileSelected: `${file.name} (${(file.size/1024).toFixed(1)}KB)`, lastError: 'None' });
 
+    // 1. Validation
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      console.error(`MEDIA_UPLOAD_FAILED: Invalid type ${file.type}`);
+      const err = `Invalid type: ${file.type}`;
+      console.error('MEDIA_UPLOAD_FAILED:', err);
+      updateDebug({ lastError: err });
       toast({ variant: 'destructive', title: 'Invalid File', description: 'Please use JPG, PNG or WEBP.' });
       return;
     }
+
     if (file.size > 5 * 1024 * 1024) {
-      console.error(`MEDIA_UPLOAD_FAILED: File too large (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+      const err = `File too large: ${(file.size / 1024 / 1024).toFixed(2)}MB`;
+      console.error('MEDIA_UPLOAD_FAILED:', err);
+      updateDebug({ lastError: err });
       toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum file size is 5MB.' });
       return;
     }
 
-    const storagePath = `media_assets/${asset.entityType}/${asset.entityId}/${type}_${Date.now()}`;
-    const storageRef = ref(storage, storagePath);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    // 2. Generate Preview
+    const previewUrl = URL.createObjectURL(file);
+    console.log('PREVIEW_GENERATED:', previewUrl);
+    if (type === 'logo') setLocalLogo(previewUrl);
+    else setLocalBanner(previewUrl);
+    updateDebug({ previewReady: true });
 
-    uploadTask.on('state_changed', 
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        if (type === 'logo') setLogoProgress(progress);
-        else setBannerProgress(progress);
-      }, 
-      (error) => {
-        console.error(`MEDIA_UPLOAD_FAILED: ${error.message}`);
-        toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
-        if (type === 'logo') setLogoProgress(0);
-        else setBannerProgress(0);
-      }, 
-      async () => {
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-        console.log(`MEDIA_UPLOAD_SUCCESS: ${downloadURL}`);
-        if (type === 'logo') {
-          setLocalLogo(downloadURL);
-          setLogoProgress(0);
-        } else {
-          setLocalBanner(downloadURL);
-          setBannerProgress(0);
+    // 3. Trigger Upload Automatically
+    console.log('UPLOAD_FUNCTION_CALLED');
+    updateDebug({ uploadCalled: true });
+    
+    try {
+      const storagePath = `media_assets/${asset.entityType}/${asset.entityId}/${type}_${Date.now()}`;
+      const storageRef = ref(storage, storagePath);
+      console.log('UPLOAD_STARTED:', storagePath);
+      
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      uploadTask.on('state_changed', 
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`UPLOAD_PROGRESS (${type}): ${progress.toFixed(1)}%`);
+          if (type === 'logo') setLogoProgress(progress);
+          else setBannerProgress(progress);
+        }, 
+        (error) => {
+          console.error('UPLOAD_FAILED:', error.message);
+          updateDebug({ storageSuccess: false, lastError: error.message });
+          toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
+          if (type === 'logo') setLogoProgress(0);
+          else setBannerProgress(0);
+        }, 
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          console.log('UPLOAD_SUCCESS:', downloadURL);
+          if (type === 'logo') {
+            setLocalLogo(downloadURL);
+            setLogoProgress(0);
+          } else {
+            setLocalBanner(downloadURL);
+            setBannerProgress(0);
+          }
+          updateDebug({ storageSuccess: true });
+          setUncommitted(true);
+          toast({ title: 'Upload Complete', description: 'Click "Commit Changes" to finalize.' });
         }
-        toast({ title: 'Buffer Updated', description: 'Asset ready to commit.' });
-      }
-    );
+      );
+    } catch (e: any) {
+      console.error('CRITICAL_UPLOAD_EXCEPTION:', e.message);
+      updateDebug({ lastError: e.message });
+      toast({ variant: 'destructive', title: 'System Error', description: e.message });
+    }
   };
 
   const handleSave = async () => {
@@ -282,10 +314,13 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     try {
       const assetRef = doc(db, 'media_assets', asset.id);
       await setDoc(assetRef, assetData, { merge: true });
-      console.log(`MEDIA_SAVE_SUCCESS: ${asset.id}`);
-      toast({ title: 'Protocol Synchronized', description: `${asset.entityName} media updated.` });
+      console.log('MEDIA_SAVE_SUCCESS:', asset.id);
+      updateDebug({ dbSuccess: true });
+      setUncommitted(false);
+      toast({ title: 'Identity Committed', description: 'Registry updated successfully.' });
     } catch (e: any) {
-      console.error(`MEDIA_SAVE_FAILED: ${e.message}`);
+      console.error('MEDIA_SAVE_FAILED:', e.message);
+      updateDebug({ dbSuccess: false, lastError: e.message });
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
     } finally {
       setIsSaving(false);
@@ -293,29 +328,30 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   };
 
   const Icon = asset.entityType === 'game' ? Gamepad2 : (asset.entityType === 'ott' ? Tv : Share2);
-  const accent = asset.entityType === 'game' ? 'text-primary' : (asset.entityType === 'ott' ? 'text-accent' : 'text-blue-400');
 
   return (
-    <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all duration-500">
+    <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all duration-500 flex flex-col">
+      {/* Banner Preview Area */}
       <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {localBanner ? (
           <Image 
             src={localBanner} 
             alt="Banner" 
             fill 
-            className="object-cover transition-transform duration-700 group-hover:scale-105" 
+            className="object-cover" 
+            unoptimized={localBanner.startsWith('blob:')}
           />
         ) : (
           <div className="flex flex-col items-center gap-2 opacity-10">
             <ImageIcon size={40} className="text-white" />
-            <span className="text-[8px] font-black uppercase tracking-[0.3em]">No Banner</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.3em]">Empty Banner</span>
           </div>
         )}
         
         {bannerProgress > 0 && (
-          <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center p-6 gap-2 z-20">
+          <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-6 gap-2 z-20">
             <Progress value={bannerProgress} className="h-1 bg-white/10" />
-            <span className="text-[8px] font-black text-white uppercase tracking-widest">{bannerProgress.toFixed(0)}% Uploading...</span>
+            <span className="text-[8px] font-black text-white uppercase tracking-widest">{bannerProgress.toFixed(0)}% TRANSMITTING...</span>
           </div>
         )}
 
@@ -324,21 +360,24 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
             {asset.entityType}
           </div>
           <div className="bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-xl">
-             <Switch 
-               checked={enabled} 
-               onCheckedChange={setEnabled}
-               className="data-[state=checked]:bg-green-500"
-             />
+             <Switch checked={enabled} onCheckedChange={setEnabled} />
           </div>
         </div>
       </div>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-6 space-y-6 flex-1 flex flex-col">
+        {/* Logo and Identity */}
         <div className="flex items-center gap-4">
           <div className="relative h-14 w-14 shrink-0 rounded-2xl bg-black/40 border border-white/5 shadow-inner overflow-hidden flex items-center justify-center">
             {localLogo ? (
-              <Image src={localLogo} alt="Logo" fill className="object-cover" />
-            ) : <Icon size={20} className={cn("opacity-20", accent)} />}
+              <Image 
+                src={localLogo} 
+                alt="Logo" 
+                fill 
+                className="object-cover" 
+                unoptimized={localLogo.startsWith('blob:')}
+              />
+            ) : <Icon size={20} className="opacity-20 text-primary" />}
             
             {logoProgress > 0 && (
               <div className="absolute inset-0 bg-primary/80 flex items-center justify-center">
@@ -348,52 +387,77 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           </div>
           <div className="min-w-0">
             <h3 className="text-sm font-black uppercase tracking-tight text-white truncate">{asset.entityName}</h3>
-            <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest mt-0.5">
-              Ref: {asset.entityId}
-            </p>
+            <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest mt-0.5">ID: {asset.entityId}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 pt-2">
+        {/* Upload Buttons */}
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo Asset</Label>
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-                <Upload size={12} className="mr-1.5" /> {localLogo ? 'Replace' : 'Upload'}
-                <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
-              </Button>
-              {localLogo && (
-                <Button variant="ghost" onClick={() => setLocalLogo(null)} className="h-9 w-9 rounded-xl text-primary p-0 hover:bg-primary/10">
-                  <Trash2 size={12} />
-                </Button>
-              )}
-            </div>
+            <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo File</Label>
+            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
+              <Upload size={12} className="mr-1.5" /> Select Logo
+              <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} onClick={(e) => console.log('LOGO_PICKER_CLICKED')} />
+            </Button>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner Asset</Label>
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-                <ImageIcon size={12} className="mr-1.5" /> {localBanner ? 'Replace' : 'Upload'}
-                <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
-              </Button>
-              {localBanner && (
-                <Button variant="ghost" onClick={() => setLocalBanner(null)} className="h-9 w-9 rounded-xl text-primary p-0 hover:bg-primary/10">
-                  <Trash2 size={12} />
-                </Button>
-              )}
-            </div>
+            <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner File</Label>
+            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
+              <ImageIcon size={12} className="mr-1.5" /> Select Banner
+              <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} onClick={(e) => console.log('BANNER_PICKER_CLICKED')} />
+            </Button>
           </div>
         </div>
+
+        {uncommitted && (
+          <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl flex items-center gap-2 animate-pulse">
+            <AlertCircle size={10} className="text-primary" />
+            <span className="text-[8px] font-black text-primary uppercase">Uncommitted Changes Detected</span>
+          </div>
+        )}
 
         <Button 
           onClick={handleSave} 
-          disabled={isSaving || (logoProgress > 0) || (bannerProgress > 0)} 
-          className="w-full h-12 bg-primary hover:bg-secondary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 gap-2"
+          disabled={isSaving || logoProgress > 0 || bannerProgress > 0} 
+          className="w-full h-12 bg-primary hover:bg-secondary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 gap-2 mt-auto"
         >
           {isSaving ? <Loader2 className="animate-spin h-4 w-4" /> : <><Save size={14} /> Commit Changes</>}
         </Button>
+
+        {/* DEBUG PANEL */}
+        <div className="mt-4 pt-4 border-t border-white/5 space-y-1.5">
+           <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+             <Terminal size={10} />
+             <span className="text-[8px] font-black uppercase tracking-widest">Debug Protocol</span>
+           </div>
+           <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <DebugLine label="File" value={debug.fileSelected} />
+              <DebugLine label="Preview" value={debug.previewReady ? 'Ready' : 'Pending'} success={debug.previewReady} />
+              <DebugLine label="Upload" value={debug.uploadCalled ? 'Started' : 'Idle'} success={debug.uploadCalled} />
+              <DebugLine label="Storage" value={debug.storageSuccess ? 'Verified' : 'Pending'} success={debug.storageSuccess} />
+              <DebugLine label="Registry" value={debug.dbSuccess ? 'Synced' : 'Pending'} success={debug.dbSuccess} />
+              <DebugLine label="Status" value={debug.lastError === 'None' ? 'Healthy' : 'Error'} error={debug.lastError !== 'None'} />
+           </div>
+           {debug.lastError !== 'None' && (
+             <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-[7px] font-mono text-red-400 break-all">{debug.lastError}</p>
+             </div>
+           )}
+        </div>
       </CardContent>
     </Card>
+  );
+}
+
+function DebugLine({ label, value, success, error }: { label: string, value: string, success?: boolean, error?: boolean }) {
+  return (
+    <div className="flex justify-between items-center gap-2 overflow-hidden">
+      <span className="text-[7px] font-black uppercase opacity-40">{label}:</span>
+      <span className={cn(
+        "text-[7px] font-bold uppercase truncate",
+        success ? "text-green-500" : (error ? "text-primary" : "text-white/60")
+      )}>{value}</span>
+    </div>
   );
 }
