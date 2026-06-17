@@ -29,8 +29,6 @@ export function GameGrid() {
         mediaMap[d.id] = d.data();
       });
       setMedia(mediaMap);
-    }, (error) => {
-      console.error("[MediaRegistry] Connection Error:", error);
     });
     return () => unsubscribe();
   }, [db]);
@@ -59,10 +57,9 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          // Use firestoreId for lookup to guarantee match with Media Hub Document IDs
           const gameMedia = media[game.firestoreId];
           
-          // Image Resolution Chain: Prioritize Registry -> Fallback to legacy game document fields
+          // Image Resolution Chain: Registry -> Legacy Field Fallbacks
           const url = gameMedia?.logoUrl || 
                       gameMedia?.thumbnailUrl || 
                       gameMedia?.icon || 
@@ -87,7 +84,6 @@ export function GameGrid() {
                       fill 
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 768px) 33vw, 20vw"
-                      unoptimized={url.includes('firebasestorage')}
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card flex items-center justify-center opacity-20">

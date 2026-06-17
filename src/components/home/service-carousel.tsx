@@ -51,7 +51,6 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
-          // Use firestoreId for lookup to guarantee match with Media Hub Document IDs
           const itemMedia = media[item.firestoreId];
           
           // Image Resolution Chain: Registry -> Legacy Field Fallbacks
@@ -79,7 +78,6 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
                       fill 
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 768px) 33vw, 20vw"
-                      unoptimized={url.includes('firebasestorage')}
                     />
                   ) : (
                     <div className={`absolute inset-0 bg-gradient-to-br ${accentColor} via-black to-card flex items-center justify-center opacity-20`}>
