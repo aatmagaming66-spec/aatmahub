@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from "react";
@@ -9,10 +10,6 @@ import { useMarketplaceAssets } from "@/hooks/use-marketplace-assets";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
-/**
- * GAME GRID - NATIVE STRUCTURE
- * Uses memoized query to prevent infinite update loops.
- */
 export function GameGrid() {
   const db = useFirestore();
   
@@ -48,7 +45,8 @@ export function GameGrid() {
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
           const asset = assetsMap.get(game.id);
-          const imageUrl = asset?.imageUrl;
+          // Redundancy: check imageUrl, then logoUrl
+          const imageUrl = asset?.imageUrl || asset?.logoUrl;
 
           return (
             <Link 
@@ -61,7 +59,7 @@ export function GameGrid() {
                   <img 
                     src={imageUrl} 
                     alt={game.name} 
-                    className="block w-full h-full object-cover" 
+                    className="block w-full h-full object-cover z-0" 
                   />
                 )}
                 

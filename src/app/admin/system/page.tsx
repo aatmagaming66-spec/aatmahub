@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -69,7 +70,7 @@ export default function SystemHealthPage() {
   };
 
   const syncMediaAssets = async () => {
-    if (!confirm('Rebuild Media Asset Registry?')) return;
+    if (!confirm('Rebuild Media Asset Registry? This will align all game icons with the marketplace.')) return;
     setSyncMedia(true);
     try {
       const types = [
@@ -82,6 +83,8 @@ export default function SystemHealthPage() {
         const snap = await getDocs(collection(db, t.col));
         for (const d of snap.docs) {
           const data = d.data();
+          const legacyUrl = data.icon || data.logoUrl || data.cardImage || data.thumbnail;
+          
           const updateData: any = {
             entityId: d.id,
             entityType: t.type,
@@ -89,10 +92,15 @@ export default function SystemHealthPage() {
             updatedAt: new Date().toISOString()
           };
 
-          // Migrate legacy URLs if they exist
-          const legacyUrl = data.icon || data.logoUrl || data.cardImage || data.thumbnail;
-          if (legacyUrl && !data.logoUrl) updateData.logoUrl = legacyUrl;
-          if (data.banner && !data.bannerUrl) updateData.bannerUrl = data.banner;
+          // CRITICAL: Align with imageUrl schema for marketplace rendering
+          if (legacyUrl) {
+            updateData.imageUrl = legacyUrl;
+            updateData.logoUrl = legacyUrl;
+          }
+
+          if (data.banner || data.bannerUrl) {
+            updateData.bannerUrl = data.banner || data.bannerUrl;
+          }
 
           await setDoc(doc(db, 'media_assets', d.id), updateData, { merge: true });
           count++;
@@ -138,12 +146,14 @@ export default function SystemHealthPage() {
                 <Activity className="h-5 w-5 text-primary" />
                 <h3 className="text-xs font-black uppercase tracking-widest">Operations Hub</h3>
              </div>
-             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v3.0.0-NATIVE</span>
+             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v3.0.1-STABLE</span>
           </div>
           
           <div className="space-y-6">
             <p className="text-[11px] text-muted-foreground uppercase leading-relaxed font-medium">
-              AATMA HUB has transitioned to a <b>Native Image Rendering Pipeline</b>. All marketplace branding is resolved through the centralized Media Registry. Use the sync tool to migrate legacy identifiers to the new schema.
+              AATMA HUB has transitioned to a <b>Native Image Rendering Pipeline</b>. All marketplace branding is resolved through the centralized Media Registry. 
+              <br/><br/>
+              <b>Important:</b> If images are not appearing on the homepage, click "Sync Media Hub" to initialize the registry from existing game data.
             </p>
           </div>
         </Card>

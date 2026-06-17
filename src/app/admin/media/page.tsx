@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -37,6 +38,7 @@ interface MediaAsset {
   logoUrl: string;
   bannerUrl: string;
   thumbnailUrl: string;
+  imageUrl?: string;
 }
 
 export default function MediaHub() {
@@ -48,7 +50,8 @@ export default function MediaHub() {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, 'media_assets'), orderBy('entityName', 'asc'));
+    // Audit check: Order by entityId since entityName might be missing in broken docs
+    const q = query(collection(db, 'media_assets'), orderBy('entityId', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map(d => ({ ...d.data(), id: d.id } as MediaAsset));
       setAssets(data);
@@ -102,7 +105,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const { toast } = useToast();
 
   const [saving, setSaving] = useState(false);
-  const [uploads, setUploads] = useState<{ [key: string]: number }>({});
+  const [uploads, setUploads] = useState<{ [key: string]: number }>({ logo: 0, banner: 0 });
   const [form, setForm] = useState({
     logoUrl: asset.logoUrl || '',
     bannerUrl: asset.bannerUrl || '',
@@ -140,6 +143,8 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
       const data = {
         ...asset,
         ...form,
+        // CRITICAL: Ensure imageUrl matches logoUrl for marketplace compatibility
+        imageUrl: form.logoUrl,
         updatedAt: new Date().toISOString()
       };
       await setDoc(doc(db, 'media_assets', asset.id), data, { merge: true });
