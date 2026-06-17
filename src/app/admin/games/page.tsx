@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useFirestore, useStorage } from '@/firebase/provider';
+import { useFirestore } from '@/firebase/provider';
 import { collection, setDoc, deleteDoc, doc, query, orderBy } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,15 +23,16 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2, Tag, Layers, X, Bug } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2, Layers, X, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
 const CATEGORIES = ["Mobile Games", "OTT Services", "Social Services"];
+const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dynduenfb/image/upload";
+const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
 
 export default function GameManagementPage() {
   const db = useFirestore();
-  const storage = useStorage();
   const { toast } = useToast();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,13 +112,46 @@ export default function GameManagementPage() {
     setIsModalOpen(true);
   };
 
-  const handleFileUpload = async (file: File, path: string) => {
-    console.log(`[UPLOAD_CORE] Starting upload for path: ${path}`);
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    console.log(`[UPLOAD_CORE] Finished. URL received: ${url}`);
-    return url;
+  /**
+   * CLOUDINARY UPLOAD HANDLER
+   * Replaces broken Firebase Storage logic.
+   */
+  const handleFileUpload = async (file: File) => {
+    // 1. Validation
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ variant: 'destructive', title: 'Format Error', description: 'Please use JPG, PNG or WEBP.' });
+      throw new Error('Invalid format');
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum upload size is 10MB.' });
+      throw new Error('File too large');
+    }
+
+    console.log(`[CLOUDINARY_START] Uploading: ${file.name}`);
+    
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+      const response = await fetch(CLOUDINARY_UPLOAD_URL, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error?.message || 'Cloudinary rejection');
+      }
+
+      const data = await response.json();
+      console.log(`[CLOUDINARY_SUCCESS] URL: ${data.secure_url}`);
+      return data.secure_url;
+    } catch (error: any) {
+      console.error('[CLOUDINARY_ERROR]', error);
+      throw error;
+    }
   };
 
   const addTab = () => {
@@ -136,32 +169,32 @@ export default function GameManagementPage() {
     const cleanSlug = formData.slug?.trim();
 
     if (!cleanName || !cleanSlug) {
-      toast({ 
-        variant: 'destructive', 
-        title: 'Validation Error', 
-        description: 'Display Name and Internal Slug are required.' 
-      });
+      toast({ variant: 'destructive', title: 'Validation Error', description: 'Name and Slug are required.' });
       return;
     }
     
     setSaving(true);
-    console.log('[SAVE_START] Initiating save process...');
+    console.log('[SAVE_START] Data Matrix:', { cleanName, cleanSlug });
     
     try {
       const gId = formData.id || cleanSlug;
       let logoUrl = formData.logo;
       let bannerUrl = formData.banner;
 
-      console.log('[BEFORE_UPLOAD] Checking for files to upload...');
+      // 2. Upload to Cloudinary if new files selected
       if (files.logo) {
-        logoUrl = await handleFileUpload(files.logo, `games/${gId}/logo_${Date.now()}`);
+        console.log('[BEFORE_LOGO_UPLOAD]');
+        logoUrl = await handleFileUpload(files.logo);
+        console.log('[AFTER_LOGO_UPLOAD]');
       }
       if (files.banner) {
-        bannerUrl = await handleFileUpload(files.banner, `games/${gId}/banner_${Date.now()}`);
+        console.log('[BEFORE_BANNER_UPLOAD]');
+        bannerUrl = await handleFileUpload(files.banner);
+        console.log('[AFTER_BANNER_UPLOAD]');
       }
-      console.log('[AFTER_UPLOAD] File handling cycle complete.');
 
-      console.log('[BEFORE_FIRESTORE] Preparing Firestore document...');
+      // 3. Commit to Firestore
+      console.log('[BEFORE_FIRESTORE_WRITE]');
       const gameRef = doc(db, 'games', gId);
       const existingGame = games?.find(g => g.id === gId);
       
@@ -177,22 +210,20 @@ export default function GameManagementPage() {
       };
       
       await setDoc(gameRef, gameData, { merge: true });
-      console.log('[AFTER_FIRESTORE] Firestore write acknowledged.');
+      console.log('[AFTER_FIRESTORE_WRITE]');
 
-      toast({ title: 'Record Secured', description: `${cleanName} has been updated in the catalog.` });
-      console.log('[SAVE_SUCCESS] Modal closing...');
+      toast({ title: 'Record Secured', description: `${cleanName} has been updated via Cloudinary.` });
       setIsModalOpen(false);
     } catch (e: any) {
-      console.error('[SAVE_ERROR] Caught exception during commit:', e);
+      console.error('[SAVE_ERROR]', e);
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
     } finally {
-      console.log('[SAVE_FINALLY] Resetting loading state.');
       setSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently remove this title from the hub? This action cannot be undone.')) return;
+    if (!confirm('Permanently remove this title?')) return;
     try {
       await deleteDoc(doc(db, 'games', id));
       toast({ title: 'Record Purged' });
@@ -216,7 +247,7 @@ export default function GameManagementPage() {
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Search Registry by Name, ID or Category..." 
+          placeholder="Search Registry..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
@@ -367,8 +398,8 @@ export default function GameManagementPage() {
                    <ImageIcon size={14} className="text-primary" />
                    <span className="text-[10px] font-black uppercase tracking-widest">Logo Identity (Grid Icon)</span>
                  </div>
-                 <Input type="file" onChange={(e) => setFiles({...files, logo: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept="image/*" />
-                 {formData.logo && !files.logo && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Asset Persistent</p>}
+                 <Input type="file" onChange={(e) => setFiles({...files, logo: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept=".jpg,.jpeg,.png,.webp" />
+                 {formData.logo && !files.logo && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Cloudinary Persistent</p>}
               </div>
 
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl space-y-3">
@@ -376,11 +407,12 @@ export default function GameManagementPage() {
                    <ImageIcon size={14} className="text-accent" />
                    <span className="text-[10px] font-black uppercase tracking-widest">Banner Identity (Product Page)</span>
                  </div>
-                 <Input type="file" onChange={(e) => setFiles({...files, banner: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept="image/*" />
-                 {formData.banner && !files.banner && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Asset Persistent</p>}
+                 <Input type="file" onChange={(e) => setFiles({...files, banner: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept=".jpg,.jpeg,.png,.webp" />
+                 {formData.banner && !files.banner && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Cloudinary Persistent</p>}
               </div>
             </div>
 
+            {/* LIVE DEBUG HUB */}
             <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 space-y-2">
                <div className="flex items-center gap-2 text-primary">
                  <Bug size={12} />
