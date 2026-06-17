@@ -1,12 +1,14 @@
 "use client"
 
+import { useMemo } from "react";
 import Link from "next/link";
-import { useMediaRegistry } from "@/hooks/use-media-registry";
+import { useFirestore } from "@/firebase/provider";
+import { collection } from "firebase/firestore";
+import { useCollection } from "@/firebase/firestore/use-collection";
 import { cn } from "@/lib/utils";
 
 interface ServiceItem {
   id: string;
-  firestoreId: string;
   name: string;
   status?: string;
 }
@@ -17,8 +19,11 @@ interface ServiceCarouselProps {
 }
 
 export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
-  const { getMediaAsset } = useMediaRegistry();
+  const db = useFirestore();
   const isOtt = title.toLowerCase().includes('ott');
+  
+  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
+  const { data: mediaAssets, loading } = useCollection(mediaQuery);
 
   return (
     <section className="py-4 overflow-hidden">
@@ -28,27 +33,27 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
-          const media = getMediaAsset(item.id);
-          const imageUrl = media?.logoUrl || media?.thumbnailUrl || null;
+          const media = mediaAssets.find(m => m.entityId === item.id);
+          const imageUrl = media?.logoUrl;
 
           return (
             <Link 
-              key={item.firestoreId}
-              href={`/product/${item.firestoreId}`} 
-              className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95 flex flex-col"
+              key={item.id} 
+              href={`/product/${item.id}`} 
+              className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all flex flex-col"
             >
               <div className={cn(
-                "relative aspect-[2/3] overflow-hidden rounded-xl mb-2.5 border border-border shadow-2xl bg-neutral-900 transition-all duration-500",
+                "relative aspect-[2/3] rounded-xl overflow-hidden mb-2.5 border border-border shadow-2xl bg-neutral-900 transition-all",
                 isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'
               )}>
                 {imageUrl ? (
                   <img 
                     src={imageUrl} 
                     alt={item.name} 
-                    className="absolute inset-0 w-full h-full object-cover" 
+                    className="w-full h-full object-cover" 
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                  <div className="w-full h-full flex items-center justify-center opacity-5">
                     <span className="text-[10px] font-black uppercase">{item.name.substring(0, 2)}</span>
                   </div>
                 )}

@@ -5,20 +5,17 @@ import Link from "next/link";
 import { useFirestore } from "@/firebase/provider";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
-import { useMediaRegistry } from "@/hooks/use-media-registry";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export function GameGrid() {
   const db = useFirestore();
-  const { getMediaAsset, loading: mediaLoading } = useMediaRegistry();
   
-  const gamesQuery = useMemo(() => query(
-    collection(db, 'games'),
-    orderBy('sortOrder', 'asc')
-  ), [db]);
+  const gamesQuery = useMemo(() => query(collection(db, 'games'), orderBy('sortOrder', 'asc')), [db]);
+  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
 
   const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
+  const { data: mediaAssets, loading: mediaLoading } = useCollection(mediaQuery);
 
   if (gamesLoading || mediaLoading) {
     return (
@@ -44,41 +41,35 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const media = getMediaAsset(game.firestoreId || game.id);
-          const imageUrl = media?.logoUrl || media?.thumbnailUrl || null;
+          const media = mediaAssets.find(m => m.entityId === game.id);
+          const imageUrl = media?.logoUrl;
 
           return (
             <Link 
-              key={game.firestoreId}
-              href={`/product/${game.firestoreId}`} 
-              className="group flex flex-col relative transition-transform active:scale-95"
+              key={game.id} 
+              href={`/product/${game.id}`} 
+              className="group flex flex-col active:scale-95 transition-transform"
             >
-              {/* 1. Image Area (Base Layer) */}
-              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-xl border border-white/5 bg-neutral-900 shadow-xl">
-                <div className="relative w-full h-full overflow-hidden rounded-xl">
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={game.name}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-white/5 opacity-10">
-                      <span className="text-[10px] font-black uppercase">{game.name.substring(0, 2)}</span>
-                    </div>
-                  )}
-                </div>
+              <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 border border-white/5 shadow-xl">
+                {imageUrl ? (
+                  <img 
+                    src={imageUrl} 
+                    alt={game.name} 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center opacity-5">
+                    <span className="text-[8px] font-black uppercase">{game.name.substring(0, 2)}</span>
+                  </div>
+                )}
                 
-                {/* 2. ACTIVE Badge & 3. Flag (Overlay Layer) */}
-                <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
+                <div className="absolute inset-0 p-2 flex flex-col justify-between pointer-events-none z-10">
                   <div className="flex justify-between items-start">
-                    {game.flag ? (
+                    {game.flag && (
                       <div className="bg-black/60 backdrop-blur-md rounded-lg p-1 flex items-center justify-center border border-white/10 min-w-[22px] min-h-[22px]">
                         <span className="text-xs leading-none">{game.flag}</span>
                       </div>
-                    ) : <div />}
-                    
+                    )}
                     <div className={cn(
                       "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
                       game.status === 'active' ? 'bg-green-500' : 'bg-primary'
@@ -88,8 +79,6 @@ export function GameGrid() {
                   </div>
                 </div>
               </div>
-
-              {/* 4. Game Name (Footer) */}
               <div className="text-center mt-2.5 px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
                   {game.name}

@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Zap, ArrowRight, Loader2, PackageSearch, Smartphone } from "lucide-react";
+import { ShieldCheck, Zap, ArrowRight, Loader2, Smartphone, PackageSearch } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +15,6 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where, doc } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
-import { useMediaRegistry } from "@/hooks/use-media-registry";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -24,7 +23,6 @@ export default function ProductPage() {
   const { addItem, clearCart } = useCart();
   const { user } = useUser();
   const db = useFirestore();
-  const { getMediaAsset } = useMediaRegistry();
   
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
@@ -36,7 +34,9 @@ export default function ProductPage() {
   const { data: gameInfo } = useDoc(gameRef);
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
 
-  const media = getMediaAsset(id as string);
+  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
+  const { data: mediaAssets } = useCollection(mediaQuery);
+  const media = mediaAssets.find(m => m.entityId === id);
 
   const [selectedPack, setSelectedPack] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("small");
@@ -64,14 +64,8 @@ export default function ProductPage() {
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      toast({ title: "Account Verified", description: "Identity check passed." });
+      toast({ title: "Account Verified" });
     }, 1000);
-  };
-
-  const handleInputChange = (type: 'player' | 'server', val: string) => {
-    if (type === 'player') setPlayerId(val);
-    else setServerId(val);
-    if (isVerified) setIsVerified(false);
   };
 
   const handleBuyNow = () => {
@@ -115,17 +109,13 @@ export default function ProductPage() {
     toast({ title: "Added to Hub" });
   };
 
-  const bannerUrl = media?.bannerUrl || media?.logoUrl || null;
+  const bannerUrl = media?.bannerUrl || media?.logoUrl;
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      <div className="relative w-full aspect-video bg-neutral-900 overflow-hidden shadow-2xl border-b border-white/5">
+      <div className="relative w-full aspect-video bg-neutral-900 overflow-hidden border-b border-white/5 shadow-2xl">
         {bannerUrl ? (
-          <img 
-            src={bannerUrl} 
-            alt={productName} 
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          <img src={bannerUrl} alt={productName} className="w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
         )}
@@ -143,7 +133,7 @@ export default function ProductPage() {
           </div>
         </div>
 
-        <div className="space-y-0.5 text-center">
+        <div className="text-center space-y-0.5">
           <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight">
             {productName}
           </h1>
@@ -161,11 +151,11 @@ export default function ProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-1.5">
                <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Player ID</Label>
-               <Input value={playerId} onChange={(e) => handleInputChange('player', e.target.value)} placeholder="Enter Numeric ID" className="bg-black/50 border-border h-14 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-primary/50" />
+               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter Numeric ID" className="bg-black/50 border-border h-14 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-primary/50" />
              </div>
              <div className="space-y-1.5">
                <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Server ID (Optional)</Label>
-               <Input value={serverId} onChange={(e) => handleInputChange('server', e.target.value)} placeholder="Region/Server" className="bg-black/50 border-border h-14 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-primary/50" />
+               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="Region/Server" className="bg-black/50 border-border h-14 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-primary/50" />
              </div>
           </div>
           <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl transition-all", isVerified ? "bg-green-600 hover:bg-green-600 shadow-green-500/20" : "bg-primary shadow-primary/20")}>
