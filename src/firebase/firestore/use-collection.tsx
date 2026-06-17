@@ -7,19 +7,34 @@ import { FirestorePermissionError } from '../errors';
 
 /**
  * useCollection Hook
- * Optimized to preserve the actual Firestore Document ID in 'firestoreId'
- * to prevent collisions with document data properties.
+ * Optimized to prevent infinite render loops by stabilizing the Query reference
+ * using Firestore's built-in isEqual() comparison.
  */
 export function useCollection<T = any>(query: Query | null) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | null>(null);
-  const unsubscribeRef = useRef<(() => void) | null>(null);
+  
+  // Use a ref to track the active query object for stable comparison
+  const queryRef = useRef<Query | null>(query);
+  const [activeQuery, setActiveQuery] = useState<Query | null>(query);
+
+  // Stabilize the query dependency
+  useEffect(() => {
+    if (!query && !queryRef.current) return;
+    
+    const isSameQuery = query && queryRef.current && query.isEqual(queryRef.current);
+    
+    if (!isSameQuery) {
+      queryRef.current = query;
+      setActiveQuery(query);
+    }
+  }, [query]);
 
   useEffect(() => {
     let isMounted = true;
 
-    if (!query) {
+    if (!activeQuery) {
       setData([]);
       setLoading(false);
       setError(null);
@@ -29,13 +44,12 @@ export function useCollection<T = any>(query: Query | null) {
     setLoading(true);
 
     const unsubscribe = onSnapshot(
-      query,
+      activeQuery,
       (snapshot) => {
         if (!isMounted) return;
         
         const results = snapshot.docs.map((doc) => ({
           ...doc.data(),
-          // Always set ID fields last to ensure they reflect the Firestore Document ID
           id: doc.id,
           firestoreId: doc.id,
         })) as T[];
@@ -47,7 +61,8 @@ export function useCollection<T = any>(query: Query | null) {
       async (err) => {
         if (!isMounted) return;
         if (err.code === 'permission-denied') {
-          const queryPath = (query as any)._query?.path?.toString() || 'unknown';
+          // Attempt to extract path from internal query state if possible
+          const queryPath = (activeQuery as any)._query?.path?.toString() || 'collection';
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: queryPath,
             operation: 'list',
@@ -58,16 +73,11 @@ export function useCollection<T = any>(query: Query | null) {
       }
     );
 
-    unsubscribeRef.current = unsubscribe;
-
     return () => {
       isMounted = false;
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-        unsubscribeRef.current = null;
-      }
+      unsubscribe();
     };
-  }, [query]);
+  }, [activeQuery]);
 
   return { data, loading, error };
 }

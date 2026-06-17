@@ -18,8 +18,8 @@ import { useDoc } from "@/firebase/firestore/use-doc";
 import { useMarketplaceAssets } from "@/hooks/use-marketplace-assets";
 
 /**
- * PRODUCT DETAIL PAGE - REBUILT NATIVE STRUCTURE
- * Uses direct assetsMap lookup for Banner and Logo rendering.
+ * PRODUCT DETAIL PAGE
+ * Standardized data fetching with stabilized Firestore references.
  */
 export default function ProductPage() {
   const { id } = useParams();
@@ -29,13 +29,17 @@ export default function ProductPage() {
   const { user } = useUser();
   const db = useFirestore();
   
+  // Stabilize Query
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
     where('category', '==', id),
     where('status', '==', 'active')
   ), [db, id]);
 
-  const { data: gameInfo } = useDoc(id ? doc(db, 'games', id as string) : null);
+  // Stabilize Doc Reference
+  const gameDocRef = useMemo(() => id ? doc(db, 'games', id as string) : null, [db, id]);
+
+  const { data: gameInfo } = useDoc(gameDocRef);
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
   const { assetsMap, loading: assetsLoading } = useMarketplaceAssets();
 
@@ -82,7 +86,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.logoUrl || asset?.imageUrl || "",
+      image: asset?.imageUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -102,7 +106,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.logoUrl || asset?.imageUrl || "",
+      image: asset?.imageUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -112,13 +116,17 @@ export default function ProductPage() {
     toast({ title: "Added to Hub" });
   };
 
-  const bannerUrl = asset?.bannerUrl || asset?.imageUrl || asset?.logoUrl;
+  const bannerUrl = asset?.imageUrl;
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <div className="relative w-full aspect-video bg-neutral-900 overflow-hidden border-b border-white/5 shadow-2xl">
         {bannerUrl ? (
-          <img src={bannerUrl} alt={productName} className="block w-full h-full object-cover" />
+          <img 
+            src={bannerUrl} 
+            alt={productName} 
+            className="block w-full h-full object-cover" 
+          />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
         )}
