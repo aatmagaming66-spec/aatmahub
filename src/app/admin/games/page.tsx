@@ -112,12 +112,7 @@ export default function GameManagementPage() {
     setIsModalOpen(true);
   };
 
-  /**
-   * CLOUDINARY UPLOAD HANDLER
-   * Replaces broken Firebase Storage logic.
-   */
   const handleFileUpload = async (file: File) => {
-    // 1. Validation
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       toast({ variant: 'destructive', title: 'Format Error', description: 'Please use JPG, PNG or WEBP.' });
@@ -131,13 +126,14 @@ export default function GameManagementPage() {
     console.log(`[CLOUDINARY_START] Uploading: ${file.name}`);
     
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      const fd = new FormData();
+      formData.append ? null : null; // sanity check
+      fd.append("file", file);
+      fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
       const response = await fetch(CLOUDINARY_UPLOAD_URL, {
         method: "POST",
-        body: formData,
+        body: fd,
       });
 
       if (!response.ok) {
@@ -174,14 +170,13 @@ export default function GameManagementPage() {
     }
     
     setSaving(true);
-    console.log('[SAVE_START] Data Matrix:', { cleanName, cleanSlug });
+    console.log('[SAVE_START] Payload Verification:', { cleanName, cleanSlug });
     
     try {
       const gId = formData.id || cleanSlug;
       let logoUrl = formData.logo;
       let bannerUrl = formData.banner;
 
-      // 2. Upload to Cloudinary if new files selected
       if (files.logo) {
         console.log('[BEFORE_LOGO_UPLOAD]');
         logoUrl = await handleFileUpload(files.logo);
@@ -193,12 +188,11 @@ export default function GameManagementPage() {
         console.log('[AFTER_BANNER_UPLOAD]');
       }
 
-      // 3. Commit to Firestore
       console.log('[BEFORE_FIRESTORE_WRITE]');
       const gameRef = doc(db, 'games', gId);
-      const existingGame = games?.find(g => g.id === gId);
+      const existing = games?.find(g => g.id === gId);
       
-      const gameData = { 
+      const payload = { 
         ...formData, 
         name: cleanName,
         slug: cleanSlug,
@@ -206,13 +200,13 @@ export default function GameManagementPage() {
         logo: logoUrl, 
         banner: bannerUrl,
         updatedAt: new Date().toISOString(),
-        createdAt: existingGame?.createdAt || new Date().toISOString()
+        createdAt: existing?.createdAt || new Date().toISOString()
       };
       
-      await setDoc(gameRef, gameData, { merge: true });
+      await setDoc(gameRef, payload, { merge: true });
       console.log('[AFTER_FIRESTORE_WRITE]');
 
-      toast({ title: 'Record Secured', description: `${cleanName} has been updated via Cloudinary.` });
+      toast({ title: 'System Synchronized', description: `${cleanName} registry record secured.` });
       setIsModalOpen(false);
     } catch (e: any) {
       console.error('[SAVE_ERROR]', e);
@@ -223,7 +217,7 @@ export default function GameManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently remove this title?')) return;
+    if (!confirm('Permanently purge this record?')) return;
     try {
       await deleteDoc(doc(db, 'games', id));
       toast({ title: 'Record Purged' });
@@ -247,7 +241,7 @@ export default function GameManagementPage() {
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Search Registry..." 
+          placeholder="Search registry logs..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
@@ -412,7 +406,6 @@ export default function GameManagementPage() {
               </div>
             </div>
 
-            {/* LIVE DEBUG HUB */}
             <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 space-y-2">
                <div className="flex items-center gap-2 text-primary">
                  <Bug size={12} />
