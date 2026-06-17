@@ -1,23 +1,28 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useFirestore } from '@/firebase/provider';
+import { useFirestore, useCollection } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import { useCollection } from '@/firebase/firestore/use-collection';
 
 /**
  * useMarketplaceAssets Hook
- * Memoizes the collection reference to prevent infinite render loops.
+ * Optimized to prevent infinite render loops by stabilizing Firestore references.
  */
 export function useMarketplaceAssets() {
   const db = useFirestore();
   
-  const assetsQuery = useMemo(() => collection(db, 'media_assets'), [db]);
+  // MEMOIZED: Stable query reference
+  const assetsQuery = useMemo(() => {
+    if (!db) return null;
+    return collection(db, 'media_assets');
+  }, [db]);
+
   const { data: assets, loading } = useCollection(assetsQuery);
 
+  // MEMOIZED: Stable lookup map
   const assetsMap = useMemo(() => {
     const map = new Map<string, any>();
-    if (!assets) return map;
+    if (!assets || assets.length === 0) return map;
     
     assets.forEach((asset: any) => {
       if (asset.entityId) {
