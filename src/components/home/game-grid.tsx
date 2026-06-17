@@ -48,6 +48,25 @@ export function GameGrid() {
         {games.map((game) => {
           const lookupId = game.entityId ?? game.firestoreId ?? game.id;
           const media = mediaAssets.find(item => item.entityId === lookupId);
+          
+          if (game.name === "MLBB India") {
+            return (
+              <div key={game.firestoreId} className="aspect-[2/3]">
+                <img
+                  src={media?.logoUrl || ""}
+                  alt={game.name}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover"
+                  }}
+                  onLoad={() => console.log("MLBB India DIAG: Image Loaded")}
+                  onError={() => console.log("MLBB India DIAG: Image Error")}
+                />
+              </div>
+            );
+          }
+
           const logoUrl = media?.logoUrl || "";
 
           return (
