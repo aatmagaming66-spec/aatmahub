@@ -19,8 +19,8 @@ import Image from "next/image";
 
 /**
  * PRODUCT PAGE (Public)
- * Optimized Hero Section: 100% clean banner visibility with direct typography.
- * No overlays, no glass cards, no containers.
+ * Redesigned Layout: Clean visual banner first, content identity below.
+ * Professional storefront architecture.
  */
 export default function ProductPage() {
   const { id } = useParams();
@@ -128,8 +128,8 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      {/* 100% CLEAN HERO BANNER */}
-      <div className="relative w-full h-[260px] md:h-[320px] border-b border-white/5 overflow-hidden flex flex-col justify-end p-6 md:p-12">
+      {/* 100% CLEAN VISUAL BANNER POSTER */}
+      <div className="relative w-full h-[220px] md:h-[350px] border-b border-white/5 overflow-hidden">
         {asset?.bannerUrl ? (
           <Image 
             src={asset.bannerUrl} 
@@ -139,36 +139,34 @@ export default function ProductPage() {
             priority 
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-accent/20 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
         )}
-        
-        {/* DIRECT TYPOGRAPHY IDENTITY (NO CONTAINERS) */}
-        <div className="relative z-10 space-y-4">
-          <div className="flex flex-wrap gap-3">
-            <span 
-              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
-              className="text-[9px] font-black uppercase text-white tracking-[0.2em] flex items-center gap-1.5"
-            >
-              <Zap size={12} className="text-primary fill-primary" /> Instant Delivery
-            </span>
-            <span 
-              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
-              className="text-[9px] font-black uppercase text-white tracking-[0.2em] flex items-center gap-1.5"
-            >
-              <ShieldCheck size={12} className="text-green-500 fill-green-500" /> Secure Verified
-            </span>
-          </div>
-          <h1 
-            style={{ textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}
-            className="text-3xl md:text-6xl font-headline font-black text-white uppercase tracking-tighter leading-none"
-          >
-            {productName}
-          </h1>
-        </div>
       </div>
 
-      <div className="p-4 space-y-8 max-w-4xl mx-auto w-full">
-        <section className="bg-card border border-border p-6 rounded-[2rem] space-y-4 shadow-xl">
+      {/* CONTENT AREA BELOW BANNER */}
+      <div className="p-4 pt-6 space-y-6 max-w-4xl mx-auto w-full">
+        {/* STATUS BADGES SECTION */}
+        <div className="flex flex-wrap gap-2.5">
+          <div className="bg-primary px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg shadow-primary/10">
+            <Zap size={12} className="text-white fill-white" />
+            <span className="text-[10px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
+          </div>
+          <div className="bg-green-600 px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-lg shadow-green-900/20">
+            <ShieldCheck size={12} className="text-white fill-white" />
+            <span className="text-[10px] font-black uppercase text-white tracking-widest">Secure Verified</span>
+          </div>
+        </div>
+
+        {/* IDENTITY SECTION */}
+        <div className="space-y-1 px-1">
+          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight">
+            {productName}
+          </h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Official Top-Up Channel</p>
+        </div>
+
+        {/* ACCOUNT VERIFICATION SECTION */}
+        <section className="bg-card border border-border p-6 rounded-[2rem] space-y-4 shadow-2xl">
           <div className="flex items-center gap-2">
             <Smartphone size={14} className="text-primary" />
             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/70">Account Verification</h3>
@@ -183,12 +181,17 @@ export default function ProductPage() {
                <Input value={serverId} onChange={(e) => handleInputChange('server', e.target.value)} placeholder="Server" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
              </div>
           </div>
-          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg transition-all", isVerified ? "bg-green-500 hover:bg-green-500" : "bg-primary")}>
+          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-12 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg transition-all", isVerified ? "bg-green-600 hover:bg-green-600" : "bg-primary")}>
             {verifying ? <Loader2 className="animate-spin h-4 w-4" /> : (isVerified ? "ID Verified: AATMA_USER" : "Verify Account")}
           </Button>
         </section>
 
+        {/* PRODUCT SELECTION SECTION */}
         <section className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <PackageSearch size={14} className="text-primary" />
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-white/70">Select Package</h3>
+          </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full bg-card border border-border h-12 p-1 rounded-2xl mb-6 shadow-inner">
               {['small', 'large', 'pass', 'promo'].map(t => (
@@ -232,6 +235,7 @@ export default function ProductPage() {
           </Tabs>
         </section>
 
+        {/* ACTION BUTTONS */}
         <div className="flex flex-col gap-3 pb-24">
           <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-primary/20 group transition-all">
             Buy Now <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
