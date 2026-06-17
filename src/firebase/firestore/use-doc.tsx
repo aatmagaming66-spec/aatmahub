@@ -1,43 +1,55 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { onSnapshot, DocumentReference, FirestoreError } from 'firebase/firestore';
+import { onSnapshot, DocumentReference, FirestoreError, refEqual } from 'firebase/firestore';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
 /**
  * useDoc Hook
- * Optimized to prevent infinite render loops and ensure clean subscription cycles.
+ * Optimized to prevent infinite render loops and ensure clean subscription cycles
+ * by stabilizing the DocumentReference using refEqual().
  */
 export function useDoc<T = any>(docRef: DocumentReference | null) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | null>(null);
   
-  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const [activeRef, setActiveRef] = useState<DocumentReference | null>(null);
+  const refTracker = useRef<DocumentReference | null>(null);
 
-  // Use the document path as a stable key to prevent re-subscribing 
-  // if the docRef object is recreated by the parent component.
-  const docPath = docRef?.path;
+  // Stabilize the reference identity
+  useEffect(() => {
+    if (!docRef) {
+      if (refTracker.current !== null) {
+        refTracker.current = null;
+        setActiveRef(null);
+      }
+      return;
+    }
+
+    const isSame = refTracker.current && refEqual(docRef, refTracker.current);
+
+    if (!isSame) {
+      refTracker.current = docRef;
+      setActiveRef(docRef);
+    }
+  }, [docRef]);
 
   useEffect(() => {
     let isMounted = true;
 
-    if (!docRef) {
+    if (!activeRef) {
       setData(null);
       setLoading(false);
       setError(null);
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-        unsubscribeRef.current = null;
-      }
       return;
     }
 
     setLoading(true);
 
     const unsubscribe = onSnapshot(
-      docRef,
+      activeRef,
       (snapshot) => {
         if (!isMounted) return;
         setData(snapshot.exists() ? (snapshot.data() as T) : null);
@@ -49,7 +61,7 @@ export function useDoc<T = any>(docRef: DocumentReference | null) {
         
         if (err.code === 'permission-denied') {
           const permissionError = new FirestorePermissionError({
-            path: docRef.path,
+            path: activeRef.path,
             operation: 'get',
           });
           errorEmitter.emit('permission-error', permissionError);
@@ -60,17 +72,11 @@ export function useDoc<T = any>(docRef: DocumentReference | null) {
       }
     );
 
-    unsubscribeRef.current = unsubscribe;
-
     return () => {
       isMounted = false;
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-        unsubscribeRef.current = null;
-      }
+      unsubscribe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [docPath]);
+  }, [activeRef]);
 
   return { data, loading, error };
 }

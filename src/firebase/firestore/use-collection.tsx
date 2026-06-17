@@ -1,31 +1,37 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { onSnapshot, Query, FirestoreError } from 'firebase/firestore';
+import { onSnapshot, Query, FirestoreError, queryEqual } from 'firebase/firestore';
 import { errorEmitter } from '../error-emitter';
 import { FirestorePermissionError } from '../errors';
 
 /**
  * useCollection Hook
  * Optimized to prevent infinite render loops by stabilizing the Query reference
- * using Firestore's built-in isEqual() comparison.
+ * using Firestore's built-in queryEqual() utility.
  */
 export function useCollection<T = any>(query: Query | null) {
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<FirestoreError | null>(null);
   
-  // Use a ref to track the active query object for stable comparison
-  const queryRef = useRef<Query | null>(query);
-  const [activeQuery, setActiveQuery] = useState<Query | null>(query);
+  // Track the current "active" query to determine when to re-subscribe
+  const [activeQuery, setActiveQuery] = useState<Query | null>(null);
+  const queryRef = useRef<Query | null>(null);
 
-  // Stabilize the query dependency
+  // Deep compare the incoming query to stabilize it
   useEffect(() => {
-    if (!query && !queryRef.current) return;
+    if (!query) {
+      if (queryRef.current !== null) {
+        queryRef.current = null;
+        setActiveQuery(null);
+      }
+      return;
+    }
+
+    const isSame = queryRef.current && queryEqual(query, queryRef.current);
     
-    const isSameQuery = query && queryRef.current && query.isEqual(queryRef.current);
-    
-    if (!isSameQuery) {
+    if (!isSame) {
       queryRef.current = query;
       setActiveQuery(query);
     }
@@ -61,7 +67,7 @@ export function useCollection<T = any>(query: Query | null) {
       async (err) => {
         if (!isMounted) return;
         if (err.code === 'permission-denied') {
-          // Attempt to extract path from internal query state if possible
+          // Attempt to extract path from internal query state for rich error context
           const queryPath = (activeQuery as any)._query?.path?.toString() || 'collection';
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: queryPath,
