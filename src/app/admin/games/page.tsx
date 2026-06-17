@@ -112,7 +112,7 @@ export default function GameManagementPage() {
     setIsModalOpen(true);
   };
 
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = async (file: File, type: 'logo' | 'banner') => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       toast({ variant: 'destructive', title: 'Format Error', description: 'Please use JPG, PNG or WEBP.' });
@@ -123,13 +123,13 @@ export default function GameManagementPage() {
       throw new Error('File too large');
     }
 
-    console.log(`[CLOUDINARY_START] Uploading: ${file.name}`);
+    console.log(`[CLOUDINARY_START] Uploading ${type}: ${file.name}`);
     
     try {
       const fd = new FormData();
-      formData.append ? null : null; // sanity check
       fd.append("file", file);
       fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      fd.append("folder", "aatmahub");
 
       const response = await fetch(CLOUDINARY_UPLOAD_URL, {
         method: "POST",
@@ -138,14 +138,15 @@ export default function GameManagementPage() {
 
       if (!response.ok) {
         const errData = await response.json();
+        console.error('[CLOUDINARY_ERROR_RESPONSE]', errData);
         throw new Error(errData.error?.message || 'Cloudinary rejection');
       }
 
       const data = await response.json();
-      console.log(`[CLOUDINARY_SUCCESS] URL: ${data.secure_url}`);
-      return data.secure_url;
+      console.log(`[CLOUDINARY_SUCCESS] ${type} URL:`, data.secure_url);
+      return data;
     } catch (error: any) {
-      console.error('[CLOUDINARY_ERROR]', error);
+      console.error('[CLOUDINARY_EXCEPTION]', error);
       throw error;
     }
   };
@@ -176,15 +177,22 @@ export default function GameManagementPage() {
       const gId = formData.id || cleanSlug;
       let logoUrl = formData.logo;
       let bannerUrl = formData.banner;
+      let logoPublicId = '';
+      let bannerPublicId = '';
 
       if (files.logo) {
         console.log('[BEFORE_LOGO_UPLOAD]');
-        logoUrl = await handleFileUpload(files.logo);
+        const logoData = await handleFileUpload(files.logo, 'logo');
+        logoUrl = logoData.secure_url;
+        logoPublicId = logoData.public_id;
         console.log('[AFTER_LOGO_UPLOAD]');
       }
+
       if (files.banner) {
         console.log('[BEFORE_BANNER_UPLOAD]');
-        bannerUrl = await handleFileUpload(files.banner);
+        const bannerData = await handleFileUpload(files.banner, 'banner');
+        bannerUrl = bannerData.secure_url;
+        bannerPublicId = bannerData.public_id;
         console.log('[AFTER_BANNER_UPLOAD]');
       }
 
@@ -199,6 +207,8 @@ export default function GameManagementPage() {
         id: gId, 
         logo: logoUrl, 
         banner: bannerUrl,
+        logoPublicId: logoPublicId || existing?.logoPublicId || '',
+        bannerPublicId: bannerPublicId || existing?.bannerPublicId || '',
         updatedAt: new Date().toISOString(),
         createdAt: existing?.createdAt || new Date().toISOString()
       };
@@ -210,7 +220,7 @@ export default function GameManagementPage() {
       setIsModalOpen(false);
     } catch (e: any) {
       console.error('[SAVE_ERROR]', e);
-      toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
+      toast({ variant: 'destructive', title: 'Operation Failed', description: e.message || 'An error occurred during save.' });
     } finally {
       setSaving(false);
     }
