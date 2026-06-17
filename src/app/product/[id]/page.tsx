@@ -47,6 +47,7 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [asset, setAsset] = useState<any>(null);
+  const [imageDims, setImageDims] = useState<{ w: number, h: number } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -128,24 +129,33 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      {/* 16:9 STANDARDIZED BANNER - OBJECT COVER FOR CINEMATIC LOOK */}
       <div className="relative w-full aspect-video border-b border-white/5 bg-black overflow-hidden shadow-2xl">
         {asset?.bannerUrl ? (
-          <Image 
-            src={asset.bannerUrl} 
-            alt={productName} 
-            fill 
-            className="object-cover" 
-            priority 
-            sizes="100vw"
-          />
+          <div className="absolute inset-0 w-full h-full">
+            <Image 
+              src={asset.bannerUrl} 
+              alt={productName} 
+              fill 
+              style={{ objectFit: 'cover', objectPosition: 'center center' }}
+              priority 
+              sizes="100vw"
+              onLoadingComplete={(img) => {
+                setImageDims({ w: img.naturalWidth, h: img.naturalHeight });
+              }}
+            />
+          </div>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
         )}
       </div>
 
       <div className="p-4 pt-6 space-y-6 max-w-4xl mx-auto w-full">
-        {/* STATUS BADGES - COMPACT SIDE-BY-SIDE */}
+        {/* DEBUG INFO PANEL - HERO */}
+        <div className="px-4 py-2 bg-black/60 rounded-xl border border-white/10 space-y-1 mb-2">
+           <p className="text-[6px] text-primary font-black uppercase truncate tracking-tighter leading-tight">HERO URL: {asset?.bannerUrl || 'NULL'}</p>
+           <p className="text-[6px] text-white/40 font-black uppercase tracking-tighter leading-tight">HERO DIM: {imageDims ? `${imageDims.w}x${imageDims.h}` : 'LOADING...'}</p>
+        </div>
+
         <div className="flex flex-row justify-center gap-3">
           <div className="bg-primary px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-xl border border-white/5">
             <Zap size={12} className="text-white fill-white" />
@@ -157,7 +167,6 @@ export default function ProductPage() {
           </div>
         </div>
 
-        {/* IDENTITY SECTION */}
         <div className="space-y-0.5 text-center">
           <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight">
             {productName}
@@ -165,7 +174,6 @@ export default function ProductPage() {
           <p className="text-[9px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-40">Official Hub Top-Up Channel</p>
         </div>
 
-        {/* ACCOUNT VERIFICATION SECTION */}
         <section className="bg-card border border-border p-6 rounded-[2.5rem] space-y-4 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
             <Smartphone size={100} />
@@ -189,7 +197,6 @@ export default function ProductPage() {
           </Button>
         </section>
 
-        {/* PRODUCT SELECTION */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <PackageSearch size={16} className="text-primary" />
@@ -238,7 +245,6 @@ export default function ProductPage() {
           </Tabs>
         </section>
 
-        {/* ACTION BUTTONS */}
         <div className="flex flex-col gap-4 pb-24">
           <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full h-18 bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-2xl shadow-primary/20 group transition-all">
             Secure Purchase <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />

@@ -20,6 +20,7 @@ export function GameGrid() {
 
   const { data: games, loading } = useCollection(gamesQuery);
   const [media, setMedia] = useState<Record<string, any>>({});
+  const [imageDims, setImageDims] = useState<Record<string, { w: number, h: number }>>({});
 
   useEffect(() => {
     const q = collection(db, 'media_assets');
@@ -63,54 +64,67 @@ export function GameGrid() {
           if (!isEnabled) return null;
 
           return (
-            <Link 
-              key={game.id} 
-              href={`/product/${game.id}`} 
-              className="group transition-all duration-300 active:scale-95"
-            >
-              <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                {gameMedia?.logoUrl ? (
-                  <Image 
-                    src={gameMedia.logoUrl} 
-                    alt={game.name} 
-                    fill 
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    sizes="(max-width: 768px) 33vw, 20vw"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-card group-hover:from-primary/30 transition-all duration-500" />
-                )}
-                
-                <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
-                  <div className="flex justify-between items-start">
-                    {game.flag ? (
-                      <div className="bg-black/60 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center border border-white/10">
-                        <span className="text-xs leading-none">{game.flag}</span>
-                      </div>
-                    ) : <div />}
-                    
-                    <div className={cn(
-                      "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
-                      game.status === 'active' ? 'bg-green-500' : 'bg-primary'
-                    )}>
-                      {game.status || 'Active'}
+            <div key={game.id} className="flex flex-col">
+              <Link 
+                href={`/product/${game.id}`} 
+                className="group transition-all duration-300 active:scale-95"
+              >
+                <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
+                  {gameMedia?.logoUrl ? (
+                    <div className="absolute inset-0 w-full h-full">
+                      <Image 
+                        src={gameMedia.logoUrl} 
+                        alt={game.name} 
+                        fill 
+                        style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                        className="transition-transform duration-700 group-hover:scale-110"
+                        sizes="(max-width: 768px) 33vw, 20vw"
+                        onLoadingComplete={(img) => {
+                          setImageDims(prev => ({ ...prev, [game.id]: { w: img.naturalWidth, h: img.naturalHeight } }));
+                        }}
+                      />
                     </div>
-                  </div>
-                  
-                  {!gameMedia?.logoUrl && (
-                    <div className="flex items-center justify-center h-full opacity-20">
-                       <Gamepad2 size={24} className="text-white" />
-                    </div>
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-card group-hover:from-primary/30 transition-all duration-500" />
                   )}
+                  
+                  <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
+                    <div className="flex justify-between items-start">
+                      {game.flag ? (
+                        <div className="bg-black/60 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center border border-white/10">
+                          <span className="text-xs leading-none">{game.flag}</span>
+                        </div>
+                      ) : <div />}
+                      
+                      <div className={cn(
+                        "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
+                        game.status === 'active' ? 'bg-green-500' : 'bg-primary'
+                      )}>
+                        {game.status || 'Active'}
+                      </div>
+                    </div>
+                    
+                    {!gameMedia?.logoUrl && (
+                      <div className="flex items-center justify-center h-full opacity-20">
+                         <Gamepad2 size={24} className="text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                <div className="text-center px-1">
+                  <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
+                    {game.name}
+                  </span>
+                </div>
+              </Link>
+              
+              {/* DEBUG INFO PANEL */}
+              <div className="mt-1.5 px-2 py-1.5 bg-black/60 rounded-lg border border-white/10 space-y-1">
+                <p className="text-[5px] text-primary font-black uppercase truncate tracking-tighter leading-tight">URL: {gameMedia?.logoUrl || 'NULL'}</p>
+                <p className="text-[5px] text-white/40 font-black uppercase tracking-tighter leading-tight">DIM: {imageDims[game.id] ? `${imageDims[game.id].w}x${imageDims[game.id].h}` : 'LOADING...'}</p>
               </div>
-              <div className="text-center px-1">
-                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
-                  {game.name}
-                </span>
-              </div>
-            </Link>
+            </div>
           );
         })}
       </div>

@@ -25,6 +25,7 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
   const accentColor = isOtt ? 'from-accent/20' : 'from-primary/20';
 
   const [media, setMedia] = useState<Record<string, any>>({});
+  const [imageDims, setImageDims] = useState<Record<string, { w: number, h: number }>>({});
 
   useEffect(() => {
     const q = collection(db, 'media_assets');
@@ -52,45 +53,58 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
           if (!isEnabled) return null;
 
           return (
-            <Link 
-              key={item.id} 
-              href={`/product/${item.id}`} 
-              className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95"
-            >
-              <div className={`relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500 ${isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'}`}>
-                {itemMedia?.logoUrl ? (
-                  <Image 
-                    src={itemMedia.logoUrl} 
-                    alt={item.name} 
-                    fill 
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    sizes="(max-width: 768px) 33vw, 20vw"
-                  />
-                ) : (
-                  <div className={`absolute inset-0 bg-gradient-to-br ${accentColor} via-black to-card transition-all duration-500`} />
-                )}
-                
-                <div className="absolute top-2 right-2 z-10 pointer-events-none">
-                  <div className={`text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg ${
-                    item.status === 'inactive' ? 'bg-primary' : 'bg-green-500'
-                  }`}>
-                    {item.status || 'Active'}
+            <div key={item.id} className="flex-shrink-0 w-[calc((100%-24px)/3)] flex flex-col">
+              <Link 
+                href={`/product/${item.id}`} 
+                className="group transition-all duration-300 active:scale-95"
+              >
+                <div className={`relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500 ${isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'}`}>
+                  {itemMedia?.logoUrl ? (
+                    <div className="absolute inset-0 w-full h-full">
+                      <Image 
+                        src={itemMedia.logoUrl} 
+                        alt={item.name} 
+                        fill 
+                        style={{ objectFit: 'cover', objectPosition: 'center center' }}
+                        className="transition-transform duration-700 group-hover:scale-110"
+                        sizes="(max-width: 768px) 33vw, 20vw"
+                        onLoadingComplete={(img) => {
+                          setImageDims(prev => ({ ...prev, [item.id]: { w: img.naturalWidth, h: img.naturalHeight } }));
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className={`absolute inset-0 bg-gradient-to-br ${accentColor} via-black to-card transition-all duration-500`} />
+                  )}
+                  
+                  <div className="absolute top-2 right-2 z-10 pointer-events-none">
+                    <div className={`text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg ${
+                      item.status === 'inactive' ? 'bg-primary' : 'bg-green-500'
+                    }`}>
+                      {item.status || 'Active'}
+                    </div>
                   </div>
-                </div>
 
-                {!itemMedia?.logoUrl && (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                    <Icon size={24} className="text-white" />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                  {!itemMedia?.logoUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                      <Icon size={24} className="text-white" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                </div>
+                <div className="text-center px-1">
+                  <span className={`text-[8px] font-black text-muted-foreground uppercase tracking-tight transition-colors line-clamp-1 ${isOtt ? 'group-hover:text-accent' : 'group-hover:text-primary'}`}>
+                    {item.name}
+                  </span>
+                </div>
+              </Link>
+              
+              {/* DEBUG INFO PANEL */}
+              <div className="mt-1.5 px-2 py-1.5 bg-black/60 rounded-lg border border-white/10 space-y-1">
+                <p className="text-[5px] text-primary font-black uppercase truncate tracking-tighter leading-tight">URL: {itemMedia?.logoUrl || 'NULL'}</p>
+                <p className="text-[5px] text-white/40 font-black uppercase tracking-tighter leading-tight">DIM: {imageDims[item.id] ? `${imageDims[item.id].w}x${imageDims[item.id].h}` : 'LOADING...'}</p>
               </div>
-              <div className="text-center px-1">
-                <span className={`text-[8px] font-black text-muted-foreground uppercase tracking-tight transition-colors line-clamp-1 ${isOtt ? 'group-hover:text-accent' : 'group-hover:text-primary'}`}>
-                  {item.name}
-                </span>
-              </div>
-            </Link>
+            </div>
           );
         })}
       </div>
