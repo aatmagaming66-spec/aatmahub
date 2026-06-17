@@ -33,7 +33,8 @@ import {
   Tv, 
   Share2, 
   ImageIcon,
-  Loader2
+  Loader2,
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -46,8 +47,8 @@ interface MediaAsset {
   entityName: string;
   logoUrl?: string;
   thumbnailUrl?: string; 
-  imageUrl?: string; // Compatibility Alias
-  icon?: string;     // Compatibility Alias
+  imageUrl?: string; 
+  icon?: string;     
   bannerUrl?: string;
   isEnabled: boolean;
   updatedAt: string;
@@ -63,11 +64,28 @@ export default function DynamicMediaHub() {
   const [assets, setAssets] = useState<MediaAsset[]>([]);
 
   useEffect(() => {
+    console.log('[AUDIT] Initializing Media Registry Stream...');
     const q = query(collection(db, 'media_assets'), orderBy('entityName', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
-      setAssets(snap.docs.map(d => ({ ...d.data(), id: d.id } as MediaAsset)));
+      const data = snap.docs.map(d => {
+        const docData = d.data();
+        // REQUIREMENT: Print exact database values for audit
+        if (d.id === 'bgmi' || d.id === 'mlbb-india' || docData.entityId === 'bgmi' || docData.entityId === 'mlbb-india') {
+          console.log(`[AUDIT_DB] Entity: ${d.id}`, {
+            entityId: docData.entityId,
+            logoUrl: docData.logoUrl,
+            thumbnailUrl: docData.thumbnailUrl,
+            imageUrl: docData.imageUrl,
+            icon: docData.icon,
+            bannerUrl: docData.bannerUrl
+          });
+        }
+        return { ...docData, id: d.id } as MediaAsset;
+      });
+      setAssets(data);
       setLoading(false);
     }, (error) => {
+      console.error('[AUDIT] Stream Error:', error);
       toast({ variant: 'destructive', title: 'Connection Error', description: error.message });
     });
     return () => unsubscribe();
@@ -90,7 +108,6 @@ export default function DynamicMediaHub() {
             const data = d.data();
             if (!currentMediaIds.has(d.id)) {
               const assetRef = doc(db, 'media_assets', d.id);
-              // EXHAUSTIVE DISCOVERY: Find value from any possible source field
               const existingImage = data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.imageUrl || null;
               const existingBanner = data.banner || data.bannerUrl || null;
 
@@ -136,7 +153,7 @@ export default function DynamicMediaHub() {
              <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Media Hub</h1>
              {syncing && <Loader2 className="h-4 w-4 text-primary animate-spin" />}
           </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60 mt-2">Standardized Asset Intelligence</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60 mt-2">Protocol: Database-Driven Asset Pipeline</p>
         </div>
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64 group">
@@ -168,27 +185,44 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [isSaving, setIsSaving] = useState(false);
   const [logoProgress, setLogoProgress] = useState(0);
   const [bannerProgress, setBannerProgress] = useState(0);
-  const [localLogo, setLocalLogo] = useState<string | null>(asset.logoUrl || asset.thumbnailUrl || asset.icon || asset.imageUrl || null);
-  const [localBanner, setLocalBanner] = useState<string | null>(asset.bannerUrl || null);
+  
+  // REQUIREMENT: Distinct states for Preview (Local) and Database (Remote)
+  const [localLogo, setLocalLogo] = useState<string | null>(null);
+  const [localBanner, setLocalBanner] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(asset.isEnabled);
   const [uncommitted, setUncommitted] = useState(false);
+
+  // Sync state with props when data loads or updates
+  useEffect(() => {
+    if (!uncommitted) {
+      setLocalLogo(asset.logoUrl || asset.thumbnailUrl || asset.icon || asset.imageUrl || null);
+      setLocalBanner(asset.bannerUrl || null);
+      setEnabled(asset.isEnabled);
+    }
+  }, [asset, uncommitted]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    console.log(`[TRACE] FILE_SELECTED: ${file.name} | Size: ${(file.size / 1024).toFixed(2)}KB | Type: ${file.type}`);
+
     if (file.size > 5 * 1024 * 1024) {
       toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum file size is 5MB.' });
       return;
     }
 
     const previewUrl = URL.createObjectURL(file);
+    console.log(`[TRACE] PREVIEW_GENERATED: ${previewUrl}`);
+    
     if (type === 'logo') setLocalLogo(previewUrl);
     else setLocalBanner(previewUrl);
 
     try {
       const storagePath = `media_assets/${asset.entityType}/${asset.entityId}/${type}_${Date.now()}`;
       const storageRef = ref(storage, storagePath);
+      
+      console.log(`[TRACE] UPLOAD_STARTED: Path -> ${storagePath}`);
       const uploadTask = uploadBytesResumable(storageRef, file);
 
       uploadTask.on('state_changed', 
@@ -198,24 +232,31 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           else setBannerProgress(progress);
         }, 
         (error) => {
+          console.error(`[TRACE] UPLOAD_FAILED: ${error.message}`);
           toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
         }, 
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          console.log(`[TRACE] UPLOAD_SUCCESS: Generated Download URL -> ${downloadURL}`);
+          
           if (type === 'logo') { setLocalLogo(downloadURL); setLogoProgress(0); }
           else { setLocalBanner(downloadURL); setBannerProgress(0); }
+          
           setUncommitted(true);
           toast({ title: 'Upload Ready', description: 'Click "Commit Changes" to finalize.' });
         }
       );
     } catch (e: any) {
+      console.error(`[TRACE] SYSTEM_ERROR: ${e.message}`);
       toast({ variant: 'destructive', title: 'System Error', description: e.message });
     }
   };
 
   const handleSave = async () => {
+    console.log(`[TRACE] SAVE_TRIGGERED: Preparing database payload for ${asset.id}...`);
     setIsSaving(true);
-    // ATOMIC MULTI-ALIAS COMMIT: Ensure 100% compatibility with all reader components
+    
+    // ATOMIC COMMIT: Standardize all naming aliases for total cross-component compatibility
     const assetData = {
       entityId: asset.entityId || asset.id,
       entityType: asset.entityType,
@@ -228,19 +269,33 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
       isEnabled: enabled,
       updatedAt: new Date().toISOString()
     };
+
+    // GUARD: Prevent committing local blobs to DB
+    if (localLogo?.startsWith('blob:') || localBanner?.startsWith('blob:')) {
+      console.warn('[TRACE] SAVE_REJECTED: Local blob detected. Waiting for upload completion...');
+      toast({ variant: 'destructive', title: 'Save Blocked', description: 'Asset is still uploading. Please wait.' });
+      setIsSaving(false);
+      return;
+    }
+
     try {
       await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
+      console.log(`[TRACE] MEDIA_SAVE_SUCCESS: Registry updated for ${asset.id}`);
       setUncommitted(false);
       toast({ title: 'Identity Committed' });
     } catch (e: any) {
+      console.error(`[TRACE] MEDIA_SAVE_FAILED: ${e.message}`);
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
-    } finally { setIsSaving(false); }
+    } finally { 
+      setIsSaving(false); 
+    }
   };
 
   const Icon = asset.entityType === 'game' ? Gamepad2 : (asset.entityType === 'ott' ? Tv : Share2);
 
   return (
     <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all flex flex-col">
+      {/* Banner Preview Area */}
       <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {localBanner ? (
           <Image src={localBanner} alt="Banner" fill className="object-cover" unoptimized={localBanner.startsWith('blob:')} />
@@ -252,6 +307,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
       </div>
 
       <CardContent className="p-6 space-y-6 flex-1 flex flex-col">
+        {/* Logo/Icon Selection */}
         <div className="flex items-center gap-4">
           <div className="relative aspect-[2/3] h-20 shrink-0 rounded-xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center">
             {localLogo ? <Image src={localLogo} alt="Logo" fill className="object-cover" unoptimized={localLogo.startsWith('blob:')} /> : <Icon size={20} className="opacity-20 text-primary" />}
@@ -262,28 +318,31 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo (2:3)</Label>
-            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
+            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden" onClick={() => console.log('[TRACE] FILE_PICKER_OPENED: Logo')}>
               <Upload size={12} className="mr-1.5" /> Select
-              <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
             </Button>
             {logoProgress > 0 && <Progress value={logoProgress} className="h-1" />}
           </div>
           <div className="space-y-2">
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner (16:9)</Label>
-            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
+            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden" onClick={() => console.log('[TRACE] FILE_PICKER_OPENED: Banner')}>
               <ImageIcon size={12} className="mr-1.5" /> Select
-              <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
             </Button>
             {bannerProgress > 0 && <Progress value={bannerProgress} className="h-1" />}
           </div>
         </div>
 
+        {/* Warning Indicator */}
         {uncommitted && (
           <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl flex items-center gap-2 animate-pulse">
-            <span className="text-[8px] font-black text-primary uppercase">Uncommitted Changes</span>
+            <AlertCircle size={10} className="text-primary" />
+            <span className="text-[8px] font-black text-primary uppercase">File selected but not committed.</span>
           </div>
         )}
 
