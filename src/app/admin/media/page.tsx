@@ -8,8 +8,7 @@ import {
   doc, 
   setDoc, 
   onSnapshot,
-  orderBy,
-  getDocs
+  orderBy
 } from 'firebase/firestore';
 import { 
   ref, 
@@ -59,7 +58,6 @@ export default function DynamicMediaHub() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'game' | 'ott' | 'social'>('all');
   const [loading, setLoading] = useState(true);
-  const [syncing, setSyncing] = useState(false);
   const [assets, setAssets] = useState<MediaAsset[]>([]);
 
   useEffect(() => {
@@ -73,53 +71,6 @@ export default function DynamicMediaHub() {
     });
     return () => unsubscribe();
   }, [db, toast]);
-
-  useEffect(() => {
-    async function reconcileRegistry() {
-      if (syncing) return;
-      setSyncing(true);
-      try {
-        const collections = [
-          { path: 'games', type: 'game' },
-          { path: 'ott_services', type: 'ott' },
-          { path: 'social_services', type: 'social' }
-        ];
-        
-        for (const col of collections) {
-          const snap = await getDocs(collection(db, col.path));
-          for (const d of snap.docs) {
-            const data = d.data();
-            const existingAsset = assets.find(a => a.entityId === d.id);
-            const needsUpdate = !existingAsset || (!existingAsset.logoUrl && (data.cardImage || data.icon || data.logoUrl));
-
-            if (needsUpdate) {
-              const assetRef = doc(db, 'media_assets', d.id);
-              const existingImage = data.logoUrl || data.cardImage || data.icon || data.thumbnail || data.imageUrl || null;
-              const existingBanner = data.bannerUrl || data.banner || null;
-
-              await setDoc(assetRef, {
-                entityId: d.id,
-                entityType: col.type,
-                entityName: data.name || d.id,
-                isEnabled: data.status === 'active' || data.status === 'enabled',
-                logoUrl: existingImage,
-                thumbnailUrl: existingImage,
-                imageUrl: existingImage,
-                icon: existingImage,
-                bannerUrl: existingBanner,
-                updatedAt: new Date().toISOString()
-              }, { merge: true });
-            }
-          }
-        }
-      } catch (e: any) {
-        console.error('[Media Hub] Auto-sync failure:', e);
-      } finally {
-        setSyncing(false);
-      }
-    }
-    if (!loading) reconcileRegistry();
-  }, [db, loading, assets]);
 
   const filteredAssets = useMemo(() => {
     return assets.filter(a => {
@@ -135,11 +86,8 @@ export default function DynamicMediaHub() {
     <div className="space-y-8 animate-in fade-in duration-700 pb-20">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div>
-          <div className="flex items-center gap-3">
-             <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Media Hub</h1>
-             {syncing && <Loader2 className="h-4 w-4 text-primary animate-spin" />}
-          </div>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60 mt-2">Protocol: Database-Driven Asset Pipeline</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Media Hub</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60 mt-2">Protocol: Central Asset Pipeline</p>
         </div>
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64 group">
@@ -172,27 +120,20 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [logoProgress, setLogoProgress] = useState(0);
   const [bannerProgress, setBannerProgress] = useState(0);
   
-  const [localLogo, setLocalLogo] = useState<string | null>(null);
-  const [localBanner, setLocalBanner] = useState<string | null>(null);
+  const [localLogo, setLocalLogo] = useState<string | null>(asset.logoUrl || null);
+  const [localBanner, setLocalBanner] = useState<string | null>(asset.bannerUrl || null);
   const [enabled, setEnabled] = useState(asset.isEnabled);
   const [uncommitted, setUncommitted] = useState(false);
 
   useEffect(() => {
-    if (!uncommitted) {
-      setLocalLogo(asset.logoUrl || asset.thumbnailUrl || asset.icon || asset.imageUrl || null);
-      setLocalBanner(asset.bannerUrl || null);
-      setEnabled(asset.isEnabled);
-    }
-  }, [asset, uncommitted]);
+    setLocalLogo(asset.logoUrl || null);
+    setLocalBanner(asset.bannerUrl || null);
+    setEnabled(asset.isEnabled);
+  }, [asset]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum file size is 5MB.' });
-      return;
-    }
 
     const previewUrl = URL.createObjectURL(file);
     if (type === 'logo') setLocalLogo(previewUrl);
@@ -217,7 +158,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           if (type === 'logo') { setLocalLogo(downloadURL); setLogoProgress(0); }
           else { setLocalBanner(downloadURL); setBannerProgress(0); }
           setUncommitted(true);
-          toast({ title: 'Upload Ready', description: 'Commit changes to finalize.' });
+          toast({ title: 'Upload Success', description: 'Click commit to save permanently.' });
         }
       );
     } catch (e: any) {
@@ -227,13 +168,13 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
   const handleSave = async () => {
     if (localLogo?.startsWith('blob:') || localBanner?.startsWith('blob:')) {
-      toast({ variant: 'destructive', title: 'Save Blocked', description: 'Upload still in progress.' });
+      toast({ variant: 'destructive', title: 'Save Blocked', description: 'Wait for upload to complete.' });
       return;
     }
 
     setIsSaving(true);
     const assetData = {
-      entityId: asset.entityId || asset.id,
+      entityId: asset.entityId,
       entityType: asset.entityType,
       entityName: asset.entityName,
       logoUrl: localLogo,
@@ -248,7 +189,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     try {
       await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
       setUncommitted(false);
-      toast({ title: 'Identity Committed' });
+      toast({ title: 'Changes Saved' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
     } finally { 
@@ -283,7 +224,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo</Label>
+            <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo (2:3)</Label>
             <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
               <Upload size={12} className="mr-1.5" /> Select
               <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
@@ -291,7 +232,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
             {logoProgress > 0 && <Progress value={logoProgress} className="h-1" />}
           </div>
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner</Label>
+            <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner (16:9)</Label>
             <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
               <ImageIcon size={12} className="mr-1.5" /> Select
               <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
