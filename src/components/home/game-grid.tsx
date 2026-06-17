@@ -52,22 +52,24 @@ export function GameGrid() {
           if (game.name === "MLBB India") {
             return (
               <div key={game.firestoreId} className="aspect-[2/3]">
-                <img
-                  src={media?.logoUrl || ""}
-                  alt={game.name}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover"
-                  }}
-                  onLoad={() => console.log("MLBB India DIAG: Image Loaded")}
-                  onError={() => console.log("MLBB India DIAG: Image Error")}
-                />
+                {media?.logoUrl ? (
+                  <img
+                    src={media.logoUrl}
+                    alt={game.name}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover"
+                    }}
+                    onLoad={() => console.log("MLBB India DIAG: Image Loaded")}
+                    onError={() => console.log("MLBB India DIAG: Image Error")}
+                  />
+                ) : null}
               </div>
             );
           }
 
-          const logoUrl = media?.logoUrl || "";
+          const logoUrl = media?.logoUrl;
 
           return (
             <Link 
