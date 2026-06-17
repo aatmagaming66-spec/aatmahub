@@ -15,7 +15,12 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where, doc } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
+import { useMarketplaceAssets } from "@/hooks/use-marketplace-assets";
 
+/**
+ * PRODUCT DETAIL PAGE - REBUILT NATIVE STRUCTURE
+ * Uses direct assetsMap lookup for Banner and Logo rendering.
+ */
 export default function ProductPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -30,13 +35,11 @@ export default function ProductPage() {
     where('status', '==', 'active')
   ), [db, id]);
 
-  const gameRef = useMemo(() => id ? doc(db, 'games', id as string) : null, [db, id]);
-  const { data: gameInfo } = useDoc(gameRef);
+  const { data: gameInfo } = useDoc(id ? doc(db, 'games', id as string) : null);
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
+  const { assetsMap, loading: assetsLoading } = useMarketplaceAssets();
 
-  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
-  const { data: mediaAssets } = useCollection(mediaQuery);
-  const media = mediaAssets.find(m => m.entityId === id);
+  const asset = assetsMap.get(id as string);
 
   const [selectedPack, setSelectedPack] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("small");
@@ -79,7 +82,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: media?.logoUrl || "",
+      image: asset?.logoUrl || asset?.imageUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -99,7 +102,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: media?.logoUrl || "",
+      image: asset?.logoUrl || asset?.imageUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -109,13 +112,13 @@ export default function ProductPage() {
     toast({ title: "Added to Hub" });
   };
 
-  const bannerUrl = media?.bannerUrl || media?.logoUrl;
+  const bannerUrl = asset?.bannerUrl || asset?.imageUrl || asset?.logoUrl;
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <div className="relative w-full aspect-video bg-neutral-900 overflow-hidden border-b border-white/5 shadow-2xl">
         {bannerUrl ? (
-          <img src={bannerUrl} alt={productName} className="w-full h-full object-cover" />
+          <img src={bannerUrl} alt={productName} className="block w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
         )}

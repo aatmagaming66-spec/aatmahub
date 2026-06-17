@@ -1,10 +1,8 @@
-"use client"
+'use client';
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useFirestore } from "@/firebase/provider";
-import { collection } from "firebase/firestore";
-import { useCollection } from "@/firebase/firestore/use-collection";
+import { useMarketplaceAssets } from "@/hooks/use-marketplace-assets";
 import { cn } from "@/lib/utils";
 
 interface ServiceItem {
@@ -18,12 +16,15 @@ interface ServiceCarouselProps {
   items: ServiceItem[];
 }
 
+/**
+ * SERVICE CAROUSEL - REBUILT NATIVE STRUCTURE
+ * Uses direct Map lookup from useMarketplaceAssets.
+ */
 export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
-  const db = useFirestore();
+  const { assetsMap, loading } = useMarketplaceAssets();
   const isOtt = title.toLowerCase().includes('ott');
-  
-  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
-  const { data: mediaAssets, loading } = useCollection(mediaQuery);
+
+  if (loading) return null;
 
   return (
     <section className="py-4 overflow-hidden">
@@ -33,8 +34,8 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
-          const media = mediaAssets.find(m => m.entityId === item.id);
-          const imageUrl = media?.logoUrl;
+          const asset = assetsMap.get(item.id);
+          const imageUrl = asset?.imageUrl || asset?.logoUrl;
 
           return (
             <Link 
@@ -46,16 +47,12 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
                 "relative aspect-[2/3] rounded-xl overflow-hidden mb-2.5 border border-border shadow-2xl bg-neutral-900 transition-all",
                 isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'
               )}>
-                {imageUrl ? (
+                {imageUrl && (
                   <img 
                     src={imageUrl} 
                     alt={item.name} 
-                    className="w-full h-full object-cover" 
+                    className="block w-full h-full object-cover z-0" 
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center opacity-5">
-                    <span className="text-[10px] font-black uppercase">{item.name.substring(0, 2)}</span>
-                  </div>
                 )}
                 
                 <div className="absolute top-2 right-2 z-10 pointer-events-none">

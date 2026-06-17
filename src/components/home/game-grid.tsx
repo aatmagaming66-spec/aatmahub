@@ -1,27 +1,26 @@
-"use client"
+'use client';
 
 import { useMemo } from "react";
 import Link from "next/link";
 import { useFirestore } from "@/firebase/provider";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
+import { useMarketplaceAssets } from "@/hooks/use-marketplace-assets";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 /**
  * GAME GRID - REBUILT NATIVE STRUCTURE
- * This component uses a direct <img> pipeline with zero CSS masks or absolute wrappers.
+ * Directly matches games to media_assets using entityId.
  */
 export function GameGrid() {
   const db = useFirestore();
-  
-  const gamesQuery = useMemo(() => query(collection(db, 'games'), orderBy('sortOrder', 'asc')), [db]);
-  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
+  const { data: games, loading: gamesLoading } = useCollection(
+    query(collection(db, 'games'), orderBy('sortOrder', 'asc'))
+  );
+  const { assetsMap, loading: assetsLoading } = useMarketplaceAssets();
 
-  const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
-  const { data: mediaAssets, loading: mediaLoading } = useCollection(mediaQuery);
-
-  if (gamesLoading || mediaLoading) {
+  if (gamesLoading || assetsLoading) {
     return (
       <section className="py-4 px-4">
         <div className="grid grid-cols-3 gap-3">
@@ -45,8 +44,9 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const media = mediaAssets.find(m => m.entityId === game.id);
-          const imageUrl = media?.imageUrl;
+          // Direct Map matching using game.id (which aligns with entityId)
+          const asset = assetsMap.get(game.id);
+          const imageUrl = asset?.imageUrl || asset?.logoUrl;
 
           return (
             <Link 
@@ -54,7 +54,7 @@ export function GameGrid() {
               href={`/product/${game.id}`} 
               className="group flex flex-col active:scale-95 transition-transform"
             >
-              {/* IMAGE CONTAINER (LAYER 0) */}
+              {/* IMAGE LAYER (LAYER 0) */}
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 border border-white/5 shadow-xl">
                 {imageUrl && (
                   <img 
@@ -64,7 +64,7 @@ export function GameGrid() {
                   />
                 )}
                 
-                {/* OVERLAYS (LAYER 1 / Z-10) */}
+                {/* OVERLAYS (LAYER 1) */}
                 <div className="absolute top-2 left-2 z-10">
                   {game.flag && (
                     <div className="bg-black/60 rounded-lg p-1 flex items-center justify-center border border-white/10 min-w-[22px] min-h-[22px]">
@@ -83,7 +83,7 @@ export function GameGrid() {
                 </div>
               </div>
 
-              {/* FOOTER (LAYER 1) */}
+              {/* TITLE LAYER (LAYER 1) */}
               <div className="text-center mt-2.5 px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
                   {game.name}
