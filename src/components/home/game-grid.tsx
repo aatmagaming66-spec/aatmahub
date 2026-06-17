@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from "react";
@@ -49,6 +50,14 @@ export function GameGrid() {
           // Field Priority: Direct Registry Image -> Legacy Game Icon
           const imageUrl = asset?.imageUrl || asset?.logoUrl || game.icon || game.cardImage || game.thumbnail;
 
+          // RUNTIME TRACE FOR BGMI
+          if (game.id === 'bgmi') {
+            console.log('[BGMI_RUNTIME_TRACE] game.id:', game.id);
+            console.log('[BGMI_RUNTIME_TRACE] asset object keys:', asset ? Object.keys(asset) : 'null');
+            console.log('[BGMI_RUNTIME_TRACE] asset.logoUrl:', asset?.logoUrl);
+            console.log('[BGMI_RUNTIME_TRACE] imageUrl evaluated to:', imageUrl);
+          }
+
           return (
             <Link 
               key={game.id} 
@@ -61,6 +70,8 @@ export function GameGrid() {
                     src={imageUrl} 
                     alt={game.name} 
                     className="block w-full h-full object-cover z-0" 
+                    onLoad={() => game.id === 'bgmi' && console.log('[BGMI_RUNTIME_TRACE] <img> load event fired')}
+                    onError={(e) => game.id === 'bgmi' && console.error('[BGMI_RUNTIME_TRACE] <img> error event fired. Src:', (e.target as HTMLImageElement).src)}
                   />
                 )}
                 
