@@ -70,6 +70,15 @@ export default function CatalogManagementPage() {
     );
   }, [games, searchQuery]);
 
+  const generateSlug = (name: string) => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   const handleOpenModal = (game: any = null) => {
     if (game) {
       setEditingGame(game);
@@ -114,7 +123,9 @@ export default function CatalogManagementPage() {
   };
 
   const handleSave = async () => {
-    if (!formData.name || !formData.slug) {
+    // Validate from state, not DOM
+    if (!formData.name.trim() || !formData.slug.trim()) {
+      console.warn('[Validation] Name or Slug missing in state:', { name: formData.name, slug: formData.slug });
       toast({ variant: 'destructive', title: 'Validation Error', description: 'Name and Slug are required.' });
       return;
     }
@@ -142,11 +153,13 @@ export default function CatalogManagementPage() {
         createdAt: formData.id ? (games.find(g => g.id === formData.id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
       };
       
+      console.log('[Commit] Payload:', gameData);
       await setDoc(gameRef, gameData, { merge: true });
 
       toast({ title: 'Record Secured', description: `${formData.name} has been updated in the catalog.` });
       setIsModalOpen(false);
     } catch (e: any) {
+      console.error('[Commit] Error:', e);
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
     } finally {
       setSaving(false);
@@ -252,11 +265,26 @@ export default function CatalogManagementPage() {
              <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Display Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Mobile Legends" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+                <Input 
+                  value={formData.name} 
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    const slug = editingGame ? formData.slug : generateSlug(name);
+                    setFormData({...formData, name, slug});
+                  }} 
+                  placeholder="Mobile Legends" 
+                  className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" 
+                />
               </div>
               <div className="space-y-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Internal Slug (ID)</Label>
-                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="mlbb-global" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" disabled={!!editingGame} />
+                <Input 
+                  value={formData.slug} 
+                  onChange={(e) => setFormData({...formData, slug: e.target.value})} 
+                  placeholder="mlbb-global" 
+                  className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" 
+                  disabled={!!editingGame} 
+                />
               </div>
             </div>
 
