@@ -2,20 +2,15 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, limit, orderBy } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ShieldCheck, Database, Bot, Terminal, Loader2, DatabaseZap, History, Zap, Layers } from 'lucide-react';
+import { Activity, Database, Bot, Terminal, Loader2, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 
 export default function SystemHealthPage() {
   const db = useFirestore();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
   const [health, setHealth] = useState<any>({
     firestore: 'checking',
     telegram: 'checking'
@@ -42,57 +37,6 @@ export default function SystemHealthPage() {
     setLoading(false);
   };
 
-  /**
-   * INITIALIZE REGISTRY METADATA
-   * Scans Games, OTT, and Social collections to ensure base records exist in media_assets.
-   * Does NOT sync images (manual upload only) to prevent blob URL pollution.
-   */
-  const initializeRegistryMetadata = async () => {
-    if (!confirm('Re-initialize Media Registry metadata? This will detect new services but will not overwrite existing images.')) return;
-    setProcessing(true);
-    try {
-      const types = [
-        { col: 'games', type: 'game' },
-        { col: 'ott_services', type: 'ott' },
-        { col: 'social_services', type: 'social' }
-      ];
-      
-      let created = 0;
-      let existing = 0;
-
-      for (const t of types) {
-        const snap = await getDocs(collection(db, t.col));
-        for (const d of snap.docs) {
-          const data = d.data();
-          const registryRef = doc(db, 'media_assets', d.id);
-          const registrySnap = await getDoc(registryRef);
-
-          if (!registrySnap.exists()) {
-            const metaData = {
-              entityId: d.id,
-              entityType: t.type,
-              entityName: data.name || d.id,
-              updatedAt: new Date().toISOString()
-            };
-            await setDoc(registryRef, metaData);
-            created++;
-          } else {
-            existing++;
-          }
-        }
-      }
-      
-      toast({ 
-        title: "Registry Handshake Complete", 
-        description: `Registered ${created} new entities. ${existing} already in vault.` 
-      });
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Init Failed", description: error.message });
-    } finally {
-      setProcessing(false);
-    }
-  };
-
   useEffect(() => { checkHealth(); }, []);
 
   return (
@@ -101,17 +45,6 @@ export default function SystemHealthPage() {
         <div>
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Kernel Stats</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">System Core Control</p>
-        </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={initializeRegistryMetadata} 
-            disabled={processing} 
-            className="h-10 px-4 rounded-xl border-primary/20 bg-primary/5 text-primary font-black uppercase text-[9px] tracking-widest gap-2"
-          >
-            {processing ? <Loader2 size={12} className="animate-spin" /> : <Layers size={12} />} 
-            Initialize Registry Metadata
-          </Button>
         </div>
       </header>
 
@@ -128,14 +61,13 @@ export default function SystemHealthPage() {
                 <Activity className="h-5 w-5 text-primary" />
                 <h3 className="text-xs font-black uppercase tracking-widest">Operations Hub</h3>
              </div>
-             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v4.0.0-MEDIA-HUB</span>
+             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v5.0.0-CLEAN</span>
           </div>
           
           <div className="space-y-6">
             <p className="text-[11px] text-muted-foreground uppercase leading-relaxed font-medium">
-              The Cloud Asset Registry is now online. This system operates on a direct-upload protocol, bypassing legacy record scraping to ensure 100% persistent HTTPS image delivery.
-              <br/><br/>
-              <b>Registry State:</b> Use the "Initialize Registry Metadata" tool above to scan your catalog and prepare the Media Hub for manual uploads.
+              The AATMA HUB kernel is active. All legacy media registries have been decommissioned. 
+              The system is awaiting deployment of the new Integrated Management Protocol.
             </p>
           </div>
         </Card>

@@ -1,57 +1,41 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // PUBLIC ACCESS: Allow anyone to read marketplace metadata
+    // PUBLIC ACCESS
     match /games/{gameId} { allow read: if true; }
     match /ott_services/{serviceId} { allow read: if true; }
     match /social_services/{serviceId} { allow read: if true; }
     match /products/{productId} { allow read: if true; }
-    match /regions/{regionId} { allow read: if true; }
-    match /tabs/{tabId} { allow read: if true; }
-    match /media_assets/{assetId} { allow read: if true; }
     match /settings/site { allow read: if true; }
     match /ranks/{rankId} { allow read: if true; }
 
-    // AUTHENTICATED ACCESS: Users can read/write their own data
+    // AUTHENTICATED ACCESS
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && (request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin']);
     }
     
     match /wallets/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-      allow write: if false; // Only via server/admin
+      allow write: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
     }
     
     match /transactions/{txId} {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || request.auth.token.role == 'admin');
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin']);
       allow create: if request.auth != null;
     }
     
     match /orders/{orderId} {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || request.auth.token.role == 'admin');
+      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin']);
       allow create: if request.auth != null;
-      allow update: if request.auth != null && request.auth.token.role == 'admin';
+      allow update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
     }
 
-    // SYSTEM ENTITIES: Explicit admin access to registry
-    match /media_assets/{assetId} {
-      allow write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
-    }
-
-    match /automationLogs/{logId} {
-      allow read, write: if request.auth != null && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
-    }
-
-    // ADMIN ACCESS: Comprehensive permissions for system entities
+    // ADMIN ACCESS
     match /{document=**} {
       allow read, write: if request.auth != null && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || 
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin');
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
     }
   }
 }

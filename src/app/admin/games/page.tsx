@@ -31,9 +31,6 @@ export default function GameManagementPage() {
     name: '',
     slug: '',
     status: 'active',
-    requirePlayerId: true,
-    requireServerId: true,
-    requireVerifyId: false,
     sortOrder: 0
   });
 
@@ -53,16 +50,13 @@ export default function GameManagementPage() {
         name: game.name || '',
         slug: game.slug || '',
         status: game.status || 'active',
-        requirePlayerId: game.requirePlayerId !== undefined ? game.requirePlayerId : true,
-        requireServerId: game.requireServerId !== undefined ? game.requireServerId : true,
-        requireVerifyId: game.requireVerifyId !== undefined ? game.requireVerifyId : false,
         sortOrder: game.sortOrder || 0
       });
     } else {
       setEditingGame(null);
       setFormData({
         id: '', name: '', slug: '', status: 'active',
-        requirePlayerId: true, requireServerId: true, requireVerifyId: false, sortOrder: (games?.length || 0) + 1
+        sortOrder: (games?.length || 0) + 1
       });
     }
     setIsModalOpen(true);
@@ -78,20 +72,7 @@ export default function GameManagementPage() {
       
       await setDoc(gameRef, gameData, { merge: true });
 
-      // REGISTER METADATA STUB (No automatic image sync to prevent blob errors)
-      const mediaRef = doc(db, 'media_assets', gId);
-      const mediaSnap = await getDoc(mediaRef);
-      
-      if (!mediaSnap.exists()) {
-        await setDoc(mediaRef, {
-          entityId: gId,
-          entityType: 'game',
-          entityName: formData.name,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-      }
-
-      toast({ title: 'Identity Registry Synchronized', description: `${formData.name} catalog record updated.` });
+      toast({ title: 'Game Updated', description: `${formData.name} record saved.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
@@ -104,7 +85,6 @@ export default function GameManagementPage() {
     if (!confirm('Permanently remove this game?')) return;
     try {
       await deleteDoc(doc(db, 'games', id));
-      // Metadata remains in Media Hub as a historical record unless manually purged there
       toast({ title: 'Game Purged' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Error', description: e.message });
@@ -203,6 +183,3 @@ export default function GameManagementPage() {
     </div>
   );
 }
-
-// Added missing imports helper
-import { getDoc } from 'firebase/firestore';

@@ -2,13 +2,11 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useFirestore } from "@/firebase/provider";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
-import { useMarketplaceAssets } from "@/hooks/use-marketplace-assets";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { Gamepad2 } from "lucide-react";
 
 export function GameGrid() {
   const db = useFirestore();
@@ -17,17 +15,25 @@ export function GameGrid() {
     query(collection(db, 'games'), orderBy('sortOrder', 'asc')), 
   [db]);
 
-  const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
-  const { assetsMap, loading: assetsLoading } = useMarketplaceAssets();
+  const { data: games, loading } = useCollection(gamesQuery);
 
-  if (gamesLoading || assetsLoading) {
+  if (loading) {
     return (
       <section className="py-4 px-4">
         <div className="grid grid-cols-3 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="aspect-[2/3] w-full rounded-xl bg-white/5" />
           ))}
         </div>
+      </section>
+    );
+  }
+
+  if (!games || games.length === 0) {
+    return (
+      <section className="py-10 px-4 text-center border border-dashed border-white/5 rounded-[2rem] mx-4 my-4">
+        <Gamepad2 className="mx-auto h-8 w-8 text-muted-foreground opacity-20 mb-3" />
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Games Hub Offline</p>
       </section>
     );
   }
@@ -43,56 +49,22 @@ export function GameGrid() {
       </div>
       
       <div className="grid grid-cols-3 gap-3 px-4">
-        {games.map((game) => {
-          const asset = assetsMap.get(game.id) || assetsMap.get(game.slug);
-          const rawUrl = asset?.imageUrl || asset?.logoUrl || game.icon || game.cardImage || game.thumbnail;
-          
-          // Guard against invalid session-specific blob URLs
-          const imageUrl = (rawUrl && !rawUrl.startsWith('blob:')) ? rawUrl : null;
-
-          return (
-            <Link 
-              key={game.id} 
-              href={`/product/${game.id}`} 
-              className="group flex flex-col active:scale-95 transition-transform"
-            >
-              <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 border border-white/5 shadow-xl">
-                {imageUrl && (
-                  <Image 
-                    src={imageUrl} 
-                    alt={game.name} 
-                    fill
-                    className="object-cover transition-opacity duration-300"
-                    sizes="(max-width: 768px) 33vw, 20vw"
-                  />
-                )}
-                
-                <div className="absolute top-2 left-2 z-10">
-                  {game.flag && (
-                    <div className="bg-black/60 rounded-lg p-1 flex items-center justify-center border border-white/10 min-w-[22px] min-h-[22px]">
-                      <span className="text-xs leading-none">{game.flag}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="absolute top-2 right-2 z-10">
-                  <div className={cn(
-                    "text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-tighter shadow-lg",
-                    game.status === 'active' ? 'bg-green-500' : 'bg-primary'
-                  )}>
-                    {game.status || 'Active'}
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-center mt-2.5 px-1">
-                <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
-                  {game.name}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+        {games.map((game) => (
+          <Link 
+            key={game.id} 
+            href={`/product/${game.id}`} 
+            className="group flex flex-col active:scale-95 transition-transform"
+          >
+            <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden bg-neutral-900 border border-white/5 shadow-xl flex items-center justify-center">
+              <Gamepad2 size={24} className="text-white opacity-10" />
+            </div>
+            <div className="text-center mt-2.5 px-1">
+              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
+                {game.name}
+              </span>
+            </div>
+          </Link>
+        ))}
       </div>
     </section>
   );

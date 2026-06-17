@@ -57,14 +57,9 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "slug": { "type": "string" },
-        "icon": { "type": "string", "description": "Main product icon" },
-        "cardImage": { "type": "string", "description": "Image used on marketplace cards" },
-        "banner": { "type": "string", "description": "Banner used on detail pages" },
-        "thumbnail": { "type": "string", "description": "Small preview image" },
+        "icon": { "type": "string" },
+        "banner": { "type": "string" },
         "status": { "type": "string", "enum": ["active", "inactive"] },
-        "requirePlayerId": { "type": "boolean" },
-        "requireServerId": { "type": "boolean" },
-        "requireVerifyId": { "type": "boolean" },
         "sortOrder": { "type": "number" }
       }
     },
@@ -76,31 +71,8 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "price": { "type": "number" },
-        "discountPrice": { "type": "number" },
         "category": { "type": "string" },
-        "region": { "type": "string" },
-        "tab": { "type": "string" },
-        "icon": { "type": "string" },
-        "cardImage": { "type": "string" },
-        "banner": { "type": "string" },
-        "thumbnail": { "type": "string" },
         "status": { "type": "string", "enum": ["active", "inactive"] }
-      }
-    },
-    "Wallet": {
-      "title": "Wallet",
-      "properties": {
-        "userId": { "type": "string" },
-        "balance": { "type": "number" }
-      }
-    },
-    "Transaction": {
-      "title": "Transaction",
-      "properties": {
-        "userId": { "type": "string" },
-        "amount": { "type": "number" },
-        "type": { "type": "string" },
-        "status": { "type": "string" }
       }
     }
   },
@@ -112,12 +84,8 @@
     "/orders/{orderId}": { "schema": "Order", "description": "Customer orders" },
     "/games/{gameId}": { "schema": "Game", "description": "Managed games" },
     "/products/{productId}": { "schema": "Product", "description": "Managed products" },
-    "/regions/{regionId}": { "schema": "object", "description": "Managed regions" },
-    "/tabs/{tabId}": { "schema": "object", "description": "Managed tabs" },
-    "/wallets/{userId}": { "schema": "Wallet", "description": "User wallets" },
-    "/transactions/{txId}": { "schema": "Transaction", "description": "Wallet tx" },
-    "/settings/site": { "schema": "object", "description": "Global settings" },
-    "/settings/payments": { "schema": "object", "description": "Payment config" },
-    "/settings/telegram": { "schema": "object", "description": "Bot config" }
+    "/wallets/{userId}": { "schema": "object", "description": "User wallets" },
+    "/transactions/{txId}": { "schema": "object", "description": "Wallet tx" },
+    "/settings/site": { "schema": "object", "description": "Global settings" }
   }
 }
