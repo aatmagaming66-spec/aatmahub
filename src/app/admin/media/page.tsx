@@ -69,19 +69,20 @@ export default function DynamicMediaHub() {
     const unsubscribe = onSnapshot(q, (snap) => {
       const data = snap.docs.map(d => {
         const docData = d.data();
-        // REQUIREMENT: Print exact database values for audit
-        if (d.id === 'bgmi' || d.id === 'mlbb-india' || docData.entityId === 'bgmi' || docData.entityId === 'mlbb-india') {
-          console.log(`[AUDIT_DB] Entity: ${d.id}`, {
-            entityId: docData.entityId,
-            logoUrl: docData.logoUrl,
-            thumbnailUrl: docData.thumbnailUrl,
-            imageUrl: docData.imageUrl,
-            icon: docData.icon,
-            bannerUrl: docData.bannerUrl
-          });
-        }
         return { ...docData, id: d.id } as MediaAsset;
       });
+      
+      // REQUIREMENT: Print exact database values for audit
+      console.log('--- MEDIA REGISTRY AUDIT TABLE ---');
+      console.table(data.map(a => ({
+        ID: a.id,
+        Name: a.entityName,
+        Logo: a.logoUrl ? 'EXISTS' : 'NULL',
+        Thumb: a.thumbnailUrl ? 'EXISTS' : 'NULL',
+        Image: a.imageUrl ? 'EXISTS' : 'NULL',
+        Banner: a.bannerUrl ? 'EXISTS' : 'NULL'
+      })));
+
       setAssets(data);
       setLoading(false);
     }, (error) => {
@@ -101,12 +102,18 @@ export default function DynamicMediaHub() {
           { path: 'ott_services', type: 'ott' },
           { path: 'social_services', type: 'social' }
         ];
+        
         const currentMediaIds = new Set(assets.map(a => a.entityId));
+        
         for (const col of collections) {
           const snap = await getDocs(collection(db, col.path));
           for (const d of snap.docs) {
             const data = d.data();
-            if (!currentMediaIds.has(d.id)) {
+            // Deep sync: Update if missing OR if essential field logoUrl is missing
+            const existingAsset = assets.find(a => a.entityId === d.id);
+            const needsUpdate = !existingAsset || !existingAsset.logoUrl;
+
+            if (needsUpdate) {
               const assetRef = doc(db, 'media_assets', d.id);
               const existingImage = data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.imageUrl || null;
               const existingBanner = data.banner || data.bannerUrl || null;
@@ -116,6 +123,7 @@ export default function DynamicMediaHub() {
                 entityType: col.type,
                 entityName: data.name || d.id,
                 isEnabled: data.status === 'active' || data.status === 'enabled',
+                // Standardize all alias fields to prevent URL: NULL mismatches
                 logoUrl: existingImage,
                 thumbnailUrl: existingImage,
                 imageUrl: existingImage,
@@ -133,7 +141,7 @@ export default function DynamicMediaHub() {
       }
     }
     if (!loading) reconcileRegistry();
-  }, [db, loading, assets.length]);
+  }, [db, loading, assets]);
 
   const filteredAssets = useMemo(() => {
     return assets.filter(a => {
@@ -186,13 +194,11 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [logoProgress, setLogoProgress] = useState(0);
   const [bannerProgress, setBannerProgress] = useState(0);
   
-  // REQUIREMENT: Distinct states for Preview (Local) and Database (Remote)
   const [localLogo, setLocalLogo] = useState<string | null>(null);
   const [localBanner, setLocalBanner] = useState<string | null>(null);
   const [enabled, setEnabled] = useState(asset.isEnabled);
   const [uncommitted, setUncommitted] = useState(false);
 
-  // Sync state with props when data loads or updates
   useEffect(() => {
     if (!uncommitted) {
       setLocalLogo(asset.logoUrl || asset.thumbnailUrl || asset.icon || asset.imageUrl || null);
@@ -213,8 +219,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     }
 
     const previewUrl = URL.createObjectURL(file);
-    console.log(`[TRACE] PREVIEW_GENERATED: ${previewUrl}`);
-    
     if (type === 'logo') setLocalLogo(previewUrl);
     else setLocalBanner(previewUrl);
 
@@ -253,7 +257,11 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   };
 
   const handleSave = async () => {
-    console.log(`[TRACE] SAVE_TRIGGERED: Preparing database payload for ${asset.id}...`);
+    if (localLogo?.startsWith('blob:') || localBanner?.startsWith('blob:')) {
+      toast({ variant: 'destructive', title: 'Save Blocked', description: 'Waiting for upload to complete...' });
+      return;
+    }
+
     setIsSaving(true);
     
     // ATOMIC COMMIT: Standardize all naming aliases for total cross-component compatibility
@@ -269,14 +277,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
       isEnabled: enabled,
       updatedAt: new Date().toISOString()
     };
-
-    // GUARD: Prevent committing local blobs to DB
-    if (localLogo?.startsWith('blob:') || localBanner?.startsWith('blob:')) {
-      console.warn('[TRACE] SAVE_REJECTED: Local blob detected. Waiting for upload completion...');
-      toast({ variant: 'destructive', title: 'Save Blocked', description: 'Asset is still uploading. Please wait.' });
-      setIsSaving(false);
-      return;
-    }
 
     try {
       await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
@@ -295,7 +295,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
   return (
     <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all flex flex-col">
-      {/* Banner Preview Area */}
       <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {localBanner ? (
           <Image src={localBanner} alt="Banner" fill className="object-cover" unoptimized={localBanner.startsWith('blob:')} />
@@ -307,7 +306,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
       </div>
 
       <CardContent className="p-6 space-y-6 flex-1 flex flex-col">
-        {/* Logo/Icon Selection */}
         <div className="flex items-center gap-4">
           <div className="relative aspect-[2/3] h-20 shrink-0 rounded-xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center">
             {localLogo ? <Image src={localLogo} alt="Logo" fill className="object-cover" unoptimized={localLogo.startsWith('blob:')} /> : <Icon size={20} className="opacity-20 text-primary" />}
@@ -318,11 +316,10 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo (2:3)</Label>
-            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden" onClick={() => console.log('[TRACE] FILE_PICKER_OPENED: Logo')}>
+            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
               <Upload size={12} className="mr-1.5" /> Select
               <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
             </Button>
@@ -330,7 +327,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           </div>
           <div className="space-y-2">
             <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner (16:9)</Label>
-            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden" onClick={() => console.log('[TRACE] FILE_PICKER_OPENED: Banner')}>
+            <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
               <ImageIcon size={12} className="mr-1.5" /> Select
               <input type="file" accept="image/jpeg,image/png,image/webp" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
             </Button>
@@ -338,7 +335,6 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           </div>
         </div>
 
-        {/* Warning Indicator */}
         {uncommitted && (
           <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl flex items-center gap-2 animate-pulse">
             <AlertCircle size={10} className="text-primary" />
