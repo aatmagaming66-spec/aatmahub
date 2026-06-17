@@ -105,7 +105,7 @@ export default function SystemHealthPage() {
         for (const d of snap.docs) {
           const data = d.data();
           // Comprehensive Legacy Field Mapping
-          const legacyUrl = data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.banner;
+          const legacyUrl = data.imageUrl || data.icon || data.logoUrl || data.cardImage || data.thumbnail || data.banner;
           
           const updateData: any = {
             entityId: d.id,
@@ -123,7 +123,7 @@ export default function SystemHealthPage() {
             updateData.bannerUrl = data.banner || data.bannerUrl;
           }
 
-          // Batch write with error propagation
+          // Batch write with explicit field presence
           await setDoc(doc(db, 'media_assets', d.id), updateData, { merge: true })
             .catch(async (err) => {
                errorEmitter.emit('permission-error', new FirestorePermissionError({
