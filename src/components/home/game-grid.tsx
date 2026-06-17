@@ -8,6 +8,7 @@ import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gamepad2 } from "lucide-react";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 export function GameGrid() {
   const db = useFirestore();
@@ -38,7 +39,7 @@ export function GameGrid() {
       <section className="py-4 px-4">
         <div className="grid grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[145px] w-full rounded-[20px] bg-white/5" />
+            <Skeleton key={i} className="aspect-[2/3] w-full rounded-[20px] bg-white/5" />
           ))}
         </div>
       </section>
@@ -67,13 +68,14 @@ export function GameGrid() {
               href={`/product/${game.id}`} 
               className="group transition-all duration-300 active:scale-95"
             >
-              <div className="relative h-[145px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
+              <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
                 {gameMedia?.logoUrl ? (
                   <Image 
                     src={gameMedia.logoUrl} 
                     alt={game.name} 
                     fill 
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    sizes="(max-width: 768px) 33vw, 20vw"
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-card group-hover:from-primary/30 transition-all duration-500" />
@@ -115,5 +117,3 @@ export function GameGrid() {
     </section>
   );
 }
-
-import { cn } from "@/lib/utils";

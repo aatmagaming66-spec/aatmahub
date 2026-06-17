@@ -57,13 +57,14 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
               href={`/product/${item.id}`} 
               className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95"
             >
-              <div className={`relative h-[145px] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500 ${isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'}`}>
+              <div className={`relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500 ${isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'}`}>
                 {itemMedia?.logoUrl ? (
                   <Image 
                     src={itemMedia.logoUrl} 
                     alt={item.name} 
                     fill 
                     className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    sizes="(max-width: 768px) 33vw, 20vw"
                   />
                 ) : (
                   <div className={`absolute inset-0 bg-gradient-to-br ${accentColor} via-black to-card transition-all duration-500`} />
