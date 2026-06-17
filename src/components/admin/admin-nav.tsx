@@ -1,4 +1,3 @@
-
 'use client';
 
 import { memo } from 'react';
@@ -33,7 +32,7 @@ const ADMIN_LINKS = [
 
 const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Intelligence', icon: BarChart3 },
-  { href: '/admin/games', label: 'Catalog Hub', icon: Gamepad2 },
+  { href: '/admin/games', label: 'Game Management', icon: Gamepad2 },
   { href: '/admin/ranks', label: 'Rank Manager', icon: Trophy },
   { href: '/admin/products', label: 'Package Registry', icon: Package },
   { href: '/admin/users', label: 'Identity Registry', icon: Users },

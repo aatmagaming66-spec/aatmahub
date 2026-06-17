@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -168,8 +167,8 @@ export default function CatalogManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Catalog Management</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Unified Games, OTT & Social Control</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Game Management</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage Mobile Games, OTT Services, Social Services and Product Tabs</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
           <Plus size={16} /> Register New Entity

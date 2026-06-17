@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect, memo } from 'react';
@@ -122,7 +121,7 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = useMemo(() => [
-    { label: 'Catalog Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage games, services & tabs' },
+    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage games, services & tabs' },
     { label: 'Rank Management', href: '/admin/ranks', icon: Trophy, desc: 'Manage tiers & requirements' },
     { label: 'Product Registry', href: '/admin/products', icon: Package, desc: 'Manage packages & pricing' },
     { label: 'User Registry', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
