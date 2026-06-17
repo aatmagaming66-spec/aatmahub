@@ -23,12 +23,9 @@ import {
   Database,
   Activity,
   ChevronRight,
-  Tv,
-  Share2,
   Home as HomeIcon,
-  Layers,
-  Trophy,
-  Gamepad2
+  Gamepad2,
+  Trophy
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
@@ -71,7 +68,6 @@ export default function AdminDashboard() {
 
   const isSuper = profile?.role === 'super_admin';
 
-  // OPTIMIZATION: Temporal Capping to reduce initial data payload
   const thirtyDaysAgo = useMemo(() => subDays(new Date(), 30).toISOString(), []);
 
   const usersRef = useMemo(() => query(collection(db, 'users'), limit(100)), [db]);
@@ -126,16 +122,15 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = useMemo(() => [
-    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage hub titles & services' },
+    { label: 'Catalog Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage games, services & tabs' },
     { label: 'Rank Management', href: '/admin/ranks', icon: Trophy, desc: 'Manage tiers & requirements' },
-    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage products & pricing' },
-    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
-    { label: 'Region Management', href: '/admin/regions', icon: Globe, desc: 'Manage regions & availability' },
-    { label: 'Tab Management', href: '/admin/tabs', icon: Layers, desc: 'Manage catalog tabs' },
+    { label: 'Product Registry', href: '/admin/products', icon: Package, desc: 'Manage packages & pricing' },
+    { label: 'User Registry', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
+    { label: 'Region Hub', href: '/admin/regions', icon: Globe, desc: 'Manage global grid logic' },
     { label: 'Home Control', href: '/admin/homepage', icon: HomeIcon, desc: 'Manage homepage sections' },
-    { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },
-    { label: 'System Settings', href: '/admin/system', icon: Activity, desc: 'Website & system configuration' },
-    { label: 'Backup Management', href: '/admin/backups', icon: Database, desc: 'Database backups & restore' },
+    { label: 'Payment Hub', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },
+    { label: 'Kernel Stats', href: '/admin/system', icon: Activity, desc: 'System configuration & logs' },
+    { label: 'Data Archives', href: '/admin/backups', icon: Database, desc: 'Database backups & secure vault' },
   ], []);
 
   if (!isMounted) return null;
@@ -145,7 +140,7 @@ export default function AdminDashboard() {
       <header className="flex justify-between items-end px-1">
         <div>
           <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Intelligence</h1>
-          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">System Core v2.5</p>
+          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Operations Core v2.5</p>
         </div>
         <div className="flex gap-2">
           <Link href="/admin/analytics">
@@ -161,7 +156,6 @@ export default function AdminDashboard() {
         </div>
       </header>
 
-      {/* Main Stats Grid */}
       <div className="grid grid-cols-4 gap-1 px-1">
         {stats.map((stat, i) => (
           <StatCard key={i} {...stat} />
@@ -185,10 +179,10 @@ export default function AdminDashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-3">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-[10px] font-black uppercase tracking-widest">Business Analytics</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest">Sales Velocity</h3>
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Sales Perf (7D)</span>
+              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">7D Growth</span>
             </div>
           </div>
           <div className="h-[110px] w-full">
@@ -197,7 +191,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-5 space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-widest">Pipeline</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-widest">Distribution Pipeline</h3>
           <div className="space-y-2">
             <PipelineItem label="Pending" count={orders?.filter(o => o.status === 'pending').length || 0} icon={Clock} color="text-orange-400" />
             <PipelineItem label="Processing" count={orders?.filter(o => o.status === 'processing').length || 0} icon={TrendingUp} color="text-accent" />

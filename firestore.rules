@@ -1,11 +1,10 @@
+
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
     // PUBLIC ACCESS
     match /games/{gameId} { allow read: if true; }
-    match /ott_services/{serviceId} { allow read: if true; }
-    match /social_services/{serviceId} { allow read: if true; }
     match /products/{productId} { allow read: if true; }
     match /settings/site { allow read: if true; }
     match /ranks/{rankId} { allow read: if true; }

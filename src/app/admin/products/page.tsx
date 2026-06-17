@@ -3,7 +3,7 @@
 
 import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { collection, setDoc, deleteDoc, doc, query, orderBy, limit } from 'firebase/firestore';
+import { collection, setDoc, deleteDoc, doc, query, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,13 +24,9 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Layers, Globe, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-/**
- * PACKAGE REGISTRY (Admin)
- * Central management for all digital SKUs across Games, OTT, and Social.
- */
 export default function AdminProductsPage() {
   const db = useFirestore();
   const { toast } = useToast();
@@ -49,29 +45,15 @@ export default function AdminProductsPage() {
     status: 'active'
   });
 
-  // DATA SOURCE: Master Products Collection
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
-    limit(500) // Increased limit for full registry visibility
+    limit(500)
   ), [db]);
 
   const gamesQuery = useMemo(() => query(collection(db, 'games')), [db]);
-  const ottQuery = useMemo(() => query(collection(db, 'ott_services')), [db]);
-  const socialQuery = useMemo(() => query(collection(db, 'social_services')), [db]);
 
   const { data: products, loading: productsLoading } = useCollection(productsQuery);
   const { data: games } = useCollection(gamesQuery);
-  const { data: ott } = useCollection(ottQuery);
-  const { data: social } = useCollection(socialQuery);
-
-  // Cross-reference categories for the selector
-  const categories = useMemo(() => {
-    return [
-      ...(games || []).map(g => ({ id: g.id, name: g.name, type: 'Game' })),
-      ...(ott || []).map(o => ({ id: o.id, name: o.name, type: 'OTT' })),
-      ...(social || []).map(s => ({ id: s.id, name: s.name, type: 'Social' }))
-    ];
-  }, [games, ott, social]);
 
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -81,6 +63,12 @@ export default function AdminProductsPage() {
       p.id?.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [products, searchQuery]);
+
+  const selectedCategoryTabs = useMemo(() => {
+    if (!formData.category || !games) return ['small', 'large', 'pass', 'promo'];
+    const game = games.find(g => g.id === formData.category);
+    return game?.tabs && game.tabs.length > 0 ? game.tabs : ['small', 'large', 'pass', 'promo'];
+  }, [formData.category, games]);
 
   const handleOpenModal = (product: any = null) => {
     if (product) {
@@ -97,7 +85,7 @@ export default function AdminProductsPage() {
     } else {
       setEditingProduct(null);
       setFormData({ 
-        id: '', name: '', price: '', category: '', region: 'Global', tab: 'small',
+        id: '', name: '', price: '', category: games?.[0]?.id || '', region: 'Global', tab: 'small',
         status: 'active'
       });
     }
@@ -106,7 +94,7 @@ export default function AdminProductsPage() {
 
   const handleSave = async () => {
     if (!formData.name || !formData.price || !formData.category) {
-      toast({ variant: 'destructive', title: 'Validation Error', description: 'Mandatory fields missing (Name, Price, Category).' });
+      toast({ variant: 'destructive', title: 'Validation Error', description: 'Mandatory fields missing.' });
       return;
     }
     setSaving(true);
@@ -130,7 +118,7 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently remove this SKU from the registry?')) return;
+    if (!confirm('Permanently remove this SKU?')) return;
     try {
       await deleteDoc(doc(db, 'products', id));
       toast({ title: "SKU Purged" });
@@ -144,7 +132,7 @@ export default function AdminProductsPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Package Registry</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital SKU Hub</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Master Digital SKU Hub</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
           <Plus size={16} /> Deploy New SKU
@@ -162,14 +150,11 @@ export default function AdminProductsPage() {
       </div>
 
       {productsLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        </div>
+        <div className="flex h-64 items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>
       ) : filteredProducts.length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-[2rem] p-20 text-center space-y-4">
            <Package className="h-12 w-12 text-muted-foreground mx-auto opacity-20" />
            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">Registry Empty</p>
-           <p className="text-[9px] text-muted-foreground uppercase max-w-xs mx-auto">No products found in the database matching your criteria.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -190,14 +175,9 @@ export default function AdminProductsPage() {
                       <p className="text-[7px] font-black uppercase opacity-40 mt-1">{p.tab} • {p.region}</p>
                    </div>
                 </div>
-
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" onClick={() => handleOpenModal(p)} className="flex-1 border-border h-10 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-white/5">
-                    <Edit2 size={12} /> Edit
-                  </Button>
-                  <Button variant="outline" onClick={() => handleDelete(p.id)} className="border-primary/20 text-primary hover:bg-primary/5 h-10 w-10 rounded-xl flex items-center justify-center">
-                    <Trash2 size={14} />
-                  </Button>
+                  <Button variant="outline" onClick={() => handleOpenModal(p)} className="flex-1 border-border h-10 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-white/5"><Edit2 size={12} /> Edit</Button>
+                  <Button variant="outline" onClick={() => handleDelete(p.id)} className="border-primary/20 text-primary hover:bg-primary/5 h-10 w-10 rounded-xl flex items-center justify-center"><Trash2 size={14} /></Button>
                 </div>
               </CardContent>
             </Card>
@@ -205,47 +185,26 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
-        <div className="flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Data Integrity Note</span>
-        </div>
-        <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          SKUs are filtered on public pages based on their 'Category' ID. If a product is missing from a game page, verify that its Category ID matches the Game Slug exactly.
-        </p>
-      </div>
-
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-black uppercase tracking-tighter">
-              {editingProduct ? 'Configure SKU' : 'Registry Entry'}
-            </DialogTitle>
-          </DialogHeader>
-          
+          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Registry SKU Entry</DialogTitle></DialogHeader>
           <div className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2 col-span-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest">Package Name</Label>
                 <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. 86 Diamonds" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
               </div>
-
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Parent Category (Game/Service ID)</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest">Category ID</Label>
                 <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
-                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
-                    <SelectValue placeholder="Select Title" />
-                  </SelectTrigger>
+                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold"><SelectValue placeholder="Select Title" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
-                    {categories.map((c) => (
-                      <SelectItem key={c.id} value={c.id} className="text-[10px] font-black uppercase">
-                        {c.name} ({c.type})
-                      </SelectItem>
+                    {games?.map((g) => (
+                      <SelectItem key={g.id} value={g.id} className="text-[10px] font-black uppercase">{g.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest">Price (INR)</Label>
                 <div className="relative">
@@ -253,28 +212,21 @@ export default function AdminProductsPage() {
                   <Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} placeholder="99" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold pl-10" />
                 </div>
               </div>
-
               <div className="space-y-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest">Catalog Tab</Label>
                 <Select value={formData.tab} onValueChange={(val) => setFormData({...formData, tab: val})}>
-                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
-                    <SelectValue placeholder="Select Tab" />
-                  </SelectTrigger>
+                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold"><SelectValue placeholder="Select Tab" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
-                    <SelectItem value="small" className="text-[10px] font-black uppercase">Small Packs</SelectItem>
-                    <SelectItem value="large" className="text-[10px] font-black uppercase">Large Packs</SelectItem>
-                    <SelectItem value="pass" className="text-[10px] font-black uppercase">Passes</SelectItem>
-                    <SelectItem value="promo" className="text-[10px] font-black uppercase">Promo</SelectItem>
+                    {selectedCategoryTabs.map((t: string) => (
+                      <SelectItem key={t} value={t} className="text-[10px] font-black uppercase">{t}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2">
                 <Label className="text-[9px] font-black uppercase tracking-widest">Region</Label>
                 <Select value={formData.region} onValueChange={(val) => setFormData({...formData, region: val})}>
-                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
-                    <SelectValue placeholder="Global" />
-                  </SelectTrigger>
+                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold"><SelectValue placeholder="Global" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">
                     <SelectItem value="Global" className="text-[10px] font-black uppercase">Global</SelectItem>
                     <SelectItem value="India" className="text-[10px] font-black uppercase">India</SelectItem>
@@ -283,20 +235,13 @@ export default function AdminProductsPage() {
                 </Select>
               </div>
             </div>
-
             <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-              <div className="space-y-0.5">
-                <Label className="text-[10px] font-black uppercase">Operational Status</Label>
-                <p className="text-[8px] text-muted-foreground uppercase font-black">Visibility in catalog</p>
-              </div>
+              <div className="space-y-0.5"><Label className="text-[10px] font-black uppercase">Operational Status</Label><p className="text-[8px] text-muted-foreground uppercase font-black">Visibility in catalog</p></div>
               <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
             </div>
           </div>
-
           <DialogFooter>
-            <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Commit SKU Registry"}
-            </Button>
+            <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">{saving ? <Loader2 className="animate-spin" /> : "Commit SKU Registry"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

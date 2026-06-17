@@ -10,7 +10,7 @@
         "fullName": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "phoneNumber": { "type": "string" },
-        "photoURL": { "type": "string", "description": "Profile picture URL or Base64 data" },
+        "photoURL": { "type": "string" },
         "role": { "type": "string", "enum": ["user", "admin", "super_admin"] },
         "lifetimeSpend": { "type": "number", "default": 0 },
         "currentRank": { "type": "string", "default": "Warrior" },
@@ -38,29 +38,24 @@
         "userId": { "type": "string" },
         "items": { "type": "array" },
         "totalAmount": { "type": "number" },
-        "playerInfo": {
-          "type": "object",
-          "properties": {
-            "playerId": { "type": "string" },
-            "serverId": { "type": "string" }
-          }
-        },
-        "paymentMethod": { "type": "string", "enum": ["wallet", "razorpay", "phonepe"] },
-        "status": { "type": "string", "enum": ["pending", "processing", "completed", "cancelled", "failed", "refunded"] },
+        "playerInfo": { "type": "object" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       }
     },
     "Game": {
-      "title": "Game",
-      "description": "Managed game titles or services in the hub",
+      "title": "Catalog Item",
+      "description": "Unified management for Games, OTT, and Social services",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "slug": { "type": "string" },
         "category": { "type": "string", "enum": ["Mobile Games", "OTT Services", "Social Services"] },
-        "logo": { "type": "string", "description": "HTTPS URL for the game logo" },
-        "banner": { "type": "string", "description": "HTTPS URL for the product page banner" },
+        "logo": { "type": "string" },
+        "banner": { "type": "string" },
+        "tabs": { "type": "array", "items": { "type": "string" } },
         "status": { "type": "string", "enum": ["active", "inactive"] },
         "sortOrder": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" },
@@ -69,14 +64,15 @@
       "required": ["id", "name", "slug", "category", "status"]
     },
     "Product": {
-      "title": "Product",
-      "description": "Purchasable digital packages",
+      "title": "Product Package",
+      "description": "Purchasable SKU",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
         "price": { "type": "number" },
         "category": { "type": "string" },
+        "tab": { "type": "string" },
         "status": { "type": "string", "enum": ["active", "inactive"] }
       }
     }
@@ -87,10 +83,10 @@
   "firestore": {
     "/users/{userId}": { "schema": "UserProfile", "description": "User profiles" },
     "/orders/{orderId}": { "schema": "Order", "description": "Customer orders" },
-    "/games/{gameId}": { "schema": "Game", "description": "Managed games and services" },
-    "/products/{productId}": { "schema": "Product", "description": "Managed products" },
-    "/wallets/{userId}": { "schema": "object", "description": "User wallets" },
-    "/transactions/{txId}": { "schema": "object", "description": "Wallet tx" },
-    "/settings/site": { "schema": "object", "description": "Global settings" }
+    "/games/{gameId}": { "schema": "Game", "description": "Unified catalog entries" },
+    "/products/{productId}": { "schema": "Product", "description": "Managed SKU packages" },
+    "/wallets/{userId}": { "schema": "object", "description": "User wallet ledgers" },
+    "/transactions/{txId}": { "schema": "object", "description": "Financial logs" },
+    "/settings/site": { "schema": "object", "description": "Site global configuration" }
   }
 }

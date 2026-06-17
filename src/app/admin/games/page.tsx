@@ -25,13 +25,13 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2, Tag } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2, Tag, Layers, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
 const CATEGORIES = ["Mobile Games", "OTT Services", "Social Services"];
 
-export default function GameManagementPage() {
+export default function CatalogManagementPage() {
   const db = useFirestore();
   const storage = useStorage();
   const { toast } = useToast();
@@ -49,8 +49,11 @@ export default function GameManagementPage() {
     status: 'active',
     sortOrder: 0,
     logo: '',
-    banner: ''
+    banner: '',
+    tabs: [] as string[]
   });
+
+  const [newTab, setNewTab] = useState('');
 
   const [files, setFiles] = useState<{ logo: File | null, banner: File | null }>({
     logo: null,
@@ -79,17 +82,19 @@ export default function GameManagementPage() {
         status: game.status || 'active',
         sortOrder: game.sortOrder || 0,
         logo: game.logo || '',
-        banner: game.banner || ''
+        banner: game.banner || '',
+        tabs: game.tabs || ['small', 'large', 'pass', 'promo']
       });
     } else {
       setEditingGame(null);
       setFormData({
         id: '', name: '', slug: '', category: 'Mobile Games', status: 'active',
         sortOrder: (games?.length || 0) + 1,
-        logo: '', banner: ''
+        logo: '', banner: '', tabs: ['small', 'large', 'pass', 'promo']
       });
     }
     setFiles({ logo: null, banner: null });
+    setNewTab('');
     setIsModalOpen(true);
   };
 
@@ -97,6 +102,16 @@ export default function GameManagementPage() {
     const storageRef = ref(storage, path);
     await uploadBytes(storageRef, file);
     return await getDownloadURL(storageRef);
+  };
+
+  const addTab = () => {
+    if (!newTab || formData.tabs.includes(newTab.toLowerCase())) return;
+    setFormData({ ...formData, tabs: [...formData.tabs, newTab.toLowerCase()] });
+    setNewTab('');
+  };
+
+  const removeTab = (t: string) => {
+    setFormData({ ...formData, tabs: formData.tabs.filter(tab => tab !== t) });
   };
 
   const handleSave = async () => {
@@ -130,7 +145,7 @@ export default function GameManagementPage() {
       
       await setDoc(gameRef, gameData, { merge: true });
 
-      toast({ title: 'Record Secured', description: `${formData.name} has been updated in the registry.` });
+      toast({ title: 'Record Secured', description: `${formData.name} has been updated in the catalog.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
@@ -140,7 +155,7 @@ export default function GameManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently remove this record from the hub? This action cannot be undone.')) return;
+    if (!confirm('Permanently remove this title from the hub? This action cannot be undone.')) return;
     try {
       await deleteDoc(doc(db, 'games', id));
       toast({ title: 'Record Purged' });
@@ -153,18 +168,18 @@ export default function GameManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Game Management</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Master Registry Controller</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Catalog Management</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Unified Games, OTT & Social Control</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
-          <Plus size={16} /> Register New Title
+          <Plus size={16} /> Register New Entity
         </Button>
       </header>
 
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Search Registry by Name or Category..." 
+          placeholder="Search Registry by Name, ID or Category..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
@@ -205,13 +220,16 @@ export default function GameManagementPage() {
                   <h3 className="text-sm font-black uppercase tracking-tight text-white">{game.name}</h3>
                   <div className="flex items-center justify-between">
                     <p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest leading-none">Slug: {game.slug}</p>
-                    <p className="text-[8px] text-primary font-black uppercase tracking-widest leading-none">Order: {game.sortOrder}</p>
+                    <div className="flex items-center gap-1">
+                       <Layers size={10} className="text-primary" />
+                       <span className="text-[8px] font-black text-primary uppercase">{game.tabs?.length || 0} Tabs</span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => handleOpenModal(game)} className="flex-1 border-border h-10 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 hover:bg-white/5">
-                    <Edit2 size={12} /> Configure
+                    <Edit2 size={12} /> Configure Hub
                   </Button>
                   <Button variant="outline" onClick={() => handleDelete(game.id)} className="border-primary/20 text-primary hover:bg-primary/5 h-10 w-10 rounded-xl flex items-center justify-center">
                     <Trash2 size={14} />
@@ -227,7 +245,7 @@ export default function GameManagementPage() {
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl max-h-[90vh] overflow-y-auto no-scrollbar">
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">
-              {editingGame ? 'Update Record' : 'Register New Entity'}
+              {editingGame ? 'Update Hub Configuration' : 'Register New Hub Entity'}
             </DialogTitle>
           </DialogHeader>
           
@@ -238,14 +256,14 @@ export default function GameManagementPage() {
                 <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Mobile Legends" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
               </div>
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Registry Slug (ID)</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Internal Slug (ID)</Label>
                 <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="mlbb-global" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" disabled={!!editingGame} />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Hub Category</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Category Hub</Label>
                 <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
                   <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
                     <SelectValue placeholder="Select Category" />
@@ -258,43 +276,64 @@ export default function GameManagementPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Sort Priority</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Catalog Priority</Label>
                 <Input type="number" value={formData.sortOrder} onChange={(e) => setFormData({...formData, sortOrder: Number(e.target.value)})} className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Operational Status</Label>
-              <div className="flex items-center justify-between bg-black/50 border border-border h-12 rounded-xl px-4">
-                <span className="text-[10px] font-bold uppercase text-white/60">{formData.status}</span>
-                <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
-              </div>
+            <div className="space-y-3">
+               <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                 <Layers size={12} className="text-primary" /> Product Tab Configuration
+               </Label>
+               <div className="flex gap-2">
+                  <Input 
+                    value={newTab} 
+                    onChange={(e) => setNewTab(e.target.value)} 
+                    placeholder="e.g. Small Packs" 
+                    className="bg-black/50 border-border h-10 rounded-xl text-[10px]"
+                    onKeyDown={(e) => e.key === 'Enter' && addTab()}
+                  />
+                  <Button onClick={addTab} className="h-10 bg-white/5 border border-white/10 text-[9px] font-black uppercase px-4 rounded-xl">Add</Button>
+               </div>
+               <div className="flex flex-wrap gap-2 pt-1">
+                  {formData.tabs.map((tab, idx) => (
+                    <div key={idx} className="bg-primary/10 border border-primary/30 text-primary text-[8px] font-black uppercase px-2 py-1 rounded-md flex items-center gap-2">
+                      {tab}
+                      <button onClick={() => removeTab(tab)} className="hover:text-white"><X size={10} /></button>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className="flex items-center justify-between bg-black/50 border border-border h-12 rounded-xl px-4">
+              <span className="text-[10px] font-bold uppercase text-white/60">Operational Status</span>
+              <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
             </div>
 
             <div className="space-y-4">
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl space-y-3">
                  <div className="flex items-center gap-2">
                    <ImageIcon size={14} className="text-primary" />
-                   <span className="text-[10px] font-black uppercase tracking-widest">Logo Upload (Card Icon)</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest">Logo Identity (Grid Icon)</span>
                  </div>
                  <Input type="file" onChange={(e) => setFiles({...files, logo: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept="image/*" />
-                 {formData.logo && !files.logo && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Cloud Asset Linked</p>}
+                 {formData.logo && !files.logo && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Asset Persistent</p>}
               </div>
 
               <div className="p-4 bg-white/5 border border-white/5 rounded-2xl space-y-3">
                  <div className="flex items-center gap-2">
                    <ImageIcon size={14} className="text-accent" />
-                   <span className="text-[10px] font-black uppercase tracking-widest">Banner Upload (Product Page)</span>
+                   <span className="text-[10px] font-black uppercase tracking-widest">Banner Identity (Product Page)</span>
                  </div>
                  <Input type="file" onChange={(e) => setFiles({...files, banner: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept="image/*" />
-                 {formData.banner && !files.banner && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Cloud Asset Linked</p>}
+                 {formData.banner && !files.banner && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Asset Persistent</p>}
               </div>
             </div>
           </div>
 
           <DialogFooter>
             <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Commit to Registry"}
+              {saving ? <Loader2 className="animate-spin" /> : "Commit Registry Entry"}
             </Button>
           </DialogFooter>
         </DialogContent>

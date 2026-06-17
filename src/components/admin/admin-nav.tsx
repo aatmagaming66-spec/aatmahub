@@ -20,13 +20,9 @@ import {
   FileText,
   ShieldCheck,
   Palette,
-  Key,
   Gamepad2,
-  Tv,
-  Share2,
-  Layers,
-  Wallet,
-  Trophy
+  Trophy,
+  Wallet
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -37,21 +33,16 @@ const ADMIN_LINKS = [
 
 const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Intelligence', icon: BarChart3 },
-  { href: '/admin/games', label: 'Games Manager', icon: Gamepad2 },
+  { href: '/admin/games', label: 'Catalog Hub', icon: Gamepad2 },
   { href: '/admin/ranks', label: 'Rank Manager', icon: Trophy },
-  { href: '/admin/homepage', label: 'Home Control', icon: Globe },
-  { href: '/admin/products', label: 'Catalog Hub', icon: Package },
-  { href: '/admin/tabs', label: 'Tab Manager', icon: Layers },
-  { href: '/admin/regions', label: 'Global Grid', icon: Globe },
-  { href: '/admin/ott', label: 'OTT Hub', icon: Tv },
-  { href: '/admin/social', label: 'Social Hub', icon: Share2 },
+  { href: '/admin/products', label: 'Package Registry', icon: Package },
   { href: '/admin/users', label: 'Identity Registry', icon: Users },
   { href: '/admin/wallet', label: 'Wallet Registry', icon: Wallet },
+  { href: '/admin/regions', label: 'Global Grid', icon: Globe },
+  { href: '/admin/homepage', label: 'Home Control', icon: Globe },
   { href: '/admin/settings/payments', label: 'Payment Hub', icon: CreditCard },
-  { href: '/admin/settings/telegram', label: 'Bot Config', icon: Key },
-  { href: '/admin/settings/website', label: 'Branding', icon: Palette },
   { href: '/admin/system', label: 'Kernel Stats', icon: Activity },
-  { href: '/admin/backups', label: 'Data Vault', icon: Database },
+  { href: '/admin/backups', label: 'Data Archives', icon: Database },
 ];
 
 export const AdminNav = memo(function AdminNav() {
@@ -91,7 +82,7 @@ export const AdminNav = memo(function AdminNav() {
         <div className="mt-8 space-y-1">
           <div className="flex items-center gap-2 px-4 mb-2">
             <ShieldCheck className="h-3 w-3 text-primary" />
-            <p className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Super Admin Sector</p>
+            <p className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Super Admin</p>
           </div>
           {SUPER_ADMIN_LINKS.map((link) => {
             const isActive = pathname === link.href;
