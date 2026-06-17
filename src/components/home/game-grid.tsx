@@ -5,22 +5,20 @@ import Link from "next/link";
 import { useFirestore } from "@/firebase/provider";
 import { collection, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
+import { useMediaRegistry } from "@/hooks/use-media-registry";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export function GameGrid() {
   const db = useFirestore();
+  const { getMediaAsset, loading: mediaLoading } = useMediaRegistry();
   
-  // High-performance real-time sync with master registry
   const gamesQuery = useMemo(() => query(
     collection(db, 'games'),
     orderBy('sortOrder', 'asc')
   ), [db]);
 
-  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
-
   const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
-  const { data: mediaAssets, loading: mediaLoading } = useCollection(mediaQuery);
 
   if (gamesLoading || mediaLoading) {
     return (
@@ -46,14 +44,8 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          // Robust identifier resolution: Priority for user-defined entityId
-          const lookupId = game.entityId || game.firestoreId || game.id;
-          
-          // Direct matching with Media Hub registry
-          const media = mediaAssets.find(item => item.entityId === lookupId);
-          
-          // Strict URL resolution: Logo -> Thumbnail -> Banner
-          const imageUrl = media?.logoUrl || media?.thumbnailUrl || media?.bannerUrl || null;
+          const media = getMediaAsset(game.id);
+          const imageUrl = media?.logoUrl || media?.thumbnailUrl || null;
 
           return (
             <Link 
@@ -61,9 +53,8 @@ export function GameGrid() {
               href={`/product/${game.firestoreId}`} 
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
-              {/* PRIMARY IMAGE CONTAINER */}
               <div className="relative aspect-[2/3] w-full mb-2.5">
-                <div className="relative h-full w-full overflow-hidden rounded-xl border border-border shadow-2xl group-hover:border-primary/50 transition-all duration-500">
+                <div className="relative h-full w-full overflow-hidden rounded-xl border border-border shadow-2xl group-hover:border-primary/50 transition-all duration-500 bg-neutral-900">
                   {imageUrl ? (
                     <img
                       src={imageUrl}
@@ -71,12 +62,9 @@ export function GameGrid() {
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
-                  ) : (
-                    <div className="w-full h-full bg-neutral-900" />
-                  )}
+                  ) : null}
                 </div>
                 
-                {/* OVERLAY LAYER: Badges and Flags (z-10 above image) */}
                 <div className="absolute inset-x-2 top-2 z-10 flex justify-between items-start pointer-events-none">
                   {game.flag && (
                     <div className="bg-black/60 backdrop-blur-md rounded-lg p-1.5 flex items-center justify-center border border-white/10">
@@ -92,7 +80,6 @@ export function GameGrid() {
                 </div>
               </div>
 
-              {/* PRODUCT LABEL */}
               <div className="text-center px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
                   {game.name}

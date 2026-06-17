@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -16,6 +15,7 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where, doc } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
+import { useMediaRegistry } from "@/hooks/use-media-registry";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -24,6 +24,7 @@ export default function ProductPage() {
   const { addItem, clearCart } = useCart();
   const { user } = useUser();
   const db = useFirestore();
+  const { getMediaAsset } = useMediaRegistry();
   
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
@@ -35,13 +36,7 @@ export default function ProductPage() {
   const { data: gameInfo } = useDoc(gameRef);
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
 
-  const mediaAssetsQuery = useMemo(() => collection(db, 'media_assets'), [db]);
-  const { data: mediaAssets } = useCollection(mediaAssetsQuery);
-
-  const media = useMemo(() => {
-    const lookupId = id as string;
-    return mediaAssets.find(m => m.entityId === lookupId);
-  }, [mediaAssets, id]);
+  const media = getMediaAsset(id as string);
 
   const [selectedPack, setSelectedPack] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("small");
@@ -120,11 +115,11 @@ export default function ProductPage() {
     toast({ title: "Added to Hub" });
   };
 
-  const bannerUrl = media?.bannerUrl || media?.logoUrl || "";
+  const bannerUrl = media?.bannerUrl || media?.logoUrl || null;
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      <div className="relative w-full aspect-video bg-black overflow-hidden shadow-2xl border-b border-white/5">
+      <div className="relative w-full aspect-video bg-neutral-900 overflow-hidden shadow-2xl border-b border-white/5">
         {bannerUrl ? (
           <img 
             src={bannerUrl} 

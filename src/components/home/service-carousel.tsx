@@ -1,17 +1,12 @@
-
 "use client"
 
-import { useMemo } from "react";
 import Link from "next/link";
-import { useFirestore } from "@/firebase/provider";
-import { collection } from "firebase/firestore";
-import { useCollection } from "@/firebase/firestore/use-collection";
+import { useMediaRegistry } from "@/hooks/use-media-registry";
 import { cn } from "@/lib/utils";
 
 interface ServiceItem {
   id: string;
   firestoreId: string;
-  entityId?: string;
   name: string;
   status?: string;
 }
@@ -22,11 +17,8 @@ interface ServiceCarouselProps {
 }
 
 export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
-  const db = useFirestore();
+  const { getMediaAsset } = useMediaRegistry();
   const isOtt = title.toLowerCase().includes('ott');
-  
-  const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
-  const { data: mediaAssets } = useCollection(mediaQuery);
 
   return (
     <section className="py-4 overflow-hidden">
@@ -36,9 +28,8 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => {
-          const lookupId = item.entityId ?? item.firestoreId ?? item.id;
-          const media = mediaAssets.find(m => m.entityId === lookupId);
-          const logoUrl = media?.logoUrl || "";
+          const media = getMediaAsset(item.id);
+          const imageUrl = media?.logoUrl || media?.thumbnailUrl || null;
 
           return (
             <Link 
@@ -47,12 +38,12 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
               className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95 flex flex-col"
             >
               <div className={cn(
-                "relative aspect-[2/3] overflow-hidden rounded-xl mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500",
+                "relative aspect-[2/3] overflow-hidden rounded-xl mb-2.5 border border-border shadow-2xl bg-neutral-900 transition-all duration-500",
                 isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'
               )}>
-                {logoUrl ? (
+                {imageUrl ? (
                   <img 
-                    src={logoUrl} 
+                    src={imageUrl} 
                     alt={item.name} 
                     className="absolute inset-0 w-full h-full object-cover" 
                   />

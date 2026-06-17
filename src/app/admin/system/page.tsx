@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, collection, query, limit, orderBy, getDocs, setDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity, ShieldCheck, Zap, Database, Bot, Terminal, Loader2, RefreshCcw, History, Sparkles, DatabaseZap, ImageIcon } from 'lucide-react';
+import { Activity, ShieldCheck, Database, Bot, Terminal, Loader2, ImageIcon, DatabaseZap, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -14,7 +14,6 @@ export default function SystemHealthPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [repairing, setRepairing] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [syncingMedia, setSyncMedia] = useState(false);
   const [health, setHealth] = useState<any>({
     firestore: 'checking',
@@ -70,7 +69,7 @@ export default function SystemHealthPage() {
   };
 
   const syncMediaAssets = async () => {
-    if (!confirm('Rebuild Media Asset Registry from existing entities? (Safe Sync)')) return;
+    if (!confirm('Rebuild Media Asset Registry?')) return;
     setSyncMedia(true);
     try {
       const types = [
@@ -83,35 +82,23 @@ export default function SystemHealthPage() {
         const snap = await getDocs(collection(db, t.col));
         for (const d of snap.docs) {
           const data = d.data();
-          
-          // NON-DESTRUCTIVE SYNC PAYLOAD
           const updateData: any = {
             entityId: d.id,
             entityType: t.type,
             entityName: data.name || data.id,
-            isEnabled: data.status === 'active',
             updatedAt: new Date().toISOString()
           };
 
-          // ONLY write URLs if they exist in source, NEVER overwrite with null
-          const sourceLogo = data.icon || data.logoUrl || data.cardImage || data.thumbnail;
-          if (sourceLogo) {
-            updateData.logoUrl = sourceLogo;
-            updateData.thumbnailUrl = sourceLogo;
-            updateData.imageUrl = sourceLogo;
-            updateData.icon = sourceLogo;
-          }
-
-          const sourceBanner = data.banner || data.bannerUrl;
-          if (sourceBanner) {
-            updateData.bannerUrl = sourceBanner;
-          }
+          // Migrate legacy URLs if they exist
+          const legacyUrl = data.icon || data.logoUrl || data.cardImage || data.thumbnail;
+          if (legacyUrl && !data.logoUrl) updateData.logoUrl = legacyUrl;
+          if (data.banner && !data.bannerUrl) updateData.bannerUrl = data.banner;
 
           await setDoc(doc(db, 'media_assets', d.id), updateData, { merge: true });
           count++;
         }
       }
-      toast({ title: "Media Sync Complete", description: `Synchronized ${count} media profiles without overwriting uploads.` });
+      toast({ title: "Media Registry Rebuilt", description: `Synchronized ${count} asset profiles.` });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Media Sync Failed', description: e.message });
     } finally {
@@ -129,20 +116,10 @@ export default function SystemHealthPage() {
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">System Core Control</p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={syncMediaAssets}
-            disabled={syncingMedia}
-            className="h-10 px-4 rounded-xl border-accent/20 bg-accent/5 text-accent font-black uppercase text-[9px] tracking-widest gap-2"
-          >
+          <Button variant="outline" onClick={syncMediaAssets} disabled={syncingMedia} className="h-10 px-4 rounded-xl border-accent/20 bg-accent/5 text-accent font-black uppercase text-[9px] tracking-widest gap-2">
             {syncingMedia ? <Loader2 size={12} className="animate-spin" /> : <ImageIcon size={12} />} Sync Media Hub
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={repairRegistry}
-            disabled={repairing}
-            className="h-10 px-4 rounded-xl border-primary/20 bg-primary/5 text-primary font-black uppercase text-[9px] tracking-widest gap-2"
-          >
+          <Button variant="outline" onClick={repairRegistry} disabled={repairing} className="h-10 px-4 rounded-xl border-primary/20 bg-primary/5 text-primary font-black uppercase text-[9px] tracking-widest gap-2">
             {repairing ? <Loader2 size={12} className="animate-spin" /> : <DatabaseZap size={12} />} Deep Registry Sync
           </Button>
         </div>
@@ -161,12 +138,12 @@ export default function SystemHealthPage() {
                 <Activity className="h-5 w-5 text-primary" />
                 <h3 className="text-xs font-black uppercase tracking-widest">Operations Hub</h3>
              </div>
-             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v2.9.2-DYNAMIC</span>
+             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v3.0.0-NATIVE</span>
           </div>
           
           <div className="space-y-6">
             <p className="text-[11px] text-muted-foreground uppercase leading-relaxed font-medium">
-              AATMA HUB utilizes a decoupled media registry. If entities are missing thumbnails or banners, use the <b>Sync Media Hub</b> tool to reconstruct the visual profiles.
+              AATMA HUB has transitioned to a <b>Native Image Rendering Pipeline</b>. All marketplace branding is resolved through the centralized Media Registry. Use the sync tool to migrate legacy identifiers to the new schema.
             </p>
           </div>
         </Card>
@@ -174,7 +151,7 @@ export default function SystemHealthPage() {
         <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl flex flex-col">
           <div className="flex items-center gap-3 mb-6 shrink-0">
             <History className="h-5 w-5 text-accent" />
-            <h3 className="text-xs font-black uppercase tracking-widest">Automation Logs</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest">System Logs</h3>
           </div>
           <div className="space-y-4 overflow-y-auto no-scrollbar flex-1 max-h-[300px]">
             {logs?.length === 0 ? (

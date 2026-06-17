@@ -23,13 +23,8 @@ import {
   Search, 
   Upload, 
   Save, 
-  Gamepad2, 
-  Tv, 
-  Share2, 
   ImageIcon,
-  Loader2,
-  AlertCircle,
-  CheckCircle2
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -42,10 +37,9 @@ interface MediaAsset {
   logoUrl: string;
   bannerUrl: string;
   thumbnailUrl: string;
-  updatedAt: string;
 }
 
-export default function RebuiltMediaHub() {
+export default function MediaHub() {
   const db = useFirestore();
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
@@ -78,7 +72,7 @@ export default function RebuiltMediaHub() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Media Registry</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Native Asset Pipeline</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Asset Distribution Management</p>
         </div>
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64 group">
@@ -129,9 +123,10 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         (err) => toast({ variant: 'destructive', title: 'Upload Failed', description: err.message }),
         async () => {
           const url = await getDownloadURL(task.snapshot.ref);
-          setForm(v => ({ ...v, [type === 'logo' ? 'logoUrl' : type === 'banner' ? 'bannerUrl' : 'thumbnailUrl']: url }));
+          const field = type === 'logo' ? 'logoUrl' : type === 'banner' ? 'bannerUrl' : 'thumbnailUrl';
+          setForm(v => ({ ...v, [field]: url }));
           setUploads(v => ({ ...v, [type]: 0 }));
-          toast({ title: 'Transfer Complete', description: 'URL registered in memory.' });
+          toast({ title: 'Transfer Complete' });
         }
       );
     } catch (e: any) {
@@ -148,7 +143,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         updatedAt: new Date().toISOString()
       };
       await setDoc(doc(db, 'media_assets', asset.id), data, { merge: true });
-      toast({ title: 'Registry Updated', description: 'Changes are now live.' });
+      toast({ title: 'Registry Updated' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Commit Failed', description: e.message });
     } finally {
@@ -158,7 +153,7 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
 
   return (
     <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl flex flex-col group hover:border-primary/20 transition-all">
-      <div className="relative aspect-video bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
+      <div className="relative aspect-video bg-neutral-900 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {form.bannerUrl ? (
           <img src={form.bannerUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
         ) : <ImageIcon size={40} className="opacity-10" />}
