@@ -2,10 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Tv, Share2 } from "lucide-react";
 import { useFirestore } from "@/firebase/provider";
 import { collection, onSnapshot } from "firebase/firestore";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface ServiceItem {
@@ -13,9 +11,6 @@ interface ServiceItem {
   firestoreId: string;
   name: string;
   status?: string;
-  icon?: string;
-  cardImage?: string;
-  thumbnail?: string;
 }
 
 interface ServiceCarouselProps {
@@ -26,9 +21,7 @@ interface ServiceCarouselProps {
 export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
   const db = useFirestore();
   const isOtt = title.toLowerCase().includes('ott');
-  const Icon = isOtt ? Tv : Share2;
-  const accentColor = isOtt ? 'from-accent/20' : 'from-primary/20';
-
+  
   const [media, setMedia] = useState<Record<string, any>>({});
 
   useEffect(() => {
@@ -53,15 +46,11 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
         {items.map((item) => {
           const itemMedia = media[item.firestoreId];
           
-          // Image Resolution Chain: Registry -> Legacy Field Fallbacks
-          const url = itemMedia?.logoUrl || 
-                      itemMedia?.thumbnailUrl || 
-                      itemMedia?.icon || 
-                      itemMedia?.imageUrl || 
-                      item.cardImage || 
-                      item.icon || 
-                      item.thumbnail || 
-                      null;
+          const imageUrl = 
+            itemMedia?.logoUrl || 
+            itemMedia?.imageUrl || 
+            itemMedia?.thumbnailUrl || 
+            null;
 
           return (
             <Link 
@@ -69,21 +58,18 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
               href={`/product/${item.firestoreId}`} 
               className="flex-shrink-0 w-[calc((100%-24px)/3)] group transition-all duration-300 active:scale-95 flex flex-col"
             >
-              <div className={`relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500 ${isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'}`}>
-                <div className="absolute inset-0 w-full h-full">
-                  {url ? (
-                    <Image 
-                      src={url} 
+              <div className={cn(
+                "relative aspect-[2/3] overflow-hidden rounded-xl mb-2.5 border border-border shadow-2xl bg-card transition-all duration-500",
+                isOtt ? 'group-hover:border-accent/50' : 'group-hover:border-primary/50'
+              )}>
+                <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
+                  {imageUrl ? (
+                    <img 
+                      src={imageUrl} 
                       alt={item.name} 
-                      fill 
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                      sizes="(max-width: 768px) 33vw, 20vw"
+                      className="absolute inset-0 w-full h-full object-cover" 
                     />
-                  ) : (
-                    <div className={`absolute inset-0 bg-gradient-to-br ${accentColor} via-black to-card flex items-center justify-center opacity-20`}>
-                      <Icon size={24} className="text-white" />
-                    </div>
-                  )}
+                  ) : null}
                 </div>
                 
                 <div className="absolute top-2 right-2 z-10 pointer-events-none">

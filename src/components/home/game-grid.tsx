@@ -6,7 +6,6 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Gamepad2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function GameGrid() {
@@ -37,7 +36,7 @@ export function GameGrid() {
       <section className="py-4 px-4">
         <div className="grid grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[2/3] w-full rounded-[20px] bg-white/5" />
+            <Skeleton key={i} className="aspect-[2/3] w-full rounded-xl bg-white/5" />
           ))}
         </div>
       </section>
@@ -58,18 +57,11 @@ export function GameGrid() {
         {games.map((game) => {
           const gameMedia = media[game.firestoreId || game.id];
           
-          // Image Resolution Chain
-          const url = gameMedia?.logoUrl || 
-                      gameMedia?.thumbnailUrl || 
-                      gameMedia?.icon || 
-                      gameMedia?.imageUrl || 
-                      game.cardImage || 
-                      game.icon || 
-                      game.thumbnail || 
-                      null;
-
-          console.log("GAME:", game.name);
-          console.log("URL:", url);
+          const imageUrl = 
+            gameMedia?.logoUrl || 
+            gameMedia?.imageUrl || 
+            gameMedia?.thumbnailUrl || 
+            null;
 
           return (
             <Link 
@@ -77,15 +69,15 @@ export function GameGrid() {
               href={`/product/${game.firestoreId || game.id}`} 
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
-              <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                <div className="absolute inset-0 w-full h-full">
-                  <div style={{
-                    width: "100%",
-                    height: "100%",
-                    backgroundImage: `url(${url})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center"
-                  }} />
+              <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
+                <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
+                  {imageUrl ? (
+                    <img 
+                      src={imageUrl} 
+                      alt={game.name} 
+                      className="absolute inset-0 w-full h-full object-cover" 
+                    />
+                  ) : null}
                 </div>
                 
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
