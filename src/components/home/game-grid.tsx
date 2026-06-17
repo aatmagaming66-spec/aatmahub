@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useMemo } from "react";
@@ -20,9 +19,9 @@ export function GameGrid() {
   const mediaQuery = useMemo(() => collection(db, 'media_assets'), [db]);
 
   const { data: games, loading: gamesLoading } = useCollection(gamesQuery);
-  const { data: mediaAssets } = useCollection(mediaQuery);
+  const { data: mediaAssets, loading: mediaLoading } = useCollection(mediaQuery);
 
-  if (gamesLoading) {
+  if (gamesLoading || mediaLoading) {
     return (
       <section className="py-4 px-4">
         <div className="grid grid-cols-3 gap-3">
@@ -46,30 +45,14 @@ export function GameGrid() {
       
       <div className="grid grid-cols-3 gap-3 px-4">
         {games.map((game) => {
-          const lookupId = game.entityId ?? game.firestoreId ?? game.id;
+          // Resolve lookup identifier
+          const lookupId = game.entityId || game.firestoreId || game.id;
+          
+          // Match media asset from registry
           const media = mediaAssets.find(item => item.entityId === lookupId);
           
-          if (game.name === "MLBB India") {
-            return (
-              <div key={game.firestoreId} className="aspect-[2/3]">
-                {media?.logoUrl ? (
-                  <img
-                    src={media.logoUrl}
-                    alt={game.name}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover"
-                    }}
-                    onLoad={() => console.log("MLBB India DIAG: Image Loaded")}
-                    onError={() => console.log("MLBB India DIAG: Image Error")}
-                  />
-                ) : null}
-              </div>
-            );
-          }
-
-          const logoUrl = media?.logoUrl;
+          // Resolve exact image URL with strict priority
+          const imageUrl = media?.logoUrl || media?.thumbnailUrl || media?.bannerUrl || null;
 
           return (
             <Link 
@@ -78,9 +61,10 @@ export function GameGrid() {
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                {logoUrl ? (
+                {/* Native Image Rendering */}
+                {imageUrl ? (
                   <img
-                    src={logoUrl}
+                    src={imageUrl}
                     alt={game.name}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
@@ -90,6 +74,7 @@ export function GameGrid() {
                   </div>
                 )}
                 
+                {/* Badge & Label Overlay */}
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
                   <div className="flex justify-between items-start">
                     {game.flag && (
@@ -106,6 +91,8 @@ export function GameGrid() {
                   </div>
                 </div>
               </div>
+
+              {/* Game Identity Label */}
               <div className="text-center px-1">
                 <span className="text-[8px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
                   {game.name}
