@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { HeroBanner } from "@/components/home/hero-banner";
 import { QuickActions } from "@/components/home/quick-actions";
+import { GameGrid } from "@/components/home/game-grid";
 import { ShieldCheck, Zap, Lock, Headphones } from "lucide-react";
 import Link from 'next/link';
 
@@ -55,12 +56,9 @@ export default function Home() {
       
       <QuickActions />
       
-      {/* Dynamic Sectors - Temporary Purge State */}
-      <div className="py-20 px-6 text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground opacity-20">Registry Sync Pending</p>
-      </div>
+      <GameGrid />
 
-      <footer className="px-6 py-10 mt-4 border-t border-border bg-background flex flex-col items-center text-center">
+      <footer className="px-6 py-10 mt-10 border-t border-border bg-background flex flex-col items-center text-center">
         <h2 className="text-4xl font-headline font-black tracking-tighter uppercase bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-3 leading-none">
           AATMA HUB
         </h2>

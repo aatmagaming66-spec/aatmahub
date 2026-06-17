@@ -1,12 +1,14 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Zap, ArrowRight, Loader2, Smartphone, PackageSearch } from "lucide-react";
+import { ShieldCheck, Zap, ArrowRight, Loader2, Smartphone, PackageSearch, ImageIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
@@ -16,10 +18,6 @@ import { collection, query, where, doc } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
 
-/**
- * PRODUCT DETAIL PAGE
- * Standardized data fetching with stabilized Firestore references.
- */
 export default function ProductPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -28,17 +26,16 @@ export default function ProductPage() {
   const { user } = useUser();
   const db = useFirestore();
   
-  // Stabilize Query
+  // DIRECT REGISTRY ACCESS
+  const gameDocRef = useMemo(() => id ? doc(db, 'games', id as string) : null, [db, id]);
+  const { data: gameInfo, loading: gameLoading } = useDoc(gameDocRef);
+
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
     where('category', '==', id),
     where('status', '==', 'active')
   ), [db, id]);
 
-  // Stabilize Doc Reference
-  const gameDocRef = useMemo(() => id ? doc(db, 'games', id as string) : null, [db, id]);
-
-  const { data: gameInfo } = useDoc(gameDocRef);
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
 
   const [selectedPack, setSelectedPack] = useState<any>(null);
@@ -67,8 +64,8 @@ export default function ProductPage() {
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      toast({ title: "Account Verified" });
-    }, 1000);
+      toast({ title: "Account Verified", description: "Identity check established successfully." });
+    }, 1200);
   };
 
   const handleBuyNow = () => {
@@ -82,7 +79,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: "",
+      image: gameInfo?.logo || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -102,73 +99,94 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: "",
+      image: gameInfo?.logo || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
       serverId,
       verifiedName: "AATMA_USER"
     });
-    toast({ title: "Added to Hub" });
+    toast({ title: "Added to Hub Queue" });
   };
+
+  if (gameLoading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      <div className="relative w-full aspect-video bg-neutral-900 overflow-hidden border-b border-white/5 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
+      {/* PRODUCT HERO / BANNER */}
+      <div className="relative w-full aspect-[21/9] bg-neutral-950 overflow-hidden border-b border-white/5 shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-background to-black z-10" />
+        {gameInfo?.banner ? (
+          <Image src={gameInfo.banner} alt={productName} fill className="object-cover opacity-50 transition-all duration-1000 scale-105" priority />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center z-0 opacity-10">
+            <ImageIcon size={80} />
+          </div>
+        )}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-20" />
       </div>
 
-      <div className="p-4 pt-6 space-y-6 max-w-4xl mx-auto w-full">
+      <div className="p-4 pt-0 space-y-6 max-w-4xl mx-auto w-full relative z-30 -mt-12">
+        {/* Badges */}
         <div className="flex flex-row justify-center gap-3">
           <div className="bg-primary px-3 py-1 rounded-lg flex items-center gap-2 shadow-xl border border-white/5 h-8">
             <Zap size={10} className="text-white fill-white" />
-            <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
+            <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Top-Up</span>
           </div>
           <div className="bg-green-600 px-3 py-1 rounded-lg flex items-center gap-2 shadow-xl border border-white/5 h-8">
             <ShieldCheck size={10} className="text-white fill-white" />
-            <span className="text-[9px] font-black uppercase text-white tracking-widest">Secure Verified</span>
+            <span className="text-[9px] font-black uppercase text-white tracking-widest">Official Channel</span>
           </div>
         </div>
 
-        <div className="text-center space-y-0.5">
-          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight">
+        {/* Title Group */}
+        <div className="text-center space-y-1">
+          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl">
             {productName}
           </h1>
-          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-40">Official Hub Top-Up Channel</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-black opacity-40">Secured Marketplace Terminal</p>
         </div>
 
+        {/* IDENTITY SECTOR */}
         <section className="bg-card border border-border p-6 rounded-[2.5rem] space-y-4 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none">
-            <Smartphone size={100} />
+          <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none -rotate-12">
+            <Smartphone size={140} />
           </div>
           <div className="flex items-center gap-2 px-1">
             <Smartphone size={16} className="text-primary" />
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Account Identity</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Establish Identity</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-1.5">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Player ID</Label>
-               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter Numeric ID" className="bg-black/50 border-border h-14 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-primary/50" />
+               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Account User ID</Label>
+               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter Unique ID" className="bg-black/50 border-border h-14 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-primary/50" />
              </div>
              <div className="space-y-1.5">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Server ID (Optional)</Label>
-               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="Region/Server" className="bg-black/50 border-border h-14 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-primary/50" />
+               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Server / Region (Optional)</Label>
+               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. Asia" className="bg-black/50 border-border h-14 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-primary/50" />
              </div>
           </div>
-          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl transition-all", isVerified ? "bg-green-600 hover:bg-green-600 shadow-green-500/20" : "bg-primary shadow-primary/20")}>
-            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "ID VERIFIED: AATMA_USER" : "Establish Identity Check")}
+          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl transition-all", isVerified ? "bg-green-600 hover:bg-green-600 shadow-green-500/20" : "bg-primary shadow-primary/20 shadow-primary/20")}>
+            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "PROTOCOL ESTABLISHED: AATMA_USER" : "Initiate Verification")}
           </Button>
         </section>
 
+        {/* PACKAGE SECTOR */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <PackageSearch size={16} className="text-primary" />
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Select Package</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Select Hub Pack</h3>
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-[20px] mb-6 shadow-inner">
+            <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-[22px] mb-6 shadow-inner">
               {['small', 'large', 'pass', 'promo'].map(t => (
-                <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-[14px] data-[state=active]:bg-primary transition-all duration-300">
+                <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-[16px] data-[state=active]:bg-primary transition-all duration-300">
                   {t}
                 </TabsTrigger>
               ))}
@@ -179,7 +197,7 @@ export default function ProductPage() {
             ) : packs.filter(p => p.tab === activeTab).length === 0 ? (
               <div className="bg-card/20 border border-dashed border-border rounded-[2.5rem] p-16 text-center">
                 <PackageSearch className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Empty Registry Sector</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Zero Results in Registry</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -188,7 +206,7 @@ export default function ProductPage() {
                     key={pack.id} 
                     onClick={() => setSelectedPack(pack)} 
                     className={cn(
-                      "p-6 rounded-[2rem] border transition-all text-left bg-card group relative shadow-2xl active:scale-95", 
+                      "p-6 rounded-[2.5rem] border transition-all text-left bg-card group relative shadow-2xl active:scale-95", 
                       selectedPack?.id === pack.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border hover:border-white/10"
                     )}
                   >
@@ -199,7 +217,7 @@ export default function ProductPage() {
                       ₹{pack.price}
                     </p>
                     {selectedPack?.id === pack.id && (
-                      <div className="absolute top-3 right-3 h-2 w-2 bg-primary rounded-full shadow-[0_0_12px_#DC2626] animate-pulse" />
+                      <div className="absolute top-4 right-4 h-2 w-2 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,1)] animate-pulse" />
                     )}
                   </button>
                 ))}
@@ -208,12 +226,13 @@ export default function ProductPage() {
           </Tabs>
         </section>
 
+        {/* ACTIONS */}
         <div className="flex flex-col gap-4 pb-24">
-          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full h-18 bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-[2rem] shadow-2xl shadow-primary/20 group transition-all">
-            Secure Purchase <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
+          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full h-18 bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-[2.5rem] shadow-2xl shadow-primary/30 group transition-all h-20">
+            Establish Purchase <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
-          <Button variant="outline" onClick={handleAddToCart} disabled={!selectedPack || !isVerified} className="w-full h-16 border-border bg-transparent text-[11px] font-black uppercase tracking-widest rounded-[2rem] hover:bg-white/5 transition-all">
-            Queue to Hub Cart
+          <Button variant="outline" onClick={handleAddToCart} disabled={!selectedPack || !isVerified} className="w-full h-16 border-border bg-transparent text-[11px] font-black uppercase tracking-widest rounded-[2.5rem] hover:bg-white/5 transition-all">
+            Link to Hub Cart
           </Button>
         </div>
       </div>

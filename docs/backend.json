@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -57,11 +58,14 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "slug": { "type": "string" },
-        "icon": { "type": "string" },
-        "banner": { "type": "string" },
+        "logo": { "type": "string", "description": "HTTPS URL for the game logo" },
+        "banner": { "type": "string", "description": "HTTPS URL for the product page banner" },
         "status": { "type": "string", "enum": ["active", "inactive"] },
-        "sortOrder": { "type": "number" }
-      }
+        "sortOrder": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "slug", "status"]
     },
     "Product": {
       "title": "Product",
