@@ -19,7 +19,7 @@ import Image from "next/image";
 
 /**
  * PRODUCT PAGE (Public)
- * Optimized Hero Header with high-visibility banner support.
+ * Optimized Hero Header with full brightness banner support and glass-morphism labels.
  */
 export default function ProductPage() {
   const { id } = useParams();
@@ -127,8 +127,8 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      {/* HIGH VISIBILITY DYNAMIC HERO HEADER */}
-      <div className="relative w-full h-[260px] md:h-[320px] border-b border-white/5 overflow-hidden flex flex-col justify-end p-6 md:p-10">
+      {/* FULL BRIGHTNESS HERO SECTION */}
+      <div className="relative w-full h-[260px] md:h-[320px] border-b border-white/5 overflow-hidden flex flex-col justify-end p-4 md:p-10">
         {asset?.bannerUrl ? (
           <Image 
             src={asset.bannerUrl} 
@@ -138,27 +138,24 @@ export default function ProductPage() {
             priority 
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-background to-background" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-accent/20 to-background" />
         )}
         
-        {/* Calibrated 45% Alpha Overlay for High Visibility */}
-        <div className="absolute inset-0 bg-black/45 z-[1]" />
-        
-        {/* Soft bottom blend to background */}
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-[2] opacity-80" />
-        
-        <div className="relative z-10 space-y-3">
-          <div className="flex flex-wrap gap-2 mb-1">
-            <span className="px-2 py-0.5 bg-primary/20 backdrop-blur-md border border-primary/30 rounded-md text-[8px] font-black uppercase text-white tracking-widest flex items-center gap-1 shadow-lg">
-              <Zap size={10} className="text-primary fill-primary" /> Instant Delivery
-            </span>
-            <span className="px-2 py-0.5 bg-green-500/20 backdrop-blur-md border border-green-500/30 rounded-md text-[8px] font-black uppercase text-white tracking-widest flex items-center gap-1 shadow-lg">
-              <ShieldCheck size={10} className="text-green-500" /> Secure Verified
-            </span>
+        {/* GLASS CARD IDENTITY CONTAINER */}
+        <div className="relative z-10 w-fit max-w-[90%] bg-black/15 backdrop-blur-xl border border-white/10 p-4 md:p-6 rounded-[1.5rem] shadow-2xl mb-2 md:mb-0">
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <span className="px-2 py-0.5 bg-primary/30 backdrop-blur-md border border-primary/40 rounded-md text-[8px] font-black uppercase text-white tracking-widest flex items-center gap-1 shadow-lg">
+                <Zap size={10} className="text-white fill-white" /> Instant Delivery
+              </span>
+              <span className="px-2 py-0.5 bg-green-500/30 backdrop-blur-md border border-green-500/40 rounded-md text-[8px] font-black uppercase text-white tracking-widest flex items-center gap-1 shadow-lg">
+                <ShieldCheck size={10} className="text-white fill-white" /> Secure Verified
+              </span>
+            </div>
+            <h1 className="text-2xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-none drop-shadow-2xl">
+              {productName}
+            </h1>
           </div>
-          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-none drop-shadow-2xl">
-            {productName}
-          </h1>
         </div>
       </div>
 
