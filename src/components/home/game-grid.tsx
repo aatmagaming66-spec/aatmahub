@@ -79,11 +79,13 @@ export function GameGrid() {
             >
               <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
                 <div className="absolute inset-0 w-full h-full">
-                  <img 
-                    src={url || ""} 
-                    alt={game.name} 
-                    className="w-full h-full object-cover"
-                  />
+                  <div style={{
+                    width: "100%",
+                    height: "100%",
+                    backgroundImage: `url(${url})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center"
+                  }} />
                 </div>
                 
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
