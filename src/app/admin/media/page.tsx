@@ -33,11 +33,7 @@ import {
   Tv, 
   Share2, 
   ImageIcon,
-  Loader2,
-  AlertCircle,
-  TriangleAlert,
-  Terminal,
-  Database
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -49,6 +45,7 @@ interface MediaAsset {
   entityType: 'game' | 'ott' | 'social' | 'branding';
   entityName: string;
   logoUrl?: string;
+  thumbnailUrl?: string; // Standardized alias
   bannerUrl?: string;
   isEnabled: boolean;
   updatedAt: string;
@@ -96,8 +93,9 @@ export default function DynamicMediaHub() {
                 entityType: col.type,
                 entityName: data.name || d.id,
                 isEnabled: data.status === 'active' || data.status === 'enabled',
-                logoUrl: data.icon || null,
-                bannerUrl: data.banner || null,
+                logoUrl: data.icon || data.logoUrl || null,
+                thumbnailUrl: data.icon || data.logoUrl || null,
+                bannerUrl: data.banner || data.bannerUrl || null,
                 updatedAt: new Date().toISOString()
               }, { merge: true });
             }
@@ -145,18 +143,11 @@ export default function DynamicMediaHub() {
         </div>
       </header>
 
-      {filteredAssets.length === 0 ? (
-        <div className="bg-card border border-dashed border-border rounded-[2.5rem] p-20 text-center space-y-4">
-           <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto opacity-20" />
-           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">{syncing ? "SYNCHRONIZING..." : "NO MEDIA ASSETS FOUND"}</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAssets.map((asset) => (
-            <MediaAssetCard key={asset.id} asset={asset} />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredAssets.map((asset) => (
+          <MediaAssetCard key={asset.id} asset={asset} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -173,15 +164,11 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [localBanner, setLocalBanner] = useState<string | null>(asset.bannerUrl || null);
   const [enabled, setEnabled] = useState(asset.isEnabled);
   const [uncommitted, setUncommitted] = useState(false);
-  const [debug, setDebug] = useState<any>({ uploadStarted: false, storageSuccess: false, dbSuccess: false });
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    console.log(`[MEDIA_UPLOAD_START] Type: ${type}, File: ${file.name}`);
-    setDebug(prev => ({ ...prev, uploadStarted: true }));
-
     if (file.size > 5 * 1024 * 1024) {
       toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum file size is 5MB.' });
       return;
@@ -203,45 +190,38 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           else setBannerProgress(progress);
         }, 
         (error) => {
-          console.error('[MEDIA_UPLOAD_FAILED]', error);
           toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
         }, 
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-          console.log(`[MEDIA_UPLOAD_SUCCESS] URL:`, downloadURL);
           if (type === 'logo') { setLocalLogo(downloadURL); setLogoProgress(0); }
           else { setLocalBanner(downloadURL); setBannerProgress(0); }
           setUncommitted(true);
-          setDebug(prev => ({ ...prev, storageSuccess: true }));
           toast({ title: 'Upload Ready', description: 'Click "Commit Changes" to finalize.' });
         }
       );
     } catch (e: any) {
-      console.error('[MEDIA_UPLOAD_FAILED] System Error:', e);
       toast({ variant: 'destructive', title: 'System Error', description: e.message });
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
-    // DATA AUDIT: Explicitly ensuring ID and entityId match during write
     const assetData = {
       entityId: asset.entityId || asset.id,
       entityType: asset.entityType,
       entityName: asset.entityName,
       logoUrl: localLogo,
+      thumbnailUrl: localLogo, // Aliasing for legacy support
       bannerUrl: localBanner,
       isEnabled: enabled,
       updatedAt: new Date().toISOString()
     };
     try {
       await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
-      console.log('[MEDIA_SAVE_SUCCESS] ID:', asset.id, 'Data:', assetData);
       setUncommitted(false);
-      setDebug(prev => ({ ...prev, dbSuccess: true }));
       toast({ title: 'Identity Committed' });
     } catch (e: any) {
-      console.error('[MEDIA_SAVE_FAILED]', e);
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
     } finally { setIsSaving(false); }
   };
@@ -290,22 +270,8 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           </div>
         </div>
 
-        {/* DEBUG PROTOCOL PANEL */}
-        <div className="bg-black/60 rounded-xl border border-white/10 p-3 space-y-1">
-           <div className="flex items-center justify-between">
-              <span className="text-[7px] font-black uppercase text-white/40 flex items-center gap-1"><Terminal size={8} /> Pipeline Logic</span>
-              <span className="text-[7px] font-bold text-primary px-1.5 py-0.5 bg-primary/10 rounded-md">V3.1.2</span>
-           </div>
-           <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <DebugItem label="Storage Transmit" active={debug.storageSuccess} />
-              <DebugItem label="Database Commit" active={debug.dbSuccess} />
-           </div>
-           <p className="text-[6px] text-white/20 font-mono uppercase mt-2 truncate">URL: {localLogo || 'NULL'}</p>
-        </div>
-
         {uncommitted && (
           <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl flex items-center gap-2 animate-pulse">
-            <AlertCircle size={10} className="text-primary" />
             <span className="text-[8px] font-black text-primary uppercase">Uncommitted Changes</span>
           </div>
         )}
@@ -315,14 +281,5 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         </Button>
       </CardContent>
     </Card>
-  );
-}
-
-function DebugItem({ label, active }: { label: string, active: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5">
-       <div className={cn("h-1 w-1 rounded-full", active ? "bg-green-500 shadow-[0_0_5px_#22c55e]" : "bg-white/10")} />
-       <span className={cn("text-[7px] font-black uppercase", active ? "text-green-500" : "text-white/20")}>{label}</span>
-    </div>
   );
 }

@@ -17,11 +17,6 @@ import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import Image from "next/image";
 
-/**
- * PRODUCT PAGE (Public)
- * Redesigned Layout: Standardized 16:9 Banner ratio with object-cover.
- * High-contrast layout for professional digital storefront.
- */
 export default function ProductPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -47,7 +42,6 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [asset, setAsset] = useState<any>(null);
-  const [imageDims, setImageDims] = useState<{ w: number, h: number } | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -97,7 +91,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.logoUrl || "",
+      image: asset?.logoUrl || asset?.thumbnailUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -117,7 +111,7 @@ export default function ProductPage() {
       name: `${productName} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
-      image: asset?.logoUrl || "",
+      image: asset?.logoUrl || asset?.thumbnailUrl || "",
       region: selectedPack.region || "GLOBAL",
       tabName: selectedPack.tab || "PACKAGE",
       playerId,
@@ -127,35 +121,27 @@ export default function ProductPage() {
     toast({ title: "Added to Hub" });
   };
 
+  // Asset Resolution for Hero Section
+  const bannerUrl = asset?.bannerUrl || asset?.banner || null;
+
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      <div className="relative w-full aspect-video border-b border-white/5 bg-black overflow-hidden shadow-2xl">
-        {asset?.bannerUrl ? (
-          <div className="absolute inset-0 w-full h-full">
-            <Image 
-              src={asset.bannerUrl} 
-              alt={productName} 
-              fill 
-              style={{ objectFit: 'cover', objectPosition: 'center center' }}
-              priority 
-              sizes="100vw"
-              onLoadingComplete={(img) => {
-                setImageDims({ w: img.naturalWidth, h: img.naturalHeight });
-              }}
-            />
-          </div>
+      <div className="relative w-full aspect-video bg-black overflow-hidden shadow-2xl border-b border-white/5">
+        {bannerUrl ? (
+          <Image 
+            src={bannerUrl} 
+            alt={productName} 
+            fill 
+            className="object-cover"
+            priority 
+            sizes="100vw"
+          />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-background" />
         )}
       </div>
 
       <div className="p-4 pt-6 space-y-6 max-w-4xl mx-auto w-full">
-        {/* DEBUG INFO PANEL - HERO */}
-        <div className="px-4 py-2 bg-black/60 rounded-xl border border-white/10 space-y-1 mb-2">
-           <p className="text-[6px] text-primary font-black uppercase truncate tracking-tighter leading-tight">HERO URL: {asset?.bannerUrl || 'NULL'}</p>
-           <p className="text-[6px] text-white/40 font-black uppercase tracking-tighter leading-tight">HERO DIM: {imageDims ? `${imageDims.w}x${imageDims.h}` : 'LOADING...'}</p>
-        </div>
-
         <div className="flex flex-row justify-center gap-3">
           <div className="bg-primary px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-xl border border-white/5">
             <Zap size={12} className="text-white fill-white" />
