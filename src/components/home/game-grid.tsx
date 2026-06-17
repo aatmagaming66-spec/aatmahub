@@ -28,7 +28,9 @@ export function GameGrid() {
       const mediaMap: Record<string, any> = {};
       snap.docs.forEach(d => {
         const data = d.data();
-        mediaMap[data.entityId] = data;
+        // DATA AUDIT: Map by Document ID (which is the Game ID)
+        mediaMap[d.id] = data;
+        console.log(`[DATA_AUDIT] Database URL for ${d.id}:`, data.logoUrl || 'NULL');
       });
       setMedia(mediaMap);
     });
@@ -61,6 +63,10 @@ export function GameGrid() {
         {games.map((game) => {
           const gameMedia = media[game.id];
           const isEnabled = gameMedia ? gameMedia.isEnabled : true;
+          
+          // DIAGNOSTIC LOGS
+          console.log(`[DATA_AUDIT] Mapping Game ${game.id} -> Mapped URL:`, gameMedia?.logoUrl || 'NULL');
+
           if (!isEnabled) return null;
 
           return (
@@ -70,8 +76,8 @@ export function GameGrid() {
                 className="group transition-all duration-300 active:scale-95"
               >
                 <div className="relative aspect-[2/3] w-full rounded-[20px] overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                  {gameMedia?.logoUrl ? (
-                    <div className="absolute inset-0 w-full h-full">
+                  <div className="absolute inset-0 w-full h-full">
+                    {gameMedia?.logoUrl ? (
                       <Image 
                         src={gameMedia.logoUrl} 
                         alt={game.name} 
@@ -83,10 +89,12 @@ export function GameGrid() {
                           setImageDims(prev => ({ ...prev, [game.id]: { w: img.naturalWidth, h: img.naturalHeight } }));
                         }}
                       />
-                    </div>
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-card group-hover:from-primary/30 transition-all duration-500" />
-                  )}
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-black to-card group-hover:from-primary/30 transition-all duration-500 flex items-center justify-center opacity-20">
+                         <Gamepad2 size={24} className="text-white" />
+                      </div>
+                    )}
+                  </div>
                   
                   <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
                     <div className="flex justify-between items-start">
@@ -103,12 +111,6 @@ export function GameGrid() {
                         {game.status || 'Active'}
                       </div>
                     </div>
-                    
-                    {!gameMedia?.logoUrl && (
-                      <div className="flex items-center justify-center h-full opacity-20">
-                         <Gamepad2 size={24} className="text-white" />
-                      </div>
-                    )}
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
                 </div>
@@ -119,10 +121,14 @@ export function GameGrid() {
                 </div>
               </Link>
               
-              {/* DEBUG INFO PANEL */}
+              {/* DEBUG PANEL - URL & DIMENSIONS */}
               <div className="mt-1.5 px-2 py-1.5 bg-black/60 rounded-lg border border-white/10 space-y-1">
-                <p className="text-[5px] text-primary font-black uppercase truncate tracking-tighter leading-tight">URL: {gameMedia?.logoUrl || 'NULL'}</p>
-                <p className="text-[5px] text-white/40 font-black uppercase tracking-tighter leading-tight">DIM: {imageDims[game.id] ? `${imageDims[game.id].w}x${imageDims[game.id].h}` : 'LOADING...'}</p>
+                <p className="text-[5px] text-primary font-black uppercase truncate tracking-tighter leading-tight">
+                  URL: {gameMedia?.logoUrl ? 'VALID' : 'NULL'}
+                </p>
+                <p className="text-[5px] text-white/40 font-black uppercase tracking-tighter leading-tight">
+                  DIM: {imageDims[game.id] ? `${imageDims[game.id].w}x${imageDims[game.id].h}` : 'LOADING...'}
+                </p>
               </div>
             </div>
           );

@@ -35,8 +35,9 @@ import {
   ImageIcon,
   Loader2,
   AlertCircle,
+  TriangleAlert,
   Terminal,
-  TriangleAlert
+  Database
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -134,7 +135,7 @@ export default function DynamicMediaHub() {
         <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
           <div className="relative flex-1 md:w-64 group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-            <Input placeholder="Search assets..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-10 h-12 rounded-2xl text-xs font-bold focus:border-primary shadow-xl ring-0" />
+            <input placeholder="Search assets..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-10 h-12 rounded-2xl text-xs font-bold focus:border-primary shadow-xl ring-0 w-full outline-none" />
           </div>
           <div className="flex gap-2 bg-card p-1 rounded-2xl border border-border overflow-x-auto no-scrollbar">
             {['all', 'game', 'ott', 'social'].map((t) => (
@@ -172,39 +173,19 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const [localBanner, setLocalBanner] = useState<string | null>(asset.bannerUrl || null);
   const [enabled, setEnabled] = useState(asset.isEnabled);
   const [uncommitted, setUncommitted] = useState(false);
-  const [ratioWarning, setRatioWarning] = useState<{ type: 'logo' | 'banner', msg: string } | null>(null);
+  const [debug, setDebug] = useState<any>({ uploadStarted: false, storageSuccess: false, dbSuccess: false });
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'banner') => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast({ variant: 'destructive', title: 'Invalid File', description: 'Please use JPG, PNG or WEBP.' });
-      return;
-    }
+    
+    console.log(`[MEDIA_UPLOAD_START] Type: ${type}, File: ${file.name}`);
+    setDebug(prev => ({ ...prev, uploadStarted: true }));
 
     if (file.size > 5 * 1024 * 1024) {
       toast({ variant: 'destructive', title: 'File Too Large', description: 'Maximum file size is 5MB.' });
       return;
     }
-
-    // RATIO VALIDATION
-    const img = new (window as any).Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = () => {
-      const ratio = img.width / img.height;
-      if (type === 'logo') {
-        // Target 2:3 (0.66)
-        if (Math.abs(ratio - 0.66) > 0.1) {
-          setRatioWarning({ type: 'logo', msg: 'Ratio mismatch: Card Thumbnails work best at 2:3 (e.g. 600x900).' });
-        } else setRatioWarning(null);
-      } else {
-        // Target 16:9 (1.77)
-        if (Math.abs(ratio - 1.77) > 0.1) {
-          setRatioWarning({ type: 'banner', msg: 'Ratio mismatch: Product Banners work best at 16:9 (e.g. 1280x720).' });
-        } else setRatioWarning(null);
-      }
-    };
 
     const previewUrl = URL.createObjectURL(file);
     if (type === 'logo') setLocalLogo(previewUrl);
@@ -222,27 +203,32 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
           else setBannerProgress(progress);
         }, 
         (error) => {
+          console.error('[MEDIA_UPLOAD_FAILED]', error);
           toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
-          if (type === 'logo') setLogoProgress(0);
-          else setBannerProgress(0);
         }, 
         async () => {
           const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          console.log(`[MEDIA_UPLOAD_SUCCESS] URL:`, downloadURL);
           if (type === 'logo') { setLocalLogo(downloadURL); setLogoProgress(0); }
           else { setLocalBanner(downloadURL); setBannerProgress(0); }
           setUncommitted(true);
+          setDebug(prev => ({ ...prev, storageSuccess: true }));
           toast({ title: 'Upload Ready', description: 'Click "Commit Changes" to finalize.' });
         }
       );
     } catch (e: any) {
+      console.error('[MEDIA_UPLOAD_FAILED] System Error:', e);
       toast({ variant: 'destructive', title: 'System Error', description: e.message });
     }
   };
 
   const handleSave = async () => {
     setIsSaving(true);
+    // DATA AUDIT: Explicitly ensuring ID and entityId match during write
     const assetData = {
-      ...asset,
+      entityId: asset.entityId || asset.id,
+      entityType: asset.entityType,
+      entityName: asset.entityName,
       logoUrl: localLogo,
       bannerUrl: localBanner,
       isEnabled: enabled,
@@ -250,9 +236,12 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
     };
     try {
       await setDoc(doc(db, 'media_assets', asset.id), assetData, { merge: true });
+      console.log('[MEDIA_SAVE_SUCCESS] ID:', asset.id, 'Data:', assetData);
       setUncommitted(false);
+      setDebug(prev => ({ ...prev, dbSuccess: true }));
       toast({ title: 'Identity Committed' });
     } catch (e: any) {
+      console.error('[MEDIA_SAVE_FAILED]', e);
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
     } finally { setIsSaving(false); }
   };
@@ -260,12 +249,11 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
   const Icon = asset.entityType === 'game' ? Gamepad2 : (asset.entityType === 'ott' ? Tv : Share2);
 
   return (
-    <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all duration-500 flex flex-col">
+    <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl group hover:border-primary/20 transition-all flex flex-col">
       <div className="relative aspect-video w-full bg-black/40 border-b border-white/5 flex items-center justify-center overflow-hidden">
         {localBanner ? (
           <Image src={localBanner} alt="Banner" fill className="object-cover" unoptimized={localBanner.startsWith('blob:')} />
         ) : <div className="flex flex-col items-center gap-2 opacity-10"><ImageIcon size={40} /><span className="text-[8px] font-black uppercase tracking-[0.3em]">No Banner</span></div>}
-        {bannerProgress > 0 && <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center p-6 gap-2 z-20"><Progress value={bannerProgress} className="h-1 bg-white/10" /><span className="text-[8px] font-black text-white uppercase">{bannerProgress.toFixed(0)}% UPLOADING...</span></div>}
         <div className="absolute top-4 left-4 right-4 flex justify-between items-start pointer-events-none">
           <div className="bg-black/60 backdrop-blur-md p-1 px-3 rounded-lg border border-white/10 text-[7px] font-black uppercase text-primary">{asset.entityType}</div>
           <div className="bg-black/60 backdrop-blur-md p-1.5 rounded-lg border border-white/10 pointer-events-auto shadow-xl"><Switch checked={enabled} onCheckedChange={setEnabled} /></div>
@@ -276,42 +264,49 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         <div className="flex items-center gap-4">
           <div className="relative aspect-[2/3] h-20 shrink-0 rounded-xl bg-black/40 border border-white/5 overflow-hidden flex items-center justify-center">
             {localLogo ? <Image src={localLogo} alt="Logo" fill className="object-cover" unoptimized={localLogo.startsWith('blob:')} /> : <Icon size={20} className="opacity-20 text-primary" />}
-            {logoProgress > 0 && <div className="absolute inset-0 bg-primary/80 flex items-center justify-center"><Loader2 size={16} className="text-white animate-spin" /></div>}
           </div>
           <div className="min-w-0">
             <h3 className="text-sm font-black uppercase tracking-tight text-white truncate">{asset.entityName}</h3>
-            <p className="text-[8px] text-muted-foreground uppercase font-black tracking-widest mt-0.5">2:3 Portrait Aspect</p>
+            <p className="text-[7px] text-white/20 font-mono uppercase truncate">REF: {asset.id}</p>
           </div>
         </div>
 
-        {ratioWarning && (
-          <div className="bg-orange-500/10 border border-orange-500/20 p-2.5 rounded-xl flex items-start gap-2 animate-in slide-in-from-top-1">
-             <TriangleAlert size={12} className="text-orange-500 shrink-0 mt-0.5" />
-             <p className="text-[8px] font-bold text-orange-200 leading-relaxed uppercase">{ratioWarning.msg}</p>
-          </div>
-        )}
-
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase text-muted-foreground">Card Thumbnail (2:3)</Label>
+            <Label className="text-[9px] font-black uppercase text-muted-foreground">Logo (2:3)</Label>
             <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-              <Upload size={12} className="mr-1.5" /> Select File
+              <Upload size={12} className="mr-1.5" /> Select
               <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'logo')} />
             </Button>
+            {logoProgress > 0 && <Progress value={logoProgress} className="h-1" />}
           </div>
           <div className="space-y-2">
-            <Label className="text-[9px] font-black uppercase text-muted-foreground">Product Banner (16:9)</Label>
+            <Label className="text-[9px] font-black uppercase text-muted-foreground">Banner (16:9)</Label>
             <Button variant="outline" className="w-full h-9 rounded-xl border-border bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase relative overflow-hidden">
-              <ImageIcon size={12} className="mr-1.5" /> Select File
+              <ImageIcon size={12} className="mr-1.5" /> Select
               <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleUpload(e, 'banner')} />
             </Button>
+            {bannerProgress > 0 && <Progress value={bannerProgress} className="h-1" />}
           </div>
+        </div>
+
+        {/* DEBUG PROTOCOL PANEL */}
+        <div className="bg-black/60 rounded-xl border border-white/10 p-3 space-y-1">
+           <div className="flex items-center justify-between">
+              <span className="text-[7px] font-black uppercase text-white/40 flex items-center gap-1"><Terminal size={8} /> Pipeline Logic</span>
+              <span className="text-[7px] font-bold text-primary px-1.5 py-0.5 bg-primary/10 rounded-md">V3.1.2</span>
+           </div>
+           <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <DebugItem label="Storage Transmit" active={debug.storageSuccess} />
+              <DebugItem label="Database Commit" active={debug.dbSuccess} />
+           </div>
+           <p className="text-[6px] text-white/20 font-mono uppercase mt-2 truncate">URL: {localLogo || 'NULL'}</p>
         </div>
 
         {uncommitted && (
           <div className="bg-primary/10 border border-primary/20 p-2 rounded-xl flex items-center gap-2 animate-pulse">
             <AlertCircle size={10} className="text-primary" />
-            <span className="text-[8px] font-black text-primary uppercase">Pending Sync to Registry</span>
+            <span className="text-[8px] font-black text-primary uppercase">Uncommitted Changes</span>
           </div>
         )}
 
@@ -320,5 +315,14 @@ function MediaAssetCard({ asset }: { asset: MediaAsset }) {
         </Button>
       </CardContent>
     </Card>
+  );
+}
+
+function DebugItem({ label, active }: { label: string, active: boolean }) {
+  return (
+    <div className="flex items-center gap-1.5">
+       <div className={cn("h-1 w-1 rounded-full", active ? "bg-green-500 shadow-[0_0_5px_#22c55e]" : "bg-white/10")} />
+       <span className={cn("text-[7px] font-black uppercase", active ? "text-green-500" : "text-white/20")}>{label}</span>
+    </div>
   );
 }
