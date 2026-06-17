@@ -57,10 +57,11 @@ export function GameGrid() {
         {games.map((game) => {
           const gameMedia = media[game.firestoreId || game.id];
           
-          const imageUrl = 
+          const url = 
             gameMedia?.logoUrl || 
             gameMedia?.imageUrl || 
             gameMedia?.thumbnailUrl || 
+            game.cardImage ||
             null;
 
           return (
@@ -70,15 +71,13 @@ export function GameGrid() {
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                <div className="relative aspect-[2/3] overflow-hidden rounded-xl">
-                  {imageUrl ? (
-                    <img 
-                      src={imageUrl} 
-                      alt={game.name} 
-                      className="absolute inset-0 w-full h-full object-cover" 
-                    />
-                  ) : null}
-                </div>
+                {url ? (
+                  <img
+                    src={url}
+                    alt={game.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                ) : null}
                 
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
                   <div className="flex justify-between items-start">
