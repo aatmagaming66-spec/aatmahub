@@ -185,7 +185,7 @@ export default function GameManagementPage() {
         const logoData = await handleFileUpload(files.logo, 'logo');
         logoUrl = logoData.secure_url;
         logoPublicId = logoData.public_id;
-        console.log('[AFTER_LOGO_UPLOAD]');
+        console.log('[AFTER_LOGO_UPLOAD] New Logo:', logoUrl);
       }
 
       if (files.banner) {
@@ -193,18 +193,21 @@ export default function GameManagementPage() {
         const bannerData = await handleFileUpload(files.banner, 'banner');
         bannerUrl = bannerData.secure_url;
         bannerPublicId = bannerData.public_id;
-        console.log('[AFTER_BANNER_UPLOAD]');
+        console.log('[AFTER_BANNER_UPLOAD] New Banner:', bannerUrl);
       }
 
-      console.log('[BEFORE_FIRESTORE_WRITE]');
+      console.log('[BEFORE_FIRESTORE_WRITE] Record ID:', gId);
       const gameRef = doc(db, 'games', gId);
       const existing = games?.find(g => g.id === gId);
       
       const payload = { 
-        ...formData, 
+        id: gId,
         name: cleanName,
         slug: cleanSlug,
-        id: gId, 
+        category: formData.category,
+        status: formData.status,
+        sortOrder: Number(formData.sortOrder),
+        tabs: formData.tabs,
         logo: logoUrl, 
         banner: bannerUrl,
         logoPublicId: logoPublicId || existing?.logoPublicId || '',
@@ -213,8 +216,9 @@ export default function GameManagementPage() {
         createdAt: existing?.createdAt || new Date().toISOString()
       };
       
+      console.log('[FIRESTORE_PAYLOAD_AUDIT]', payload);
       await setDoc(gameRef, payload, { merge: true });
-      console.log('[AFTER_FIRESTORE_WRITE]');
+      console.log('[AFTER_FIRESTORE_WRITE] Success');
 
       toast({ title: 'System Synchronized', description: `${cleanName} registry record secured.` });
       setIsModalOpen(false);

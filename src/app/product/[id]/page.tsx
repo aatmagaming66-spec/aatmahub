@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -46,6 +45,14 @@ export default function ProductPage() {
   const [isVerified, setIsVerified] = useState(false);
 
   const productName = gameInfo?.name || id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
+
+  useEffect(() => {
+    if (gameInfo) {
+      console.log(`[PERF_HUB] Product Detail Hydrated: ${gameInfo.name}`);
+      console.log(`[PERF_HUB] Banner Source: ${gameInfo.banner}`);
+      console.log(`[PERF_HUB] Logo Source: ${gameInfo.logo}`);
+    }
+  }, [gameInfo]);
 
   useEffect(() => {
     if (packs && packs.length > 0 && !selectedPack) {

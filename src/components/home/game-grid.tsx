@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useFirestore } from "@/firebase/provider";
@@ -23,6 +22,15 @@ export function GameGrid() {
   [db]);
 
   const { data: games, loading } = useCollection(gamesQuery);
+
+  useEffect(() => {
+    if (games && games.length > 0) {
+      console.log('[PERF_HUB] GameGrid Data Received:', games.length, 'items');
+      games.forEach(g => {
+        console.log(`[PERF_HUB] Render Item: ${g.name} | Logo: ${g.logo}`);
+      });
+    }
+  }, [games]);
 
   if (loading) {
     return (

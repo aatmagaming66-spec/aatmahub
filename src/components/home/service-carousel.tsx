@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useFirestore } from "@/firebase/provider";
@@ -30,6 +29,15 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   [db, category]);
 
   const { data: items, loading } = useCollection(servicesQuery);
+
+  useEffect(() => {
+    if (items && items.length > 0) {
+      console.log(`[PERF_HUB] ${title} Data Received:`, items.length, 'items');
+      items.forEach(i => {
+        console.log(`[PERF_HUB] Render Item: ${i.name} | URL Source: ${i.logo}`);
+      });
+    }
+  }, [items, title]);
 
   if (loading) {
     return (
