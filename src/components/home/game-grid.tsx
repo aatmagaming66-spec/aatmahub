@@ -55,16 +55,24 @@ export function GameGrid() {
               className="group transition-all duration-300 active:scale-95 flex flex-col"
             >
               <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden mb-2.5 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                {logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt={game.name}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                    <span className="text-[10px] font-black uppercase">{game.name.substring(0, 2)}</span>
+                {game.name === 'MLBB India' ? (
+                  <div className="w-full h-full bg-red-500 flex items-center justify-center font-black text-[10px] text-white">
+                    TEST IMAGE AREA
                   </div>
+                ) : (
+                  <>
+                    {logoUrl ? (
+                      <img
+                        src={logoUrl}
+                        alt={game.name}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                        <span className="text-[10px] font-black uppercase">{game.name.substring(0, 2)}</span>
+                      </div>
+                    )}
+                  </>
                 )}
                 
                 <div className="absolute inset-0 z-10 p-2 flex flex-col justify-between pointer-events-none">
