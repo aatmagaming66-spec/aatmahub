@@ -61,7 +61,16 @@ export function GameGrid() {
         {games.map((game) => {
           // Use firestoreId for lookup to guarantee match with Media Hub Document IDs
           const gameMedia = media[game.firestoreId];
-          const url = gameMedia?.logoUrl || gameMedia?.thumbnailUrl || gameMedia?.icon || gameMedia?.imageUrl || game.cardImage || game.icon || game.thumbnail || null;
+          
+          // Image Resolution Chain: Prioritize Registry -> Fallback to legacy game document fields
+          const url = gameMedia?.logoUrl || 
+                      gameMedia?.thumbnailUrl || 
+                      gameMedia?.icon || 
+                      gameMedia?.imageUrl || 
+                      game.cardImage || 
+                      game.icon || 
+                      game.thumbnail || 
+                      null;
 
           return (
             <Link 
@@ -78,6 +87,7 @@ export function GameGrid() {
                       fill 
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 768px) 33vw, 20vw"
+                      unoptimized={url.includes('firebasestorage')}
                     />
                   ) : (
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card flex items-center justify-center opacity-20">

@@ -53,7 +53,16 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
         {items.map((item) => {
           // Use firestoreId for lookup to guarantee match with Media Hub Document IDs
           const itemMedia = media[item.firestoreId];
-          const url = itemMedia?.logoUrl || itemMedia?.thumbnailUrl || itemMedia?.icon || itemMedia?.imageUrl || item.cardImage || item.icon || item.thumbnail || null;
+          
+          // Image Resolution Chain: Registry -> Legacy Field Fallbacks
+          const url = itemMedia?.logoUrl || 
+                      itemMedia?.thumbnailUrl || 
+                      itemMedia?.icon || 
+                      itemMedia?.imageUrl || 
+                      item.cardImage || 
+                      item.icon || 
+                      item.thumbnail || 
+                      null;
 
           return (
             <Link 
@@ -70,6 +79,7 @@ export function ServiceCarousel({ title, items }: ServiceCarouselProps) {
                       fill 
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 768px) 33vw, 20vw"
+                      unoptimized={url.includes('firebasestorage')}
                     />
                   ) : (
                     <div className={`absolute inset-0 bg-gradient-to-br ${accentColor} via-black to-card flex items-center justify-center opacity-20`}>
