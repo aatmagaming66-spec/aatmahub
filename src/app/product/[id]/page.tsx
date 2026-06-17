@@ -19,7 +19,8 @@ import Image from "next/image";
 
 /**
  * PRODUCT PAGE (Public)
- * Optimized Hero Header with full brightness banner support and glass-morphism labels.
+ * Optimized Hero Section: 100% clean banner visibility with direct typography.
+ * No overlays, no glass cards, no containers.
  */
 export default function ProductPage() {
   const { id } = useParams();
@@ -127,8 +128,8 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      {/* FULL BRIGHTNESS HERO SECTION */}
-      <div className="relative w-full h-[260px] md:h-[320px] border-b border-white/5 overflow-hidden flex flex-col justify-end p-4 md:p-10">
+      {/* 100% CLEAN HERO BANNER */}
+      <div className="relative w-full h-[260px] md:h-[320px] border-b border-white/5 overflow-hidden flex flex-col justify-end p-6 md:p-12">
         {asset?.bannerUrl ? (
           <Image 
             src={asset.bannerUrl} 
@@ -141,21 +142,28 @@ export default function ProductPage() {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-accent/20 to-background" />
         )}
         
-        {/* GLASS CARD IDENTITY CONTAINER */}
-        <div className="relative z-10 w-fit max-w-[90%] bg-black/15 backdrop-blur-xl border border-white/10 p-4 md:p-6 rounded-[1.5rem] shadow-2xl mb-2 md:mb-0">
-          <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              <span className="px-2 py-0.5 bg-primary/30 backdrop-blur-md border border-primary/40 rounded-md text-[8px] font-black uppercase text-white tracking-widest flex items-center gap-1 shadow-lg">
-                <Zap size={10} className="text-white fill-white" /> Instant Delivery
-              </span>
-              <span className="px-2 py-0.5 bg-green-500/30 backdrop-blur-md border border-green-500/40 rounded-md text-[8px] font-black uppercase text-white tracking-widest flex items-center gap-1 shadow-lg">
-                <ShieldCheck size={10} className="text-white fill-white" /> Secure Verified
-              </span>
-            </div>
-            <h1 className="text-2xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-none drop-shadow-2xl">
-              {productName}
-            </h1>
+        {/* DIRECT TYPOGRAPHY IDENTITY (NO CONTAINERS) */}
+        <div className="relative z-10 space-y-4">
+          <div className="flex flex-wrap gap-3">
+            <span 
+              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
+              className="text-[9px] font-black uppercase text-white tracking-[0.2em] flex items-center gap-1.5"
+            >
+              <Zap size={12} className="text-primary fill-primary" /> Instant Delivery
+            </span>
+            <span 
+              style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}
+              className="text-[9px] font-black uppercase text-white tracking-[0.2em] flex items-center gap-1.5"
+            >
+              <ShieldCheck size={12} className="text-green-500 fill-green-500" /> Secure Verified
+            </span>
           </div>
+          <h1 
+            style={{ textShadow: '0 2px 12px rgba(0,0,0,0.8)' }}
+            className="text-3xl md:text-6xl font-headline font-black text-white uppercase tracking-tighter leading-none"
+          >
+            {productName}
+          </h1>
         </div>
       </div>
 
