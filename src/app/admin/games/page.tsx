@@ -24,13 +24,13 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2, Tag, Layers, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2, Tag, Layers, X, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
 const CATEGORIES = ["Mobile Games", "OTT Services", "Social Services"];
 
-export default function CatalogManagementPage() {
+export default function GameManagementPage() {
   const db = useFirestore();
   const storage = useStorage();
   const { toast } = useToast();
@@ -81,11 +81,12 @@ export default function CatalogManagementPage() {
 
   const handleOpenModal = (game: any = null) => {
     if (game) {
+      console.log('[Debug] Opening Edit Mode for:', game.id);
       setEditingGame(game);
       setFormData({
         id: game.id || '',
-        name: game.name || '',
-        slug: game.slug || '',
+        name: game.name || game.displayName || '',
+        slug: game.slug || game.id || '',
         category: game.category || 'Mobile Games',
         status: game.status || 'active',
         sortOrder: game.sortOrder || 0,
@@ -94,11 +95,18 @@ export default function CatalogManagementPage() {
         tabs: game.tabs || ['small', 'large', 'pass', 'promo']
       });
     } else {
+      console.log('[Debug] Opening Create Mode');
       setEditingGame(null);
       setFormData({
-        id: '', name: '', slug: '', category: 'Mobile Games', status: 'active',
+        id: '', 
+        name: '', 
+        slug: '', 
+        category: 'Mobile Games', 
+        status: 'active',
         sortOrder: (games?.length || 0) + 1,
-        logo: '', banner: '', tabs: ['small', 'large', 'pass', 'promo']
+        logo: '', 
+        banner: '', 
+        tabs: ['small', 'large', 'pass', 'promo']
       });
     }
     setFiles({ logo: null, banner: null });
@@ -123,16 +131,31 @@ export default function CatalogManagementPage() {
   };
 
   const handleSave = async () => {
-    // Validate from state, not DOM
-    if (!formData.name.trim() || !formData.slug.trim()) {
-      console.warn('[Validation] Name or Slug missing in state:', { name: formData.name, slug: formData.slug });
-      toast({ variant: 'destructive', title: 'Validation Error', description: 'Name and Slug are required.' });
+    // 1. Validate using strict trimmed state values
+    const cleanName = formData.name?.trim();
+    const cleanSlug = formData.slug?.trim();
+
+    console.log('[Debug] Preparing Submit Payload:', {
+      name: cleanName,
+      slug: cleanSlug,
+      category: formData.category,
+      tabs: formData.tabs,
+      isEdit: !!editingGame
+    });
+
+    if (!cleanName || !cleanSlug) {
+      console.error('[Validation Failure]', { cleanName, cleanSlug });
+      toast({ 
+        variant: 'destructive', 
+        title: 'Validation Error', 
+        description: 'Display Name and Internal Slug are required.' 
+      });
       return;
     }
     
     setSaving(true);
     try {
-      const gId = formData.id || formData.slug;
+      const gId = formData.id || cleanSlug;
       let logoUrl = formData.logo;
       let bannerUrl = formData.banner;
 
@@ -146,6 +169,8 @@ export default function CatalogManagementPage() {
       const gameRef = doc(db, 'games', gId);
       const gameData = { 
         ...formData, 
+        name: cleanName,
+        slug: cleanSlug,
         id: gId, 
         logo: logoUrl, 
         banner: bannerUrl,
@@ -153,13 +178,13 @@ export default function CatalogManagementPage() {
         createdAt: formData.id ? (games.find(g => g.id === formData.id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
       };
       
-      console.log('[Commit] Payload:', gameData);
+      console.log('[Commit] Final Object:', gameData);
       await setDoc(gameRef, gameData, { merge: true });
 
-      toast({ title: 'Record Secured', description: `${formData.name} has been updated in the catalog.` });
+      toast({ title: 'Record Secured', description: `${cleanName} has been updated in the catalog.` });
       setIsModalOpen(false);
     } catch (e: any) {
-      console.error('[Commit] Error:', e);
+      console.error('[Commit Error]', e);
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
     } finally {
       setSaving(false);
@@ -283,7 +308,7 @@ export default function CatalogManagementPage() {
                   onChange={(e) => setFormData({...formData, slug: e.target.value})} 
                   placeholder="mlbb-global" 
                   className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" 
-                  disabled={!!editingGame} 
+                  disabled={false} 
                 />
               </div>
             </div>
@@ -355,6 +380,20 @@ export default function CatalogManagementPage() {
                  <Input type="file" onChange={(e) => setFiles({...files, banner: e.target.files?.[0] || null})} className="bg-background/40 border-dashed" accept="image/*" />
                  {formData.banner && !files.banner && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Asset Persistent</p>}
               </div>
+            </div>
+
+            {/* LIVE DEBUG PANEL */}
+            <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 space-y-2">
+               <div className="flex items-center gap-2 text-primary">
+                 <Bug size={12} />
+                 <span className="text-[9px] font-black uppercase tracking-widest">State Debug Matrix</span>
+               </div>
+               <div className="grid grid-cols-2 gap-2 text-[8px] font-mono uppercase">
+                  <p className="text-white/40">Name: <span className="text-white">{formData.name || 'NULL'}</span></p>
+                  <p className="text-white/40">Slug: <span className="text-white">{formData.slug || 'NULL'}</span></p>
+                  <p className="text-white/40">Edit: <span className="text-white">{editingGame ? 'TRUE' : 'FALSE'}</span></p>
+                  <p className="text-white/40">ID: <span className="text-white">{formData.id || 'AUTO'}</span></p>
+               </div>
             </div>
           </div>
 
