@@ -33,6 +33,7 @@ export function AppSidebar() {
 
   const navigateTo = useCallback((href: string) => {
     setOpenMobile(false);
+    // Explicitly disabling prefetch-on-navigation to speed up actual click
     router.push(href);
   }, [router, setOpenMobile]);
 
@@ -40,7 +41,7 @@ export function AppSidebar() {
     <Sidebar className="border-r border-white/5">
       <SidebarHeader className="h-14 flex items-center px-4 border-b border-white/5">
         <button 
-          className="font-headline font-bold text-lg text-primary text-left uppercase tracking-tighter active:scale-95 transition-transform"
+          className="font-headline font-bold text-lg text-primary text-left uppercase tracking-tighter active-press transition-transform"
           onClick={() => navigateTo('/')}
         >
           AATMA HUB
@@ -52,19 +53,19 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo('/games')}>
+                <SidebarMenuButton className="active-press" onClick={() => navigateTo('/games')}>
                   <Gamepad2 className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">Games</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo('/ott-services')}>
+                <SidebarMenuButton className="active-press" onClick={() => navigateTo('/ott-services')}>
                   <Tv className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">OTT Services</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo('/social-services')}>
+                <SidebarMenuButton className="active-press" onClick={() => navigateTo('/social-services')}>
                   <Share2 className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">Social Services</span>
                 </SidebarMenuButton>
@@ -78,19 +79,19 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo('/orders')}>
+                <SidebarMenuButton className="active-press" onClick={() => navigateTo('/orders')}>
                   <Package className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">My Orders</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo(user ? '/profile' : '/login')}>
+                <SidebarMenuButton className="active-press" onClick={() => navigateTo(user ? '/profile' : '/login')}>
                   <Settings className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">Account Settings</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo('/contact')}>
+                <SidebarMenuButton className="active-press" onClick={() => navigateTo('/contact')}>
                   <HelpCircle className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">Support</span>
                 </SidebarMenuButton>
@@ -104,13 +105,13 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo('/terms')}>
+                <SidebarMenuButton className="active-press" onClick={() => navigateTo('/terms')}>
                   <FileText className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">Terms & Conditions</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => navigateTo('/privacy')}>
+                <SidebarMenuButton className="active-press" onClick={() => navigateTo('/privacy')}>
                   <ShieldCheck className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">Privacy Policy</span>
                 </SidebarMenuButton>

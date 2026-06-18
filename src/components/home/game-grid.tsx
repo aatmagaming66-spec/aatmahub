@@ -72,6 +72,7 @@ function GameCard({ game }: { game: any }) {
   return (
     <Link 
       href={`/product/${game.id}`} 
+      prefetch={false}
       className="w-full group flex flex-col active-press"
     >
       <div className="relative aspect-square w-full rounded-none overflow-hidden bg-transparent border border-white/10 shadow-2xl transition-all duration-300">
@@ -90,7 +91,7 @@ function GameCard({ game }: { game: any }) {
         )}
 
         {isMlbb && (
-          <div className="absolute top-1 left-1 z-30 bg-primary/95 px-1 py-0.5 rounded-none flex items-center justify-center shadow-md border border-white/10 scale-75 origin-top-left">
+          <div className="absolute top-1 left-1 z-30 bg-primary px-2 py-0.5 rounded-none flex items-center justify-center shadow-md border border-white/10 scale-75 origin-top-left">
             <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
           </div>
         )}

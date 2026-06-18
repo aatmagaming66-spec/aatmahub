@@ -23,8 +23,8 @@ const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
 const SUPER_ADMIN_UID = 'iDeDaksq2hUmkyyIxvlNHgvb2y43';
 
 /**
- * ProfileProvider - Optimized for instant resolution
- * The 'initialized' state is prioritized to unlock the UI immediately.
+ * ProfileProvider - Performance Optimized
+ * Prioritizes the 'initialized' state for zero-latency UI unlocking.
  */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -36,6 +36,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Detect Auth status and signal initialization immediately
+    // In many browsers, this happens in < 50ms if session is active
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setInitialized(true);
@@ -54,7 +55,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
     const userDocRef = doc(db, 'users', user.uid);
     
-    // Background listener for profile data - does not block 'initialized'
+    // Background listener for profile data - non-blocking
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();

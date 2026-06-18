@@ -44,6 +44,7 @@
     @apply bg-background text-foreground font-body antialiased;
     touch-action: manipulation;
     text-rendering: optimizeLegibility;
+    overscroll-behavior-y: none;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tight;
@@ -58,7 +59,17 @@
   scrollbar-width: none;
 }
 
-/* Instant Response Utility */
+/* Instant Feedback Utility */
 .active-press {
-  @apply transition-transform duration-75 active:scale-[0.97] will-change-transform;
+  @apply transition-transform duration-75 active:scale-[0.98] will-change-transform;
+}
+
+/* Page Transition Smoothness */
+.page-enter {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

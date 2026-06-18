@@ -9,7 +9,7 @@ import { useUser } from "@/firebase/auth/use-user";
 
 /**
  * BottomNav - Performance Refactored
- * Uses native Link prefetching and memoized navigation items to prevent first-click delay.
+ * Disabled prefetching to prevent dev-server compilation stalls.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -38,14 +38,14 @@ export function BottomNav() {
             <Link 
               key={item.href} 
               href={item.href}
-              prefetch={true}
+              prefetch={false}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative",
+                "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative active-press",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-white"
               )}
             >
               <item.icon className={cn(
-                "h-5 w-5", 
+                "h-5 w-5 transition-transform", 
                 isActive && "fill-primary/10"
               )} />
               <span className="text-[10px] font-bold uppercase tracking-wider">
