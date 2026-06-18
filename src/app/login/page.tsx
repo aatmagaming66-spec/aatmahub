@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -53,7 +52,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Access Granted", description: "Identity verified successfully." });
+      toast({ title: "Welcome back", description: "You have logged in successfully." });
       handleAuthSuccess(result.user.uid);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
@@ -80,8 +79,8 @@ export default function LoginPage() {
     <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 animate-in fade-in duration-500">
       <Card className="w-full max-w-md bg-card border-border rounded-none shadow-2xl overflow-hidden">
         <CardHeader className="p-8 text-center space-y-2">
-          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Identity Hub</CardTitle>
-          <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Sign in to AATMA HUB Premium</CardDescription>
+          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Login</CardTitle>
+          <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Sign in to your account</CardDescription>
         </CardHeader>
         <CardContent className="p-8 pt-0 space-y-6">
           {initialized && user ? (
@@ -91,11 +90,11 @@ export default function LoginPage() {
                </div>
                <div className="space-y-1">
                  <p className="text-sm font-black uppercase text-white">Active Session Detected</p>
-                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Your identity is already connected.</p>
+                 <p className="text-[10px] text-muted-foreground uppercase tracking-widest">You are already logged in.</p>
                </div>
                <Link href="/profile" className="block">
                   <Button className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none gap-2">
-                    Enter Dashboard <ArrowRight size={14} />
+                    Go to Dashboard <ArrowRight size={14} />
                   </Button>
                </Link>
             </div>
@@ -126,11 +125,11 @@ export default function LoginPage() {
 
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Key</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email</Label>
                   {!initialized ? <Skeleton className="h-12 w-full bg-white/5" /> : (
                     <Input 
                       type="email"
-                      placeholder="ACCESS@HUB.COM" 
+                      placeholder="Enter your email" 
                       className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all font-bold"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -138,11 +137,11 @@ export default function LoginPage() {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password Lock</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</Label>
                   {!initialized ? <Skeleton className="h-12 w-full bg-white/5" /> : (
                     <Input 
                       type="password"
-                      placeholder="••••••••" 
+                      placeholder="Enter your password" 
                       className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all font-bold"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -154,12 +153,12 @@ export default function LoginPage() {
                   className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20"
                   disabled={loading || !initialized}
                 >
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Authorize Access"}
+                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Login"}
                 </Button>
               </form>
               <div className="text-center pt-2">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                  New entity? <Link href="/register" className="text-primary hover:underline">Register Hub Identity</Link>
+                  Don't have an account? <Link href="/register" className="text-primary hover:underline">Sign Up</Link>
                 </p>
               </div>
             </>

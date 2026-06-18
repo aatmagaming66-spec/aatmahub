@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -98,7 +97,7 @@ export default function RegisterPage() {
         updatedAt: new Date().toISOString()
       }, { merge: true });
 
-      toast({ title: "Account Active", description: "Google identity linked successfully." });
+      toast({ title: "Account Active", description: "Google account linked successfully." });
       router.push('/');
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Auth Error', description: error.message });
@@ -111,8 +110,8 @@ export default function RegisterPage() {
     <div className="min-h-[80vh] flex items-center justify-center p-4 animate-in fade-in duration-700">
       <Card className="w-full max-w-md bg-card border-border rounded-none shadow-2xl overflow-hidden">
         <CardHeader className="p-8 text-center space-y-2">
-          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Create Identity</CardTitle>
-          <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Join the AATMA HUB Matrix</CardDescription>
+          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Sign Up</CardTitle>
+          <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Create your account</CardDescription>
         </CardHeader>
         <CardContent className="p-8 pt-0 space-y-6">
           <Button 
@@ -142,34 +141,34 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="JOHN DOE" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full Name" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone</Label>
-                <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+91..." className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Phone Number" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
             </div>
             <div className="space-y-2">
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="HUB@ENTITY.COM" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</Label>
-                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confirm</Label>
-                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="••••••••" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm Password" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
             </div>
             <Button type="submit" disabled={loading} className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-xl shadow-primary/20 mt-2">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Deploy Identity"}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign Up"}
             </Button>
           </form>
           <div className="text-center pt-2">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Already indexed? <Link href="/login" className="text-primary hover:underline">Enter Hub</Link>
+              Already have an account? <Link href="/login" className="text-primary hover:underline">Login</Link>
             </p>
           </div>
         </CardContent>
