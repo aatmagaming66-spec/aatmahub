@@ -24,7 +24,7 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Trophy, Save, ShieldCheck } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Package, Search, Tag, IndianRupee, Trophy, Save, ShieldCheck, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DEFAULT_RANKS, type RankDefinition } from '@/lib/ranks';
 
@@ -39,7 +39,7 @@ export default function AdminProductManagementPage() {
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    id: '', name: '', price: '', category: '', region: 'Global', tab: 'small', status: 'active'
+    id: '', name: '', price: '', category: '', region: 'India', tab: 'small', status: 'active'
   });
 
   const [isRankModalOpen, setIsRankModalOpen] = useState(false);
@@ -69,12 +69,12 @@ export default function AdminProductManagementPage() {
       setEditingProduct(product);
       setFormData({
         id: product.id || '', name: product.name || '', price: product.price?.toString() || '',
-        category: product.category || '', region: product.region || 'Global', tab: product.tab || 'small', status: product.status || 'active'
+        category: product.category || '', region: product.region || 'India', tab: product.tab || 'small', status: product.status || 'active'
       });
     } else {
       setEditingProduct(null);
       setFormData({ 
-        id: '', name: '', price: '', category: games?.[0]?.id || '', region: 'Global', tab: 'small', status: 'active'
+        id: '', name: '', price: '', category: games?.[0]?.id || '', region: 'India', tab: 'small', status: 'active'
       });
     }
     setIsModalOpen(true);
@@ -92,6 +92,46 @@ export default function AdminProductManagementPage() {
       toast({ title: "Registry Synchronized", description: `${formData.name} updated.` });
       setIsModalOpen(false);
     } catch (e: any) { toast({ variant: 'destructive', title: 'Save Failed', description: e.message }); } finally { setSaving(false); }
+  };
+
+  /**
+   * SPECIAL UTILITY: Seed MLBB India Small Packs
+   */
+  const seedMlbbIndiaSmallPacks = async () => {
+    const mlbbIndiaProducts = [
+      { name: "3 Diamonds", price: 7 },
+      { name: "5 Diamonds", price: 9 },
+      { name: "11 Diamonds", price: 17 },
+      { name: "14 Diamonds", price: 23 },
+      { name: "22 Diamonds", price: 34 },
+      { name: "27 Diamonds", price: 42 },
+      { name: "44 Diamonds", price: 67 },
+      { name: "56 Diamonds", price: 83 },
+    ];
+
+    setSaving(true);
+    try {
+      for (const p of mlbbIndiaProducts) {
+        const productId = `mlbb-india-small-${p.name.toLowerCase().replace(/\s+/g, '-')}`;
+        const productData = {
+          id: productId,
+          name: p.name,
+          price: p.price,
+          category: 'mlbb-india',
+          tab: 'small',
+          region: 'India',
+          status: 'active',
+          updatedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
+        };
+        await setDoc(doc(db, 'products', productId), productData, { merge: true });
+      }
+      toast({ title: "MLBB India Seeded", description: "8 small packs have been deployed to MLBB India." });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: "Seeding Failed", description: e.message });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleOpenRankModal = (rank: any = null) => {
@@ -121,24 +161,29 @@ export default function AdminProductManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
         <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Product Management</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Master Registry for SKUs and Rank Protocol</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Master Registry for SKUs and Membership Levels</p>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-card border border-border h-14 p-1.5 rounded-2xl mb-8 w-full max-w-md">
-          <TabsTrigger value="inventory" className="flex-1 text-[10px] font-black uppercase rounded-xl data-[state=active]:bg-primary">SKU Registry</TabsTrigger>
-          <TabsTrigger value="ranks" className="flex-1 text-[10px] font-black uppercase rounded-xl data-[state=active]:bg-primary">Rank Protocol</TabsTrigger>
+        <TabsList className="bg-card border border-border h-14 p-1.5 rounded-none mb-8 w-full max-w-md">
+          <TabsTrigger value="inventory" className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary">SKU List</TabsTrigger>
+          <TabsTrigger value="ranks" className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary">Membership Levels</TabsTrigger>
         </TabsList>
 
         <TabsContent value="inventory" className="space-y-6">
-          <div className="flex justify-between items-center gap-4">
-             <div className="relative flex-1 group">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+             <div className="relative flex-1 group w-full">
                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-               <Input placeholder="Search Registry by Name, ID or Category..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-12 h-12 rounded-xl text-xs font-bold shadow-xl" />
+               <Input placeholder="Search items by Name, ID or Category..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-12 h-12 rounded-none text-xs font-bold shadow-xl" />
              </div>
-             <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
-                <Plus size={16} /> Deploy New SKU
-             </Button>
+             <div className="flex gap-2 w-full md:w-auto">
+               <Button onClick={seedMlbbIndiaSmallPacks} disabled={saving} variant="outline" className="flex-1 border-primary/20 text-primary h-12 rounded-none font-black uppercase text-[9px] px-6 gap-2 hover:bg-primary/5">
+                  {saving ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />} Seed MLBB India
+               </Button>
+               <Button onClick={() => handleOpenModal()} className="flex-1 bg-primary h-12 rounded-none font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
+                  <Plus size={16} /> Add Product
+               </Button>
+             </div>
           </div>
 
           {productsLoading ? (
@@ -146,7 +191,7 @@ export default function AdminProductManagementPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProducts.map((p) => (
-                <Card key={p.id} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
+                <Card key={p.id} className="bg-card border-border rounded-none overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
                   <CardContent className="p-6 space-y-6">
                     <div className="flex justify-between items-start">
                        <div className="space-y-1">
@@ -160,8 +205,8 @@ export default function AdminProductManagementPage() {
                        </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" onClick={() => handleOpenModal(p)} className="flex-1 border-border h-10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/5">Edit</Button>
-                      <Button variant="outline" onClick={() => { if(confirm('Purge SKU?')) deleteDoc(doc(db, 'products', p.id)); }} className="border-primary/20 text-primary h-10 w-10 rounded-xl flex items-center justify-center"><Trash2 size={14} /></Button>
+                      <Button variant="outline" onClick={() => handleOpenModal(p)} className="flex-1 border-border h-10 rounded-none text-[9px] font-black uppercase tracking-widest hover:bg-white/5">Edit</Button>
+                      <Button variant="outline" onClick={() => { if(confirm('Delete this product?')) deleteDoc(doc(db, 'products', p.id)); }} className="border-primary/20 text-primary h-10 w-10 rounded-none flex items-center justify-center"><Trash2 size={14} /></Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -172,13 +217,13 @@ export default function AdminProductManagementPage() {
 
         <TabsContent value="ranks" className="space-y-6">
           <div className="flex justify-between items-center">
-            <div className="bg-accent/5 p-6 rounded-3xl border border-accent/10 space-y-2 flex-1 mr-4">
-               <div className="flex items-center gap-2 text-accent"><Trophy className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Rank Protocol Control</span></div>
-               <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Manage membership tiers, spend thresholds, and discount privileges.</p>
+            <div className="bg-accent/5 p-6 rounded-none border border-accent/10 space-y-2 flex-1 mr-4">
+               <div className="flex items-center gap-2 text-accent"><Trophy className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Membership Control</span></div>
+               <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">Manage spending thresholds and reward tiers.</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={seedDefaults} className="border-border rounded-xl font-black uppercase text-[9px] h-12 px-6">Seed Defaults</Button>
-              <Button onClick={() => handleOpenRankModal()} className="bg-primary h-12 rounded-xl font-black uppercase text-[10px] px-8 shadow-xl shadow-primary/20 gap-2"><Plus size={16} /> New Tier</Button>
+              <Button variant="outline" onClick={seedDefaults} className="border-border rounded-none font-black uppercase text-[9px] h-12 px-6">Seed Defaults</Button>
+              <Button onClick={() => handleOpenRankModal()} className="bg-primary h-12 rounded-none font-black uppercase text-[10px] px-8 shadow-xl shadow-primary/20 gap-2"><Plus size={16} /> New Tier</Button>
             </div>
           </div>
           {ranksLoading ? (
@@ -186,16 +231,16 @@ export default function AdminProductManagementPage() {
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {ranks?.map((rank) => (
-                <Card key={rank.id} className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
+                <Card key={rank.id} className="bg-card border-border rounded-none overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
                   <CardContent className="p-6 space-y-5">
                     <div className="flex items-center justify-between">
                        <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center" style={{ color: rank.color }}><Trophy size={20} /></div>
-                          <div><h3 className="text-sm font-black uppercase tracking-tight">{rank.name}</h3><p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest">₹{rank.threshold.toLocaleString()} Threshold</p></div>
+                          <div className="h-10 w-10 rounded-none bg-white/5 flex items-center justify-center" style={{ color: rank.color }}><Trophy size={20} /></div>
+                          <div><h3 className="text-sm font-black uppercase tracking-tight">{rank.name}</h3><p className="text-[8px] text-muted-foreground font-black uppercase tracking-widest">₹{rank.threshold.toLocaleString()} Requirement</p></div>
                        </div>
-                       <div className="text-right"><p className="text-lg font-black text-primary">{rank.discount}%</p><p className="text-[7px] font-black uppercase">Discount</p></div>
+                       <div className="text-right"><p className="text-lg font-black text-primary">{rank.discount}%</p><p className="text-[7px] font-black uppercase">Benefit</p></div>
                     </div>
-                    <Button variant="outline" onClick={() => handleOpenRankModal(rank)} className="w-full border-border h-10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/5">Configure Tier</Button>
+                    <Button variant="outline" onClick={() => handleOpenRankModal(rank)} className="w-full border-border h-10 rounded-none text-[9px] font-black uppercase tracking-widest hover:bg-white/5">Configure Level</Button>
                   </CardContent>
                 </Card>
               ))}
@@ -205,38 +250,38 @@ export default function AdminProductManagementPage() {
       </Tabs>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
-          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Registry SKU Entry</DialogTitle></DialogHeader>
+        <DialogContent className="bg-card border-border rounded-none p-8 max-w-xl">
+          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Product Information</DialogTitle></DialogHeader>
           <div className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2 col-span-2"><Label className="text-[9px] font-black uppercase">Package Name</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. 86 Diamonds" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" /></div>
-              <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Category ID</Label>
+              <div className="space-y-2 col-span-2"><Label className="text-[9px] font-black uppercase">Package Name</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. 86 Diamonds" className="bg-black/50 border-border h-12 rounded-none text-xs font-bold" /></div>
+              <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Game Category</Label>
                 <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
-                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl font-bold"><SelectValue placeholder="Select Title" /></SelectTrigger>
+                  <SelectTrigger className="bg-black/50 border-border h-12 rounded-none font-bold"><SelectValue placeholder="Select Game" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">{games?.map((g) => <SelectItem key={g.id} value={g.id} className="text-[10px] font-black uppercase">{g.name}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Price (INR)</Label><div className="relative"><IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary" /><Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold pl-10" /></div></div>
+              <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Price (₹)</Label><div className="relative"><IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-primary" /><Input type="number" value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} className="bg-black/50 border-border h-12 rounded-none text-xs font-bold pl-10" /></div></div>
             </div>
-            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-              <div className="space-y-0.5"><Label className="text-[10px] font-black uppercase">Active Status</Label></div>
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-none border border-white/5">
+              <div className="space-y-0.5"><Label className="text-[10px] font-black uppercase">Availability Status</Label></div>
               <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
             </div>
           </div>
-          <DialogFooter><Button onClick={handleSaveProduct} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] shadow-xl shadow-primary/20">{saving ? <Loader2 className="animate-spin" /> : "Commit SKU Registry"}</Button></DialogFooter>
+          <DialogFooter><Button onClick={handleSaveProduct} disabled={saving} className="w-full bg-primary h-14 rounded-none font-black uppercase text-[11px] shadow-xl shadow-primary/20">{saving ? <Loader2 className="animate-spin" /> : "Save Product Details"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={isRankModalOpen} onOpenChange={setIsRankModalOpen}>
-        <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl overflow-y-auto max-h-[90vh]">
-          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Rank Protocol Config</DialogTitle></DialogHeader>
+        <DialogContent className="bg-card border-border rounded-none p-8 max-w-xl overflow-y-auto max-h-[90vh]">
+          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Level Configuration</DialogTitle></DialogHeader>
           <div className="grid grid-cols-2 gap-6 py-6">
-            <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Rank ID</Label><Input value={rankFormData.id} disabled={!!editingRank} onChange={(e) => setRankFormData({...rankFormData, id: e.target.value})} placeholder="warrior" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" /></div>
-            <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Rank Name</Label><Input value={rankFormData.name} onChange={(e) => setRankFormData({...rankFormData, name: e.target.value})} placeholder="Warrior" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" /></div>
-            <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Threshold (₹)</Label><Input type="number" value={rankFormData.threshold} onChange={(e) => setRankFormData({...rankFormData, threshold: Number(e.target.value)})} className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" /></div>
-            <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Discount (%)</Label><Input type="number" value={rankFormData.discount} onChange={(e) => setRankFormData({...rankFormData, discount: Number(e.target.value)})} className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" /></div>
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Level ID</Label><Input value={rankFormData.id} disabled={!!editingRank} onChange={(e) => setRankFormData({...rankFormData, id: e.target.value})} placeholder="warrior" className="bg-black/50 border-border h-12 rounded-none text-xs font-bold" /></div>
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Display Name</Label><Input value={rankFormData.name} onChange={(e) => setRankFormData({...rankFormData, name: e.target.value})} placeholder="Warrior" className="bg-black/50 border-border h-12 rounded-none text-xs font-bold" /></div>
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Threshold (₹)</Label><Input type="number" value={rankFormData.threshold} onChange={(e) => setRankFormData({...rankFormData, threshold: Number(e.target.value)})} className="bg-black/50 border-border h-12 rounded-none text-xs font-bold" /></div>
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Benefit (%)</Label><Input type="number" value={rankFormData.discount} onChange={(e) => setRankFormData({...rankFormData, discount: Number(e.target.value)})} className="bg-black/50 border-border h-12 rounded-none text-xs font-bold" /></div>
           </div>
-          <DialogFooter><Button onClick={handleSaveRank} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest">{saving ? <Loader2 className="animate-spin" /> : "Commit Rank Protocol"}</Button></DialogFooter>
+          <DialogFooter><Button onClick={handleSaveRank} disabled={saving} className="w-full bg-primary h-14 rounded-none font-black uppercase text-[11px] tracking-widest">{saving ? <Loader2 className="animate-spin" /> : "Commit Level Update"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
