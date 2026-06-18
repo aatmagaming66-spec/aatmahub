@@ -43,7 +43,7 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  const productName = gameInfo?.name || id?.toString().replace(/-/g, ' ').toUpperCase() || "DIGITAL ASSET";
+  const productName = gameInfo?.name || id?.toString().replace(/-/g, ' ').toUpperCase() || "Product Details";
 
   useEffect(() => {
     if (packs && packs.length > 0 && !selectedPack) {
@@ -55,14 +55,14 @@ export default function ProductPage() {
 
   const handleVerify = () => {
     if (!playerId) {
-      toast({ variant: "destructive", title: "Missing ID", description: "Player ID is mandatory." });
+      toast({ variant: "destructive", title: "Information Required", description: "Player ID is needed to proceed." });
       return;
     }
     setVerifying(true);
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      toast({ title: "Account Verified", description: "Identity check established successfully." });
+      toast({ title: "Account Verified", description: "Your game account has been found." });
     }, 1200);
   };
 
@@ -78,11 +78,11 @@ export default function ProductPage() {
       price: selectedPack.price,
       quantity: 1,
       image: gameInfo?.logo || "",
-      region: selectedPack.region || "GLOBAL",
-      tabName: selectedPack.tab || "PACKAGE",
+      region: selectedPack.region || "Global",
+      tabName: selectedPack.tab || "Pack",
       playerId,
       serverId,
-      verifiedName: "AATMA_USER"
+      verifiedName: "Verified User"
     });
     router.push('/checkout');
   };
@@ -98,13 +98,13 @@ export default function ProductPage() {
       price: selectedPack.price,
       quantity: 1,
       image: gameInfo?.logo || "",
-      region: selectedPack.region || "GLOBAL",
-      tabName: selectedPack.tab || "PACKAGE",
+      region: selectedPack.region || "Global",
+      tabName: selectedPack.tab || "Pack",
       playerId,
       serverId,
-      verifiedName: "AATMA_USER"
+      verifiedName: "Verified User"
     });
-    toast({ title: "Added to Hub Queue" });
+    toast({ title: "Added to Cart" });
   };
 
   if (gameLoading) {
@@ -141,12 +141,12 @@ export default function ProductPage() {
           {isMlbb && (
             <div className="bg-primary px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8">
               <Zap size={10} className="text-white fill-white" />
-              <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Top-Up</span>
+              <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
             </div>
           )}
           <div className="bg-green-600 px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8">
             <ShieldCheck size={10} className="text-white fill-white" />
-            <span className="text-[9px] font-black uppercase text-white tracking-widest">Official Channel</span>
+            <span className="text-[9px] font-black uppercase text-white tracking-widest">Official Partner</span>
           </div>
           {gameInfo?.flag && (
             <div className="bg-white/10 backdrop-blur-md px-3 py-1 flex items-center gap-2 shadow-xl border border-white/10 h-8">
@@ -160,7 +160,7 @@ export default function ProductPage() {
           <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl">
             {productName}
           </h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-black opacity-40">Secured Marketplace Terminal</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-black opacity-40">Store Product Details</p>
         </div>
 
         <section className="bg-card border border-border p-6 rounded-none space-y-4 shadow-2xl relative overflow-hidden">
@@ -169,27 +169,27 @@ export default function ProductPage() {
           </div>
           <div className="flex items-center gap-2 px-1">
             <Smartphone size={16} className="text-primary" />
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Establish Identity</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Game Account Details</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-1.5">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Account User ID</Label>
-               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter Unique ID" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" />
+               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Player User ID</Label>
+               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter Account ID" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" />
              </div>
              <div className="space-y-1.5">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Server / Region (Optional)</Label>
-               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. Asia" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" />
+               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Server Name (Optional)</Label>
+               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. Asia-1" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" />
              </div>
           </div>
           <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-none font-black uppercase text-[11px] tracking-widest shadow-xl transition-all", isVerified ? "bg-green-600 hover:bg-green-600 shadow-green-500/20" : "bg-primary shadow-primary/20 shadow-primary/20")}>
-            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "PROTOCOL ESTABLISHED: AATMA_USER" : "Initiate Verification")}
+            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Account Verified Successfully" : "Verify My Account")}
           </Button>
         </section>
 
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <PackageSearch size={16} className="text-primary" />
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Select Hub Pack</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Choose Package</h3>
           </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-none mb-6 shadow-inner">
@@ -205,7 +205,7 @@ export default function ProductPage() {
             ) : packs.filter(p => p.tab === activeTab).length === 0 ? (
               <div className="bg-card/20 border border-dashed border-border rounded-none p-16 text-center">
                 <PackageSearch className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">Zero Results in Registry</p>
+                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">No packs available in this category</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -236,10 +236,10 @@ export default function ProductPage() {
 
         <div className="flex flex-col gap-4 pb-24">
           <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-primary/30 group transition-all h-20">
-            Establish Purchase <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            Buy Now <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Button variant="outline" onClick={handleAddToCart} disabled={!selectedPack || !isVerified} className="w-full h-16 border-border bg-transparent text-[11px] font-black uppercase tracking-widest rounded-none hover:bg-white/5 transition-all">
-            Link to Hub Cart
+            Add to Cart
           </Button>
         </div>
       </div>

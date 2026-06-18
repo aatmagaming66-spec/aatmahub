@@ -65,13 +65,13 @@ export default function OrdersPage() {
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-300">
       <header className="py-4">
         <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">My Orders</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Asset Tracking</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Order History and Status</p>
       </header>
 
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input 
-          placeholder="Search by Order ID or Product..." 
+          placeholder="Search for an order or item..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-none text-sm font-bold shadow-xl"
@@ -95,12 +95,12 @@ export default function OrdersPage() {
             ))
           ) : filteredOrders.length === 0 ? (
             <div className="py-20 text-center space-y-4 bg-card/20 rounded-none border border-dashed border-border">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">No orders found</p>
-              <Link href="/" prefetch={false}><Button variant="link" className="text-primary font-black uppercase text-[10px]">Start Shopping</Button></Link>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">You haven't placed any orders yet</p>
+              <Link href="/" prefetch={false}><Button variant="link" className="text-primary font-black uppercase text-[10px]">Shop Products</Button></Link>
             </div>
           ) : (
             filteredOrders.map((order) => {
-              const firstItem = order.items?.[0] || { name: 'Digital Asset', region: 'Global' };
+              const firstItem = order.items?.[0] || { name: 'Purchase Item', region: 'Global' };
               const s = getStatusIcon(order.status);
               const StatusIcon = s.icon;
 
@@ -126,7 +126,7 @@ export default function OrdersPage() {
                         <span className="text-xs font-black uppercase">{firstItem.region}</span>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <span className="text-[9px] font-black text-white/30 uppercase">Total Paid</span>
+                        <span className="text-[9px] font-black text-white/30 uppercase">Total Amount</span>
                         <span className="text-lg font-black text-white">₹{order.totalAmount}</span>
                       </div>
                     </div>

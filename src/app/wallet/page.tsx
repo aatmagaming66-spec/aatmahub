@@ -68,15 +68,13 @@ export default function WalletDashboard() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Wallet</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Balance & Transactions</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">My Wallet</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Balance and Payment History</p>
         </div>
       </header>
 
-      {/* 3D Card Shell - Optimized for immediate paint */}
       <div className="w-full mb-10 [perspective:1000px] cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
         <div className={cn("relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]", isFlipped && "[transform:rotateY(180deg)]")}>
-          {/* FRONT */}
           <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-none overflow-hidden shadow-2xl border p-6 flex flex-col justify-between", theme.bg, theme.border)}>
             <div className="flex justify-between items-start gap-4">
               <span className="font-headline font-black text-sm tracking-tighter text-white uppercase">AATMA HUB</span>
@@ -85,33 +83,32 @@ export default function WalletDashboard() {
                 <span className="text-[8px] font-black uppercase tracking-widest">{rankInfo.name}</span>
               </div>
             </div>
-            <div className="mt-auto space-y-4">
+            <div classNamemt-auto space-y-4>
               <div className="space-y-1.5">
                 {!initialized || !profile ? (
                   <Skeleton className="h-5 w-32 bg-white/10" />
                 ) : (
-                  <p className="text-base font-black text-white uppercase truncate">{profile?.fullName || 'AATMA Member'}</p>
+                  <p className="text-base font-black text-white uppercase truncate">{profile?.fullName || 'User Name'}</p>
                 )}
-                <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name} Rank</p>
               </div>
               <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-3.5">
-                <span>Reward: <span className="text-green-500/60">{rankInfo.discount}% OFF</span></span>
-                <span>Spent: <span className="text-white/60">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
+                <span>Benefits: <span className="text-green-500/60">{rankInfo.discount}% Discount</span></span>
+                <span>Total Spend: <span className="text-white/60">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
               </div>
             </div>
           </div>
-          {/* BACK */}
           <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-none overflow-hidden shadow-2xl border flex flex-col", theme.bg, theme.border)}>
             <div className="w-full h-10 bg-black/60 mt-6 shadow-inner" />
             <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2.5">
-              <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Credits</span>
+              <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Balance</span>
               <h2 className="text-3xl font-black text-white tracking-tighter">
                 {(!initialized || walletLoading) ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/40">.00</span>
               </h2>
             </div>
             <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest">
-              <span>Member ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
-              <span>Total Volume: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
+              <span>Account ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
+              <span>Account Spend: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
             </div>
           </div>
         </div>
@@ -120,7 +117,7 @@ export default function WalletDashboard() {
       <div className="flex gap-4">
         <Link href="/wallet/deposit" className="flex-1" prefetch={false}>
           <Button className="w-full h-16 bg-primary text-white font-black text-xs uppercase tracking-[0.2em] rounded-none shadow-xl gap-3">
-            <PlusCircle size={20} /> Deposit
+            <PlusCircle size={20} /> Add Funds
           </Button>
         </Link>
         <Link href="/wallet/history" className="flex-1" prefetch={false}>
@@ -134,7 +131,7 @@ export default function WalletDashboard() {
 
       <div className="space-y-5">
         <div className="flex justify-between items-end px-2">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Recent Activity</h3>
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Recent Transactions</h3>
           <Link href="/wallet/history" prefetch={false}><span className="text-[10px] font-black text-primary uppercase border-b border-primary/30">View All</span></Link>
         </div>
         <div className="space-y-3">
@@ -142,7 +139,7 @@ export default function WalletDashboard() {
             Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-none bg-card" />)
           ) : recentTransactions.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-10 rounded-none text-center">
-              <p className="text-[10px] font-black uppercase text-muted-foreground">No activity found</p>
+              <p className="text-[10px] font-black uppercase text-muted-foreground">No recent activity</p>
             </div>
           ) : (
              recentTransactions.map((tx) => (

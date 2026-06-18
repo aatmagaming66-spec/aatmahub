@@ -100,8 +100,8 @@ export default function AdminDashboard() {
 
     return [
       { label: 'Revenue (30d)', value: `₹${totalRevenue.toLocaleString()}`, icon: IndianRupee, color: 'text-primary' },
-      { label: 'Active Users', value: users?.length || 0, icon: Users, color: 'text-accent' },
-      { label: 'Recent Orders', value: orders?.length || 0, icon: ShoppingCart, color: 'text-white' },
+      { label: 'Total Users', value: users?.length || 0, icon: Users, color: 'text-accent' },
+      { label: 'Total Orders', value: orders?.length || 0, icon: ShoppingCart, color: 'text-white' },
       { label: 'Deposits (30d)', value: `₹${totalDeposits.toLocaleString()}`, icon: TrendingUp, color: 'text-green-400' },
     ];
   }, [users, orders, transactions, isMounted]);
@@ -122,13 +122,13 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = useMemo(() => [
-    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Titles & Regional Grid control' },
-    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'SKU Registry & Rank Protocol' },
-    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Identity & Wallet Registry' },
-    { label: 'Payment Hub', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Gateways & Financial logic' },
-    { label: 'Home Control', href: '/admin/homepage', icon: HomeIcon, desc: 'Layout & Section visibility' },
-    { label: 'System Settings', href: '/admin/system', icon: Settings, desc: 'Global settings & site kernel' },
-    { label: 'Archives', href: '/admin/backups', icon: Database, desc: 'Secure vault & data backups' },
+    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage games and regions' },
+    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage prices and ranks' },
+    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'View and edit user accounts' },
+    { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Configure payment gateways' },
+    { label: 'Home Page Editor', href: '/admin/homepage', icon: HomeIcon, desc: 'Change home page layout' },
+    { label: 'Global Settings', href: '/admin/system', icon: Settings, desc: 'Website and system settings' },
+    { label: 'System Backups', href: '/admin/backups', icon: Database, desc: 'Export and backup data' },
   ], []);
 
   if (!isMounted) return null;
@@ -137,17 +137,17 @@ export default function AdminDashboard() {
     <div className="space-y-6 animate-in fade-in duration-700 pb-10">
       <header className="flex justify-between items-end px-1">
         <div>
-          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Intelligence</h1>
-          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Operations Core v2.5</p>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Admin Dashboard</h1>
+          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Store Operations Manager</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/admin/analytics">
-             <div className="p-2 border border-border rounded-xl flex items-center bg-white/5 hover:border-primary transition-all">
+          <Link href="/admin/analytics" prefetch={false}>
+             <div className="p-2 border border-border rounded-none flex items-center bg-white/5 hover:border-primary transition-all">
                 <BarChart3 className="h-4 w-4 text-primary" />
              </div>
           </Link>
-          <Link href="/admin/settings/telegram">
-            <div className={`p-2 border border-border rounded-xl flex items-center transition-colors cursor-pointer ${tgStatus?.notificationsEnabled ? 'bg-primary/5 border-primary/30' : 'bg-black/20 opacity-50'}`}>
+          <Link href="/admin/settings/telegram" prefetch={false}>
+            <div className={`p-2 border border-border rounded-none flex items-center transition-colors cursor-pointer ${tgStatus?.notificationsEnabled ? 'bg-primary/5 border-primary/30' : 'bg-black/20 opacity-50'}`}>
               <Bot className={`h-4 w-4 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
             </div>
           </Link>
@@ -164,7 +164,7 @@ export default function AdminDashboard() {
         <section className="space-y-3">
            <div className="flex items-center gap-2 px-1">
               <ShieldCheck className="h-3 w-3 text-primary" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Super Admin Command Center</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Super Admin Tools</h2>
            </div>
            <div className="flex flex-col gap-2">
               {superModules.map((mod, i) => (
@@ -175,12 +175,12 @@ export default function AdminDashboard() {
       )}
 
       <div className="grid lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-3">
+        <Card className="lg:col-span-2 bg-card border-border rounded-none overflow-hidden shadow-2xl p-3">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-[10px] font-black uppercase tracking-widest">Sales Velocity</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest">Sales Overview</h3>
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">7D Growth</span>
+              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Last 7 Days</span>
             </div>
           </div>
           <div className="h-[110px] w-full">
@@ -188,8 +188,8 @@ export default function AdminDashboard() {
           </div>
         </Card>
 
-        <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-5 space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-widest">Distribution Pipeline</h3>
+        <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl p-5 space-y-4">
+          <h3 className="text-[10px] font-black uppercase tracking-widest">Order Status</h3>
           <div className="space-y-2">
             <PipelineItem label="Pending" count={orders?.filter(o => o.status === 'pending').length || 0} icon={Clock} color="text-orange-400" />
             <PipelineItem label="Processing" count={orders?.filter(o => o.status === 'processing').length || 0} icon={TrendingUp} color="text-accent" />
@@ -203,9 +203,9 @@ export default function AdminDashboard() {
 
 const StatCard = memo(function StatCard({ label, value, icon: Icon, color }: any) {
   return (
-    <Card className="h-[64px] bg-card border-border shadow-xl rounded-xl overflow-hidden group hover:border-primary/30 transition-all">
+    <Card className="h-[64px] bg-card border-border shadow-xl rounded-none overflow-hidden group hover:border-primary/30 transition-all">
       <CardContent className="p-1.5 flex flex-col justify-center gap-1 h-full">
-        <div className={`h-6 w-6 shrink-0 rounded-md bg-white/5 flex items-center justify-center ${color}`}>
+        <div className={`h-6 w-6 shrink-0 rounded-none bg-white/5 flex items-center justify-center ${color}`}>
           <Icon size={11} />
         </div>
         <div className="min-w-0">
@@ -219,10 +219,10 @@ const StatCard = memo(function StatCard({ label, value, icon: Icon, color }: any
 
 const ModuleCard = memo(function ModuleCard({ label, href, icon: Icon, desc }: any) {
   return (
-    <Link href={href}>
-      <Card className="bg-card border-border h-[72px] rounded-2xl hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl">
+    <Link href={href} prefetch={false}>
+      <Card className="bg-card border-border h-[72px] rounded-none hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl">
         <div className="flex items-center gap-4 w-full">
-          <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+          <div className="h-10 w-10 flex-shrink-0 rounded-none bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
             <Icon size={20} />
           </div>
           <div className="flex-1">
@@ -238,9 +238,9 @@ const ModuleCard = memo(function ModuleCard({ label, href, icon: Icon, desc }: a
 
 const PipelineItem = memo(function PipelineItem({ label, count, icon: Icon, color }: any) {
   return (
-    <div className="bg-white/5 border border-white/5 p-3 rounded-xl flex items-center justify-between">
+    <div className="bg-white/5 border border-white/5 p-3 rounded-none flex items-center justify-between">
       <div className="flex items-center gap-2.5">
-        <div className={`h-7 w-7 rounded-lg flex items-center justify-center bg-black/40 ${color}`}>
+        <div className={`h-7 w-7 rounded-none flex items-center justify-center bg-black/40 ${color}`}>
           <Icon size={14} />
         </div>
         <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>

@@ -59,7 +59,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (initialized && !user) {
-      toast({ variant: 'destructive', title: 'Session Required', description: 'Please login to complete your order.' });
+      toast({ variant: 'destructive', title: 'Login Required', description: 'Please login to finish your purchase.' });
       router.push('/login');
     }
   }, [user, initialized, router, toast]);
@@ -79,9 +79,9 @@ export default function CheckoutPage() {
       const key = `${item.playerId}_${item.serverId}`;
       if (!groups[key]) {
         groups[key] = {
-          playerId: item.playerId || 'UNKNOWN',
-          serverId: item.serverId || 'UNKNOWN',
-          verifiedName: item.verifiedName || 'AATMA_USER',
+          playerId: item.playerId || 'N/A',
+          serverId: item.serverId || 'N/A',
+          verifiedName: item.verifiedName || 'User',
           items: [],
           total: 0
         };
@@ -107,7 +107,7 @@ export default function CheckoutPage() {
     if (groupedIdentities.length === 0 || !user || !items || items.length === 0) return;
     
     if (paymentMethod === 'wallet' && walletBalance < totalAmount) {
-      toast({ variant: 'destructive', title: 'Insufficient Funds', description: 'Please recharge your wallet to proceed.' });
+      toast({ variant: 'destructive', title: 'Insufficient Balance', description: 'Please add funds to your wallet to continue.' });
       return;
     }
 
@@ -164,7 +164,7 @@ export default function CheckoutPage() {
         };
 
         updateDoc(walletDocRef, { balance: increment(-totalAmount), updatedAt: new Date().toISOString() })
-          .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `increment(${-totalAmount})` } })));
+          .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `decrement(${totalAmount})` } })));
 
         setDoc(txRef, txData)
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: txRef.path, operation: 'create', requestResourceData: txData })));
@@ -181,9 +181,9 @@ export default function CheckoutPage() {
           currentRank: newRank.name,
           rankId: newRank.id,
           updatedAt: new Date().toISOString()
-        }).catch(err => console.error("Membership sync failure", err));
+        }).catch(err => console.error("Update fail", err));
 
-        sendTelegramNotification(db, `🚀 <b>NEW MULTI-ORDER (WALLET)</b>\n\n📦 ID: ${orderId}\n👤 User: ${profile?.fullName || user.email}\n🎯 Targets: ${groupedIdentities.length}\n💰 Total: ₹${totalAmount}`);
+        sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nAmount: ₹${totalAmount}`);
         router.push(`/checkout/success/${orderId}`);
       } else if (paymentMethod === 'phonepe') {
         await setDoc(orderRef, { ...baseOrderData, status: 'pending_payment' });
@@ -198,11 +198,11 @@ export default function CheckoutPage() {
         if (data.success && data.paymentUrl) {
           window.location.href = data.paymentUrl;
         } else {
-          throw new Error(data.error || 'Gateway response invalid.');
+          throw new Error(data.error || 'Payment gateway error.');
         }
       }
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Order Failed', description: error.message });
+      toast({ variant: 'destructive', title: 'Order Error', description: error.message });
     } finally {
       setSubmitting(false);
     }
@@ -212,14 +212,10 @@ export default function CheckoutPage() {
     <div className="flex flex-col w-full p-4 space-y-6 animate-in fade-in duration-700">
       <header className="py-2">
         <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Checkout</h1>
-        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Review & Complete Order</p>
+        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Review Order Details</p>
       </header>
 
       <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl relative">
-        <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none -rotate-12">
-          <Layers size={100} />
-        </div>
-        
         <CardContent className="p-0">
           <div className="grid grid-cols-2 border-b border-border">
             <div className="p-4 border-r border-border text-center space-y-0.5">
@@ -227,7 +223,7 @@ export default function CheckoutPage() {
               <p className="text-xl font-black text-white">{totalAccounts || '0'}</p>
             </div>
             <div className="p-4 text-center space-y-0.5">
-              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Products</span>
+              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Items</span>
               <p className="text-xl font-black text-white">{totalProducts || '0'}</p>
             </div>
           </div>
@@ -235,7 +231,7 @@ export default function CheckoutPage() {
           <div className="p-3 border-b border-border bg-black/20">
             <div className="flex items-center gap-2 mb-2 px-1">
                <ShieldCheck className="h-2.5 w-2.5 text-green-500" />
-               <span className="text-[8px] font-black uppercase tracking-widest text-white/50">Verified Account</span>
+               <span className="text-[8px] font-black uppercase tracking-widest text-white/50">Verified Delivery Target</span>
             </div>
             
             {!initialized && items?.length > 0 ? <Skeleton className="h-20 w-full bg-white/5" /> : (
@@ -284,11 +280,11 @@ export default function CheckoutPage() {
 
           <div className="p-5 space-y-2">
             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-              <span>Grand Total</span>
+              <span>Order Subtotal</span>
               <span className="text-white">₹{totalAmount}</span>
             </div>
             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
-              <span>Wallet Credit</span>
+              <span>Wallet Balance</span>
               {walletLoading ? <Skeleton className="h-4 w-12 bg-white/10" /> : (
                 <span className={walletBalance < totalAmount && paymentMethod === 'wallet' ? 'text-primary' : 'text-green-500'}>
                   ₹{walletBalance.toLocaleString()}
@@ -298,7 +294,7 @@ export default function CheckoutPage() {
             
             <div className="pt-3 border-t border-border flex justify-between items-end">
               <div className="space-y-0.5">
-                <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Payable Amount</span>
+                <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Total Payable</span>
                 <p className="text-3xl font-black text-white tracking-tighter leading-none">₹{payableAmount}</p>
               </div>
               <div className="bg-primary/10 border border-primary/20 px-2.5 py-1.5">
@@ -311,7 +307,6 @@ export default function CheckoutPage() {
 
       <section className="space-y-3">
         <div className="flex items-center gap-2 px-1">
-          <div className="h-4 w-1 bg-accent rounded-full" />
           <h3 className="text-[10px] font-black uppercase tracking-widest text-white/80">Select Payment Method</h3>
         </div>
         <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-2.5">
@@ -320,13 +315,12 @@ export default function CheckoutPage() {
               <Wallet size={14} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
             </div>
             <div className="text-center">
-              <span className="text-[10px] font-black uppercase block leading-none mb-1">Wallet Balance</span>
+              <span className="text-[10px] font-black uppercase block leading-none mb-1">Pay with Wallet</span>
               {walletLoading ? <Skeleton className="h-2 w-10 mx-auto bg-white/10" /> : (
-                <span className={`text-[7px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>₹{walletBalance.toLocaleString()}</span>
+                <span className={`text-[7px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>Balance: ₹{walletBalance.toLocaleString()}</span>
               )}
             </div>
             <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
-            {paymentMethod === 'wallet' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-2.5 w-2.5 text-primary" /></div>}
           </Label>
           
           <Label htmlFor="phonepe" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-none border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
@@ -335,10 +329,9 @@ export default function CheckoutPage() {
             </div>
             <div className="text-center">
               <span className="text-[10px] font-black uppercase block leading-none mb-1">PhonePe UPI</span>
-              <span className="text-[7px] font-bold text-muted-foreground uppercase">Instant Activation</span>
+              <span className="text-[7px] font-bold text-muted-foreground uppercase">Instant Payment</span>
             </div>
             <RadioGroupItem value="phonepe" id="phonepe" className="sr-only" />
-            {paymentMethod === 'phonepe' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-2.5 w-2.5 text-primary" /></div>}
           </Label>
         </RadioGroup>
       </section>
@@ -356,7 +349,7 @@ export default function CheckoutPage() {
 
       <div className="flex items-center justify-center gap-2 py-4 opacity-20">
         <ShieldCheck className="h-3 w-3" />
-        <span className="text-[6px] font-black uppercase tracking-[0.4em]">Secure Encrypted Checkout</span>
+        <span className="text-[6px] font-black uppercase tracking-[0.4em]">Secure Encrypted Payment</span>
       </div>
     </div>
   );

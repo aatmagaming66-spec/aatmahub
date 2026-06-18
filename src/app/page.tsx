@@ -17,21 +17,19 @@ export default function Home() {
     const mountTime = performance.now();
     if (window.__nav_click_time) {
       const duration = mountTime - window.__nav_click_time;
-      console.log(`[PERF_HUB] Homepage Navigation Load: ${duration.toFixed(2)}ms`);
+      console.log(`[PERF] Navigation Load: ${duration.toFixed(2)}ms`);
       window.__nav_click_time = undefined;
     }
   }, []);
 
   const homepageConfig = useMemo(() => {
-    const config = siteSettings?.homepage || {
+    return siteSettings?.homepage || {
       showGames: true,
       showOtt: true,
       showSocial: true,
       showLiveActivity: true,
       showTrustBadges: true,
     };
-    console.log('[DIAGNOSTIC] Homepage Visibility Config:', config);
-    return config;
   }, [siteSettings]);
 
   return (
@@ -41,29 +39,29 @@ export default function Home() {
       {homepageConfig.showTrustBadges && (
         <section className="px-4 py-0.5 mt-4">
           <div className="grid grid-cols-4 gap-1.5">
-            <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
-              <div className="p-0.5 bg-primary/10 rounded-md">
+            <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-none h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
+              <div className="p-0.5 bg-primary/10 rounded-none">
                 <Lock className="h-2.5 w-2.5 text-primary" />
               </div>
               <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Secure</span>
             </div>
             
-            <div className="bg-card/40 backdrop-blur-md border border-accent/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
-              <div className="p-0.5 bg-accent/10 rounded-md">
+            <div className="bg-card/40 backdrop-blur-md border border-accent/20 rounded-none h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
+              <div className="p-0.5 bg-accent/10 rounded-none">
                 <Zap className="h-2.5 w-2.5 text-accent" />
               </div>
               <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Instant</span>
             </div>
 
-            <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
-              <div className="p-0.5 bg-white/5 rounded-md">
+            <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-none h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
+              <div className="p-0.5 bg-white/5 rounded-none">
                 <ShieldCheck className="h-2.5 w-2.5 text-white" />
               </div>
               <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Trusted</span>
             </div>
 
-            <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-lg h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
-              <div className="p-0.5 bg-primary/10 rounded-md">
+            <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-none h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
+              <div className="p-0.5 bg-primary/10 rounded-none">
                 <Headphones className="h-2.5 w-2.5 text-primary" />
               </div>
               <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Support</span>
@@ -75,8 +73,8 @@ export default function Home() {
       <QuickActions />
       
       {homepageConfig.showGames && <GameGrid />}
-      {homepageConfig.showOtt && <ServiceCarousel title="Premium OTT" category="OTT Services" />}
-      {homepageConfig.showSocial && <ServiceCarousel title="Social Growth" category="Social Services" />}
+      {homepageConfig.showOtt && <ServiceCarousel title="Premium OTT Plans" category="OTT Services" />}
+      {homepageConfig.showSocial && <ServiceCarousel title="Social Growth Services" category="Social Services" />}
       {homepageConfig.showLiveActivity && <LiveActivity />}
 
       <footer className="px-6 py-10 mt-10 border-t border-border bg-background flex flex-col items-center text-center">
@@ -94,13 +92,13 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-4 mb-8 text-white/40 text-[9px] font-black uppercase tracking-[0.2em]">
-          <Link href="/terms" className="hover:text-primary transition-colors">Terms</Link>
+          <Link href="/terms" prefetch={false} className="hover:text-primary transition-colors">Terms</Link>
           <span className="text-border opacity-30">•</span>
-          <Link href="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+          <Link href="/privacy" prefetch={false} className="hover:text-primary transition-colors">Privacy</Link>
           <span className="text-border opacity-30">•</span>
-          <Link href="/refund-policy" className="hover:text-primary transition-colors">Refund Policy</Link>
+          <Link href="/refund-policy" prefetch={false} className="hover:text-primary transition-colors">Refund Policy</Link>
           <span className="text-border opacity-30">•</span>
-          <Link href="/contact" className="hover:text-primary transition-colors">Contact</Link>
+          <Link href="/contact" prefetch={false} className="hover:text-primary transition-colors">Contact</Link>
         </div>
 
         <div className="flex flex-col items-center">
