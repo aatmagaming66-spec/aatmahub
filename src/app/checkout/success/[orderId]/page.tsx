@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -51,7 +50,7 @@ export default function OrderSuccessPage() {
     return (
       <div className="flex flex-col items-center justify-center h-[80vh] p-6 text-center">
         <h2 className="text-2xl font-black uppercase tracking-tighter mb-4">Order Not Found</h2>
-        <Button onClick={() => router.push('/')} className="bg-primary rounded-2xl">Return Home</Button>
+        <Button onClick={() => router.push('/')} className="bg-primary rounded-none">Return Home</Button>
       </div>
     );
   }
@@ -59,7 +58,7 @@ export default function OrderSuccessPage() {
   return (
     <div className="flex flex-col w-full p-6 space-y-10 animate-in zoom-in-95 duration-700">
       <div className="flex flex-col items-center text-center space-y-4 pt-10">
-        <div className="h-20 w-20 bg-green-500/20 rounded-full flex items-center justify-center border-4 border-green-500/30 shadow-[0_0_40px_rgba(34,197,94,0.3)]">
+        <div className="h-20 w-20 bg-green-500/20 rounded-none flex items-center justify-center border-4 border-green-500/30 shadow-[0_0_40px_rgba(34,197,94,0.3)]">
           <CheckCircle2 className="h-10 w-10 text-green-500" />
         </div>
         <div className="space-y-1">
@@ -68,7 +67,7 @@ export default function OrderSuccessPage() {
         </div>
       </div>
 
-      <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl relative">
+      <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl relative">
         <div className="absolute top-0 right-0 p-8 opacity-5 -rotate-12 scale-150">
           <ShieldCheck size={140} />
         </div>
@@ -108,7 +107,7 @@ export default function OrderSuccessPage() {
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Total Amount Paid</span>
                 <p className="text-4xl font-black text-primary tracking-tighter">₹{order.totalAmount}</p>
               </div>
-              <div className="bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+              <div className="bg-white/5 px-4 py-2 border border-white/5">
                 <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Digital Asset Secured</span>
               </div>
             </div>
@@ -118,19 +117,19 @@ export default function OrderSuccessPage() {
 
       <div className="space-y-4">
         <Link href="/orders" className="block">
-          <Button className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 group">
+          <Button className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] rounded-none shadow-xl shadow-primary/20 group">
             View My Orders
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </Link>
         <Link href="/" className="block">
-          <Button variant="outline" className="w-full h-14 border-border bg-transparent text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-white/5">
+          <Button variant="outline" className="w-full h-14 border-border bg-transparent text-[10px] font-black uppercase tracking-widest rounded-none hover:bg-white/5">
             Continue Shopping
           </Button>
         </Link>
       </div>
 
-      <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
+      <div className="bg-primary/5 p-6 rounded-none border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
           <Info className="h-4 w-4 text-primary" />
           <span className="text-[10px] font-black uppercase tracking-widest text-primary">Distribution Notice</span>

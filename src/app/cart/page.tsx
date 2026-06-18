@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useCart } from "@/context/cart-context";
@@ -16,7 +15,7 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] px-6 text-center animate-in fade-in duration-700">
-        <div className="h-24 w-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+        <div className="h-24 w-24 bg-primary/10 flex items-center justify-center mb-6">
           <ShoppingBag className="h-10 w-10 text-primary" />
         </div>
         <h2 className="text-2xl font-headline font-black uppercase tracking-tighter mb-2">Your cart is empty</h2>
@@ -24,7 +23,7 @@ export default function CartPage() {
           Add some digital items to get started
         </p>
         <Link href="/">
-          <Button className="bg-primary hover:bg-secondary h-14 px-8 rounded-2xl font-black uppercase tracking-widest text-xs">
+          <Button className="bg-primary hover:bg-secondary h-14 px-8 rounded-none font-black uppercase tracking-widest text-xs">
             Start Shopping
           </Button>
         </Link>
@@ -45,7 +44,7 @@ export default function CartPage() {
           <Button 
             variant="ghost" 
             onClick={clearCart}
-            className="text-[9px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 h-8"
+            className="text-[9px] font-black text-primary uppercase tracking-widest hover:bg-primary/5 h-8 rounded-none"
           >
             Clear Cart
           </Button>
@@ -54,9 +53,9 @@ export default function CartPage() {
 
       <div className="space-y-4">
         {items.map((item) => (
-          <Card key={item.id} className="bg-card border-border rounded-3xl overflow-hidden shadow-xl">
+          <Card key={item.id} className="bg-card border-border rounded-none overflow-hidden shadow-xl">
             <CardContent className="p-4 flex gap-4">
-              <div className="relative h-20 w-20 flex-shrink-0 rounded-2xl overflow-hidden border border-border">
+              <div className="relative h-20 w-20 flex-shrink-0 rounded-none overflow-hidden border border-border">
                 <Image src={item.image} alt={item.name} fill className="object-cover" />
               </div>
               <div className="flex-1 flex flex-col justify-between py-1">
@@ -74,7 +73,7 @@ export default function CartPage() {
                   </div>
                 </div>
                 <div className="flex justify-between items-center mt-2">
-                  <div className="flex items-center bg-black/40 rounded-xl border border-border p-1">
+                  <div className="flex items-center bg-black/40 rounded-none border border-border p-1">
                     <button 
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       className="h-7 w-7 flex items-center justify-center text-white hover:text-primary transition-colors"
@@ -101,7 +100,7 @@ export default function CartPage() {
       </div>
 
       <div className="space-y-6 pt-6">
-        <div className="bg-card border border-border rounded-3xl p-6 space-y-4 shadow-2xl">
+        <div className="bg-card border border-border rounded-none p-6 space-y-4 shadow-2xl">
           <div className="flex justify-between items-center">
             <span className="text-xs font-black text-muted-foreground uppercase tracking-widest">Subtotal</span>
             <span className="text-sm font-black">₹{totalAmount}</span>
@@ -119,13 +118,13 @@ export default function CartPage() {
         <div className="flex flex-col gap-3">
           <Button 
             onClick={() => router.push('/checkout')}
-            className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl transition-all group"
+            className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-none transition-all group"
           >
             Proceed to Checkout
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </Button>
           <Link href="/">
-            <Button variant="outline" className="w-full h-14 border-white/5 bg-transparent text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-white/5">
+            <Button variant="outline" className="w-full h-14 border-white/5 bg-transparent text-[10px] font-black uppercase tracking-widest rounded-none hover:bg-white/5">
               <ArrowLeft className="mr-2 h-4 w-4" /> Continue Shopping
             </Button>
           </Link>

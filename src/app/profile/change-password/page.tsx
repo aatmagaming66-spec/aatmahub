@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -24,10 +23,6 @@ import {
   EyeOff
 } from 'lucide-react';
 
-/**
- * Change Password Sector
- * Optimized for instant shell mounting and background auth verification.
- */
 export default function ChangePasswordPage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -104,7 +99,7 @@ export default function ChangePasswordPage() {
           variant="ghost" 
           size="icon" 
           onClick={() => router.back()}
-          className="rounded-full hover:bg-white/5"
+          className="rounded-none hover:bg-white/5"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
@@ -114,9 +109,9 @@ export default function ChangePasswordPage() {
         </div>
       </header>
 
-      <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+      <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl">
         <CardHeader className="p-8 text-center border-b border-white/5">
-          <div className="h-16 w-16 bg-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-accent/20">
+          <div className="h-16 w-16 bg-accent/10 rounded-none flex items-center justify-center mx-auto mb-4 border border-accent/20">
             <Key size={30} className="text-accent" />
           </div>
           <CardTitle className="text-xl font-black uppercase tracking-tighter">Modify Credentials</CardTitle>
@@ -130,7 +125,7 @@ export default function ChangePasswordPage() {
                 <Input 
                   type={showCurrent ? "text" : "password"}
                   placeholder="Verify existing password" 
-                  className="bg-black/50 border-border h-14 rounded-2xl focus:border-primary font-bold text-sm"
+                  className="bg-black/50 border-border h-14 rounded-none focus:border-primary font-bold text-sm"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                 />
@@ -152,7 +147,7 @@ export default function ChangePasswordPage() {
                 <Input 
                   type={showNew ? "text" : "password"}
                   placeholder="Minimum 8 characters" 
-                  className="bg-black/50 border-border h-14 rounded-2xl focus:border-accent font-bold text-sm"
+                  className="bg-black/50 border-border h-14 rounded-none focus:border-accent font-bold text-sm"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
@@ -171,7 +166,7 @@ export default function ChangePasswordPage() {
               <Input 
                 type="password"
                 placeholder="Repeat new credentials" 
-                className="bg-black/50 border-border h-14 rounded-2xl focus:border-accent font-bold text-sm"
+                className="bg-black/50 border-border h-14 rounded-none focus:border-accent font-bold text-sm"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
@@ -179,7 +174,7 @@ export default function ChangePasswordPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-primary/20 gap-2"
+              className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20 gap-2"
               disabled={loading}
             >
               {loading ? (
@@ -197,7 +192,7 @@ export default function ChangePasswordPage() {
         </CardContent>
       </Card>
 
-      <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
+      <div className="bg-primary/5 p-6 rounded-none border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
           <Lock className="h-4 w-4 text-primary" />
           <span className="text-[10px] font-black uppercase tracking-widest text-primary">Security Note</span>

@@ -31,10 +31,6 @@ const SLIDES = [
   }
 ];
 
-/**
- * HERO BANNER - REBUILT NATIVE STRUCTURE
- * Uses direct HTML <img> tags to avoid nested absolute wrappers.
- */
 export function HeroBanner() {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, duration: 30 },
@@ -60,23 +56,20 @@ export function HeroBanner() {
 
   return (
     <section className="relative w-full h-[220px] overflow-hidden px-4 mt-4">
-      <div className="relative w-full h-full rounded-3xl overflow-hidden shadow-2xl border border-white/5" ref={emblaRef}>
+      <div className="relative w-full h-full rounded-none overflow-hidden shadow-2xl border border-white/5" ref={emblaRef}>
         <div className="flex h-full">
           {SLIDES.map((slide, index) => {
             const img = PlaceHolderImages.find(img => img.id === slide.imgId);
             return (
               <div key={slide.id} className="relative flex-[0_0_100%] min-w-0 h-full">
-                {/* DIRECT IMAGE RENDER (LAYER 0) */}
                 <img
                   src={img?.imageUrl || "https://picsum.photos/seed/aatma/1200/600"}
                   alt={slide.title}
                   className="block w-full h-full object-cover z-0"
                 />
                 
-                {/* SEMI-TRANSPARENT LAYER (LAYER 1) - ONLY TEXT READABILITY */}
                 <div className="absolute inset-0 bg-black/40 z-10" />
                 
-                {/* CONTENT LAYER (LAYER 2) */}
                 <div className="absolute inset-0 z-20 flex flex-col justify-center px-8">
                   <h2 className="text-2xl font-headline font-black text-white mb-1.5 leading-tight tracking-tighter max-w-[200px] uppercase">
                     {slide.title}
@@ -85,7 +78,7 @@ export function HeroBanner() {
                     {slide.description}
                   </p>
                   <div>
-                    <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-full border-none">
+                    <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-none border-none">
                       {slide.cta}
                     </Button>
                   </div>
@@ -101,7 +94,7 @@ export function HeroBanner() {
               key={index}
               onClick={() => scrollTo(index)}
               className={cn(
-                "h-1 transition-all rounded-full",
+                "h-1 transition-all rounded-none",
                 selectedIndex === index ? "w-4 bg-primary" : "w-1.5 bg-white/20"
               )}
             />

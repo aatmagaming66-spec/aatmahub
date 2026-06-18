@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/accordion";
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { FirestorePermissionError } from '@/firebase/errors';
 import { 
   ShieldCheck, 
   CheckCircle2, 
@@ -30,10 +30,8 @@ import {
   Loader2,
   User,
   Package,
-  Zap,
   Layers,
-  Receipt,
-  ChevronDown
+  Receipt
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
 import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
@@ -49,7 +47,6 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
 
-  // REDIRECT GATING
   useEffect(() => {
     if (initialized && (!items || items.length === 0)) {
       router.push('/cart');
@@ -67,7 +64,6 @@ export default function CheckoutPage() {
     }
   }, [user, initialized, router, toast]);
 
-  // IDENTITY GROUPING LOGIC
   const groupedIdentities = useMemo(() => {
     if (!items || items.length === 0) return [];
     
@@ -167,19 +163,15 @@ export default function CheckoutPage() {
           serverTimestamp: serverTimestamp(),
         };
 
-        // 1. Debit Wallet
         updateDoc(walletDocRef, { balance: increment(-totalAmount), updatedAt: new Date().toISOString() })
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `increment(${-totalAmount})` } })));
 
-        // 2. Log Transaction
         setDoc(txRef, txData)
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: txRef.path, operation: 'create', requestResourceData: txData })));
 
-        // 3. Create Order
         await setDoc(orderRef, { ...baseOrderData, status: 'pending' })
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: orderRef.path, operation: 'create', requestResourceData: baseOrderData })));
         
-        // 4. Update Lifetime Spending & Rank Persistence
         const currentSpend = profile?.lifetimeSpend || 0;
         const newSpend = currentSpend + totalAmount;
         const newRank = getRankFromSpend(newSpend, DEFAULT_RANKS);
@@ -223,14 +215,12 @@ export default function CheckoutPage() {
         <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Review & Complete Order</p>
       </header>
 
-      {/* OPTIMIZED COMPACT UNIFIED SUMMARY CARD */}
-      <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl relative">
+      <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl relative">
         <div className="absolute top-0 right-0 p-4 opacity-[0.02] pointer-events-none -rotate-12">
           <Layers size={100} />
         </div>
         
         <CardContent className="p-0">
-          {/* Header Stats - Compact */}
           <div className="grid grid-cols-2 border-b border-border">
             <div className="p-4 border-r border-border text-center space-y-0.5">
               <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Accounts</span>
@@ -242,25 +232,24 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Collapsible Identity Snapshots - Compact */}
           <div className="p-3 border-b border-border bg-black/20">
             <div className="flex items-center gap-2 mb-2 px-1">
                <ShieldCheck className="h-2.5 w-2.5 text-green-500" />
                <span className="text-[8px] font-black uppercase tracking-widest text-white/50">Verified Account</span>
             </div>
             
-            {!initialized && items?.length > 0 ? <Skeleton className="h-20 w-full rounded-xl bg-white/5" /> : (
+            {!initialized && items?.length > 0 ? <Skeleton className="h-20 w-full bg-white/5" /> : (
               <Accordion type="single" collapsible className="space-y-1.5">
                 {groupedIdentities.map((group, idx) => (
                   <AccordionItem 
                     key={idx} 
                     value={`account-${idx}`}
-                    className="border border-white/5 rounded-xl overflow-hidden bg-white/5"
+                    className="border border-white/5 rounded-none overflow-hidden bg-white/5"
                   >
                     <AccordionTrigger className="px-3 py-2 hover:no-underline group text-left">
                       <div className="flex items-center justify-between w-full pr-2">
                         <div className="flex items-center gap-2.5">
-                          <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <div className="h-7 w-7 bg-primary/10 flex items-center justify-center">
                             <User size={12} className="text-primary" />
                           </div>
                           <div className="text-left">
@@ -279,7 +268,7 @@ export default function CheckoutPage() {
                         </div>
                         <div className="space-y-1">
                           {group.items.map((item, i) => (
-                            <div key={i} className="flex justify-between items-center bg-black/40 p-1.5 rounded-lg">
+                            <div key={i} className="flex justify-between items-center bg-black/40 p-1.5">
                               <span className="text-[7px] font-bold text-white/70 uppercase truncate max-w-[140px]">{item.name}</span>
                               <span className="text-[7px] font-black text-primary">₹{item.price * item.quantity}</span>
                             </div>
@@ -293,7 +282,6 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* Financial Summary Footer - Compact */}
           <div className="p-5 space-y-2">
             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
               <span>Grand Total</span>
@@ -313,7 +301,7 @@ export default function CheckoutPage() {
                 <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Payable Amount</span>
                 <p className="text-3xl font-black text-white tracking-tighter leading-none">₹{payableAmount}</p>
               </div>
-              <div className="bg-primary/10 border border-primary/20 px-2.5 py-1.5 rounded-lg">
+              <div className="bg-primary/10 border border-primary/20 px-2.5 py-1.5">
                  <Receipt size={14} className="text-primary" />
               </div>
             </div>
@@ -321,15 +309,14 @@ export default function CheckoutPage() {
         </CardContent>
       </Card>
 
-      {/* Payment Selection - Reduced Height Layout */}
       <section className="space-y-3">
         <div className="flex items-center gap-2 px-1">
           <div className="h-4 w-1 bg-accent rounded-full" />
           <h3 className="text-[10px] font-black uppercase tracking-widest text-white/80">Select Payment Method</h3>
         </div>
         <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-2.5">
-          <Label htmlFor="wallet" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'wallet' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-primary/20' : 'bg-white/5'}`}>
+          <Label htmlFor="wallet" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-none border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'wallet' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
+            <div className={`h-8 w-8 flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-primary/20' : 'bg-white/5'}`}>
               <Wallet size={14} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
             </div>
             <div className="text-center">
@@ -342,8 +329,8 @@ export default function CheckoutPage() {
             {paymentMethod === 'wallet' && <div className="absolute top-2 right-2"><CheckCircle2 className="h-2.5 w-2.5 text-primary" /></div>}
           </Label>
           
-          <Label htmlFor="phonepe" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className={`h-8 w-8 rounded-xl flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
+          <Label htmlFor="phonepe" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-none border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
+            <div className={`h-8 w-8 flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
               <Smartphone size={14} className={paymentMethod === 'phonepe' ? 'text-primary' : 'text-muted-foreground'} />
             </div>
             <div className="text-center">
@@ -356,16 +343,15 @@ export default function CheckoutPage() {
         </RadioGroup>
       </section>
 
-      {/* Action Area */}
       <div className="flex flex-col gap-3 pt-1">
         <Button 
-          className="w-full h-14 bg-primary hover:bg-secondary text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-2xl group transition-all"
+          className="w-full h-14 bg-primary hover:bg-secondary text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-none group transition-all"
           onClick={handlePlaceOrder} 
           disabled={submitting || totalAccounts === 0}
         >
           {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Place Order <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /></>}
         </Button>
-        <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-10 text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-white"><ArrowLeft className="mr-2 h-2.5 w-2.5" /> Back to Cart</Button>
+        <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-10 text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-white rounded-none"><ArrowLeft className="mr-2 h-2.5 w-2.5" /> Back to Cart</Button>
       </div>
 
       <div className="flex items-center justify-center gap-2 py-4 opacity-20">

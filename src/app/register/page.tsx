@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -76,7 +75,6 @@ export default function RegisterPage() {
         }));
       });
 
-      // Notify Telegram
       const tgMsg = `🆕 <b>NEW USER REGISTERED</b>\n\n` +
         `👤 <b>Name:</b> ${fullName}\n` +
         `📧 <b>Email:</b> ${email}\n` +
@@ -97,7 +95,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4 animate-in fade-in duration-700">
-      <Card className="w-full max-w-md bg-card border-border rounded-3xl shadow-2xl overflow-hidden">
+      <Card className="w-full max-w-md bg-card border-border rounded-none shadow-2xl overflow-hidden">
         <CardHeader className="p-8 text-center space-y-2">
           <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Create Account</CardTitle>
           <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Join AATMA HUB Premium</CardDescription>
@@ -108,7 +106,7 @@ export default function RegisterPage() {
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
               <Input 
                 placeholder="John Doe" 
-                className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
+                className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
               />
@@ -118,7 +116,7 @@ export default function RegisterPage() {
               <Input 
                 type="email"
                 placeholder="john@example.com" 
-                className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
+                className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -127,7 +125,7 @@ export default function RegisterPage() {
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone Number</Label>
               <Input 
                 placeholder="+91 1234567890" 
-                className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
+                className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
               />
@@ -137,7 +135,7 @@ export default function RegisterPage() {
               <Input 
                 type="password"
                 placeholder="Min 8 characters" 
-                className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
+                className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -147,14 +145,14 @@ export default function RegisterPage() {
               <Input 
                 type="password"
                 placeholder="Repeat password" 
-                className="bg-background/50 border-border h-12 rounded-xl focus:border-primary transition-all"
+                className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
             </div>
             <Button 
               type="submit" 
-              className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-primary/20"
+              className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20"
               disabled={loading}
             >
               {loading ? "Creating Account..." : "Join Now"}
