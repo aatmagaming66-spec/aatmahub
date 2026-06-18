@@ -107,8 +107,8 @@ export default function AdminUsersPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Identity Registry</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Full User Lifecycle Control</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">User Management</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Full Identity Lifecycle Control</p>
         </div>
       </header>
 
@@ -118,11 +118,11 @@ export default function AdminUsersPage() {
           placeholder="Search by Name, Email or UID..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
+          className="bg-card border-border pl-12 h-14 rounded-none text-xs font-bold focus:border-primary shadow-xl"
         />
       </div>
 
-      <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-2xl">
+      <div className="bg-card border border-border rounded-none overflow-hidden shadow-2xl">
         <Table>
           <TableHeader className="bg-black/20">
             <TableRow className="border-border">
@@ -138,7 +138,7 @@ export default function AdminUsersPage() {
                 <TableRow key={i} className="border-border opacity-40">
                   <TableCell className="py-6 px-6">
                     <div className="flex items-center gap-4">
-                      <Skeleton className="h-10 w-10 rounded-full bg-white/5" />
+                      <Skeleton className="h-10 w-10 rounded-none bg-white/5" />
                       <div className="space-y-2">
                         <Skeleton className="h-4 w-32 bg-white/5" />
                         <Skeleton className="h-3 w-48 bg-white/5" />
@@ -147,7 +147,7 @@ export default function AdminUsersPage() {
                   </TableCell>
                   <TableCell><Skeleton className="h-6 w-20 bg-white/5" /></TableCell>
                   <TableCell><Skeleton className="h-6 w-20 bg-white/5" /></TableCell>
-                  <TableCell className="text-right px-6"><Skeleton className="h-8 w-8 ml-auto rounded-full bg-white/5" /></TableCell>
+                  <TableCell className="text-right px-6"><Skeleton className="h-8 w-8 ml-auto rounded-none bg-white/5" /></TableCell>
                 </TableRow>
               ))
             ) : filteredUsers.length === 0 ? (
@@ -172,7 +172,7 @@ export default function AdminUsersPage() {
       </div>
 
       <Dialog open={!!adjustingUser} onOpenChange={() => setAdjustingUser(null)}>
-        <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-sm">
+        <DialogContent className="bg-card border-border rounded-none p-8 max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-xl font-black uppercase tracking-tighter">Wallet Adjustment</DialogTitle>
             <DialogDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
@@ -187,13 +187,13 @@ export default function AdminUsersPage() {
                   placeholder="e.g. 100 or -100" 
                   value={adjustAmount}
                   onChange={(e) => setAdjustAmount(e.target.value)}
-                  className="bg-black/50 border-border h-14 rounded-2xl text-xl font-black text-primary"
+                  className="bg-black/50 border-border h-14 rounded-none text-xl font-black text-primary"
                 />
                 <p className="text-[8px] text-muted-foreground uppercase font-black">Use negative value to deduct funds.</p>
              </div>
           </div>
           <DialogFooter>
-            <Button onClick={handleWalletAdjustment} disabled={isAdjusting} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
+            <Button onClick={handleWalletAdjustment} disabled={isAdjusting} className="w-full bg-primary h-14 rounded-none font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
               {isAdjusting ? <Loader2 className="animate-spin" /> : "Commit Adjustment"}
             </Button>
           </DialogFooter>
@@ -233,24 +233,24 @@ const UserRow = memo(function UserRow({ user, updateRole, toggleBan, setAdjustin
       <TableCell>
         <div className="flex items-center gap-2">
            {user.role === 'super_admin' ? <Crown className="h-3 w-3 text-primary" /> : <Shield className="h-3 w-3 text-accent" />}
-           <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border ${getRoleStyle(user.role)}`}>
+           <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-none border ${getRoleStyle(user.role)}`}>
             {user.role?.replace('_', ' ')}
           </span>
         </div>
       </TableCell>
       <TableCell>
         <div className="flex flex-col gap-1">
-          <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded border inline-block w-fit ${
+          <span className={`text-[7px] font-black uppercase px-2 py-0.5 rounded-none border inline-block w-fit ${
             user.banned ? 'bg-primary/20 text-primary border-primary/20' : 'bg-green-500/10 text-green-500 border-green-500/10'
           }`}>
-            {user.banned ? 'RESTRICTED' : 'OPERATIONAL'}
+            {user.banned ? 'RESTRICTED' : 'ACTIVE'}
           </span>
         </div>
       </TableCell>
       <TableCell className="text-right px-6">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10">
+            <Button variant="ghost" size="icon" className="rounded-none hover:bg-white/10">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -267,7 +267,7 @@ const UserRow = memo(function UserRow({ user, updateRole, toggleBan, setAdjustin
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem onClick={() => toggleBan(user.uid, user.banned)} className="text-[10px] font-black uppercase tracking-widest p-3 text-primary flex justify-between">
-              {user.banned ? <><CheckCircle2 size={12} /> Restore Access</> : <><Ban size={12} /> Ban Entity</>}
+              {user.banned ? <><CheckCircle2 size={12} /> Restore Access</> : <><Ban size={12} /> Ban User</>}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

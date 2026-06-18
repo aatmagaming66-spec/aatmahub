@@ -83,7 +83,7 @@ export default function WalletDashboard() {
                 <span className="text-[8px] font-black uppercase tracking-widest">{rankInfo.name}</span>
               </div>
             </div>
-            <div classNamemt-auto space-y-4>
+            <div className="mt-auto space-y-4">
               <div className="space-y-1.5">
                 {!initialized || !profile ? (
                   <Skeleton className="h-5 w-32 bg-white/10" />

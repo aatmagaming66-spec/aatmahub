@@ -79,7 +79,7 @@ export default function AdminOrdersPage() {
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Full Lifecycle Control</p>
         </div>
         <div className="flex items-center gap-3">
-           <div className="bg-card border border-border px-3 py-1.5 rounded-xl flex items-center gap-2">
+           <div className="bg-card border border-border px-3 py-1.5 rounded-none flex items-center gap-2">
               <span className="text-[9px] font-black uppercase text-muted-foreground">Recent Pool:</span>
               <span className="text-xs font-black text-primary">{filteredOrders.length}</span>
            </div>
@@ -93,12 +93,12 @@ export default function AdminOrdersPage() {
             placeholder="Search Order ID or Player ID..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-card border-border pl-12 h-12 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
+            className="bg-card border-border pl-12 h-12 rounded-none text-xs font-bold focus:border-primary shadow-xl"
           />
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="h-12 px-6 rounded-2xl border-border bg-card font-black uppercase text-[10px] tracking-widest gap-2">
+            <Button variant="outline" className="h-12 px-6 rounded-none border-border bg-card font-black uppercase text-[10px] tracking-widest gap-2">
               <Filter className="h-4 w-4" /> {statusFilter === 'all' ? 'All Status' : statusFilter}
             </Button>
           </DropdownMenuTrigger>
@@ -116,7 +116,7 @@ export default function AdminOrdersPage() {
         </DropdownMenu>
       </div>
 
-      <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-2xl">
+      <div className="bg-card border border-border rounded-none overflow-hidden shadow-2xl">
         <Table>
           <TableHeader className="bg-black/20">
             <TableRow className="border-border">
@@ -198,7 +198,7 @@ const OrderRow = memo(function OrderRow({ order, isMounted, updateStatus }: any)
       </TableCell>
       <TableCell>
         <div className="flex flex-col gap-1">
-           <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md border text-center ${getStatusStyle(order.status)}`}>
+           <span className={`text-[8px] font-black uppercase tracking-widest px-2.5 py-1 rounded-none border text-center ${getStatusStyle(order.status)}`}>
             {order.status}
           </span>
         </div>
@@ -206,7 +206,7 @@ const OrderRow = memo(function OrderRow({ order, isMounted, updateStatus }: any)
       <TableCell className="text-right px-6">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full hover:bg-white/10">
+            <Button variant="ghost" size="icon" className="rounded-none hover:bg-white/10">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

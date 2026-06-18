@@ -31,7 +31,7 @@ const LineChartComponent = dynamic(() => import('recharts').then(mod => {
           <Tooltip content={({ active, payload }) => {
             if (active && payload && payload.length) {
               return (
-                <div className="bg-black border border-border p-3 rounded-xl shadow-2xl">
+                <div className="bg-black border border-border p-3 rounded-none shadow-2xl">
                   <p className="text-[10px] font-black uppercase text-primary mb-1">{payload[0].payload.name}</p>
                   <p className="text-lg font-black tracking-tighter text-white">₹{payload[0].value}</p>
                 </div>
@@ -44,7 +44,7 @@ const LineChartComponent = dynamic(() => import('recharts').then(mod => {
       </ResponsiveContainer>
     );
   };
-}), { ssr: false, loading: () => <Skeleton className="w-full h-[300px] bg-white/5 rounded-2xl" /> });
+}), { ssr: false, loading: () => <Skeleton className="w-full h-[300px] bg-white/5 rounded-none" /> });
 
 const PieChartComponent = dynamic(() => import('recharts').then(mod => {
   const { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } = mod;
@@ -61,7 +61,7 @@ const PieChartComponent = dynamic(() => import('recharts').then(mod => {
           <Tooltip content={({ active, payload }) => {
             if (active && payload && payload.length) {
               return (
-                <div className="bg-black border border-border p-2 rounded-lg shadow-2xl">
+                <div className="bg-black border border-border p-2 rounded-none shadow-2xl">
                   <p className="text-[9px] font-black uppercase text-white">{payload[0].name}: ₹{payload[0].value}</p>
                 </div>
               );
@@ -72,7 +72,7 @@ const PieChartComponent = dynamic(() => import('recharts').then(mod => {
       </ResponsiveContainer>
     );
   };
-}), { ssr: false, loading: () => <Skeleton className="w-full h-[250px] bg-white/5 rounded-full mx-auto" /> });
+}), { ssr: false, loading: () => <Skeleton className="w-full h-[250px] bg-white/5 rounded-none mx-auto" /> });
 
 export default function AnalyticsPage() {
   const db = useFirestore();
@@ -156,19 +156,19 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Intelligence Hub</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Deep System Analytics</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Insights Dashboard</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Store Intelligence Hub</p>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Gross Revenue" value={`₹${stats?.totalRevenue.toLocaleString()}`} icon={IndianRupee} trend="+12%" color="text-primary" />
-        <StatCard label="Today's Intake" value={`₹${stats?.todayRevenue.toLocaleString()}`} icon={Zap} trend="+5%" color="text-accent" />
-        <StatCard label="Total Entities" value={stats?.totalUsers || 0} icon={Users} trend="+24" color="text-blue-400" />
+        <StatCard label="Daily Intake" value={`₹${stats?.todayRevenue.toLocaleString()}`} icon={Zap} trend="+5%" color="text-accent" />
+        <StatCard label="Total Users" value={stats?.totalUsers || 0} icon={Users} trend="+24" color="text-blue-400" />
         <StatCard label="Active Cycles" value={stats?.pendingOrders || 0} icon={Package} trend="Live" color="text-orange-400" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-6">
+        <Card className="lg:col-span-2 bg-card border-border rounded-none overflow-hidden shadow-2xl p-6">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-xs font-black uppercase tracking-widest">Revenue Velocity (7D)</h3>
           </div>
@@ -177,7 +177,7 @@ export default function AnalyticsPage() {
           </div>
         </Card>
 
-        <Card className="bg-card border-border rounded-3xl overflow-hidden shadow-2xl p-6 flex flex-col">
+        <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl p-6 flex flex-col">
           <h3 className="text-xs font-black uppercase tracking-widest mb-8">Regional Dominance</h3>
           <div className="flex-1 h-[250px] w-full">
             <PieChartComponent data={stats?.regionChartData || []} />
@@ -186,7 +186,7 @@ export default function AnalyticsPage() {
              {stats?.regionChartData.slice(0, 4).map((r: any, i: number) => (
                <div key={i} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                    <div className="h-2 w-2 rounded-none" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
                     <span className="text-[9px] font-black uppercase text-muted-foreground">{r.name}</span>
                   </div>
                   <span className="text-[10px] font-black">₹{r.value.toLocaleString()}</span>
@@ -197,7 +197,7 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
-         <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
+         <Card className="bg-card border-border rounded-none p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
                <TrendingUp className="h-5 w-5 text-primary" />
                <h3 className="text-xs font-black uppercase tracking-widest">Cycle Performance</h3>
@@ -205,17 +205,17 @@ export default function AnalyticsPage() {
             <div className="space-y-6">
                <PerformanceItem label="Order Fulfillment" value="94.2%" trend="+2.1%" />
                <PerformanceItem label="Customer Retention" value="78.5%" trend="+4.3%" />
-               <PerformanceItem label="API Success Rate" value="99.9%" trend="Stable" />
+               <PerformanceItem label="System Success Rate" value="99.9%" trend="Stable" />
             </div>
          </Card>
 
-         <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
+         <Card className="bg-card border-border rounded-none p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
                <Globe2 className="h-5 w-5 text-accent" />
                <h3 className="text-xs font-black uppercase tracking-widest">Market Intel</h3>
             </div>
             <div className="space-y-6">
-               <PerformanceItem label="Top Tier: MLBB India" value="42%" color="bg-primary" />
+               <PerformanceItem label="Top: MLBB India" value="42%" color="bg-primary" />
                <PerformanceItem label="Growth: MLBB Indonesia" value="28%" color="bg-accent" />
                <PerformanceItem label="Others" value="30%" color="bg-muted" />
             </div>
@@ -227,10 +227,10 @@ export default function AnalyticsPage() {
 
 function StatCard({ label, value, icon: Icon, trend, color }: any) {
   return (
-    <Card className="bg-card border-border shadow-xl rounded-2xl overflow-hidden group hover:border-primary/30 transition-all">
+    <Card className="bg-card border-border shadow-xl rounded-none overflow-hidden group hover:border-primary/30 transition-all">
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
-          <div className={`h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center ${color}`}>
+          <div className={`h-10 w-10 rounded-none bg-white/5 flex items-center justify-center ${color}`}>
             <Icon className="h-5 w-5" />
           </div>
           <span className={`text-[8px] font-black uppercase tracking-widest ${trend.includes('+') ? 'text-green-500' : 'text-muted-foreground'}`}>{trend}</span>
@@ -254,7 +254,7 @@ function PerformanceItem({ label, value, trend, color = "bg-primary" }: any) {
           <span className="text-sm font-black">{value}</span>
         </div>
       </div>
-      <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+      <div className="h-1.5 w-full bg-white/5 rounded-none overflow-hidden">
         <div className={`h-full ${color}`} style={{ width: value }} />
       </div>
     </div>
