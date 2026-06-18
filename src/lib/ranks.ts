@@ -1,7 +1,7 @@
 
 /**
  * Global Membership Configuration
- * Optimized for the 10-tier MLBB hierarchy: 
+ * Optimized for the 10-tier MLBB hierarchy with a 5 Lakh cap.
  * Warrior -> Elite -> Master -> Grandmaster -> Epic -> Legend -> Mythic -> Honor -> Glory -> Immortal
  */
 
@@ -46,7 +46,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'elite',
     name: 'Elite', 
-    threshold: 1000, 
+    threshold: 500, 
     discount: 1, 
     color: '#10b981', 
     benefits: ['Priority Processing'],
@@ -63,7 +63,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'master',
     name: 'Master', 
-    threshold: 5000, 
+    threshold: 2500, 
     discount: 2, 
     color: '#3b82f6', 
     benefits: ['Faster Queue'],
@@ -148,7 +148,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'mythic_honor',
     name: 'Mythic Honor', 
-    threshold: 250000, 
+    threshold: 200000, 
     discount: 12, 
     color: '#f97316', 
     benefits: ['Advanced Rewards'],
@@ -165,7 +165,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'mythic_glory',
     name: 'Mythic Glory', 
-    threshold: 500000, 
+    threshold: 350000, 
     discount: 15, 
     color: '#dc2626', 
     benefits: ['VVIP Concierge'],
@@ -182,7 +182,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'mythic_immortal',
     name: 'Mythic Immortal', 
-    threshold: 1000000, 
+    threshold: 500000, 
     discount: 20, 
     color: '#fbbf24', 
     benefits: ['Platform Legend Status'],
