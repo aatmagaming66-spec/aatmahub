@@ -19,7 +19,8 @@ import {
   Gamepad2,
   Home as HomeIcon,
   Settings,
-  Zap
+  Zap,
+  Image as ImageIcon
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -30,6 +31,7 @@ const ADMIN_LINKS = [
 
 const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Store Insights', icon: BarChart3 },
+  { href: '/admin/banners', label: 'Hero Banners', icon: ImageIcon },
   { href: '/admin/games', label: 'Products', icon: Gamepad2 },
   { href: '/admin/users', label: 'Members', icon: Users },
   { href: '/admin/settings/payments', label: 'Payments', icon: CreditCard },
@@ -44,7 +46,7 @@ const SUPER_ADMIN_LINKS = [
 export const AdminNav = memo(function AdminNav() {
   const pathname = usePathname();
   const { profile } = useUser();
-  const isSuper = profile?.role === 'super_admin';
+  const isSuper = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   return (
     <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10">
