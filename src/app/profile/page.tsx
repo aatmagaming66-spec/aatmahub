@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -29,13 +28,17 @@ import {
   Link as LinkIcon,
   Fingerprint,
   Zap,
-  Star
+  Star,
+  Camera
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
 import { getRankFromSpend } from '@/lib/ranks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+
+const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dynduenfb/image/upload";
+const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
 
 export default function ProfilePage() {
   const { user, profile, initialized } = useUser();
@@ -44,11 +47,14 @@ export default function ProfilePage() {
   const db = useFirestore();
   const router = useRouter();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [photoURL, setPhotoURL] = useState('');
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   // Skip the 'Guest' screen by redirecting to login immediately
   useEffect(() => {
@@ -61,6 +67,7 @@ export default function ProfilePage() {
     if (profile && !editing) {
       setFullName(profile.fullName || '');
       setPhoneNumber(profile.phoneNumber || '');
+      setPhotoURL(profile.photoURL || '');
     }
   }, [profile, editing]);
 
@@ -82,6 +89,37 @@ export default function ProfilePage() {
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      fd.append("folder", "aatmahub_profiles");
+
+      const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: fd });
+      if (!res.ok) throw new Error('Failed to upload image');
+      
+      const data = await res.json();
+      const newPhotoURL = data.secure_url;
+
+      await updateDoc(doc(db, 'users', user.uid), { 
+        photoURL: newPhotoURL,
+        updatedAt: new Date().toISOString()
+      });
+
+      setPhotoURL(newPhotoURL);
+      toast({ title: 'Photo Updated', description: 'Your profile picture has been synchronized.' });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSave = async () => { 
     if (!user) return; 
     setSaving(true); 
@@ -89,6 +127,7 @@ export default function ProfilePage() {
       await updateDoc(doc(db, 'users', user.uid), { 
         fullName, 
         phoneNumber,
+        photoURL,
         updatedAt: new Date().toISOString()
       }); 
       setEditing(false); 
@@ -118,12 +157,25 @@ export default function ProfilePage() {
         
         <div className="relative z-10">
           <div className="flex items-center gap-4">
-            <RankAvatar 
-              rank={rankInfo.name} 
-              size="xl" 
-              className="shadow-2xl rounded-none" 
-              fallback={profile?.fullName?.charAt(0)}
-            />
+            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+              <RankAvatar 
+                src={photoURL}
+                rank={rankInfo.name} 
+                size="xl" 
+                className="shadow-2xl rounded-none" 
+                fallback={profile?.fullName?.charAt(0)}
+              />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {uploading ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
+              </div>
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleImageUpload}
+              />
+            </div>
             <div className="flex-1 space-y-1.5 min-w-0">
               <div className="flex flex-col">
                 {!profile ? (
