@@ -62,7 +62,6 @@ export function GameGrid() {
         </div>
       </div>
       
-      {/* FULL GRID DISPLAY - ALL CARDS VISIBLE */}
       <div className="grid grid-cols-3 gap-3">
         {games.map((game) => (
           <GameCard key={game.id} game={game} />
@@ -73,6 +72,8 @@ export function GameGrid() {
 }
 
 function GameCard({ game }: { game: any }) {
+  const isMlbb = game.name?.toLowerCase().includes('mlbb');
+
   return (
     <Link 
       href={`/product/${game.id}`} 
@@ -95,10 +96,12 @@ function GameCard({ game }: { game: any }) {
           </div>
         )}
 
-        {/* INSTANT BADGE OVERLAY - LEFT POSITIONED, REDUCED SIZE */}
-        <div className="absolute top-1.5 left-1.5 z-30 bg-primary/90 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10">
-          <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
-        </div>
+        {/* INSTANT BADGE OVERLAY - RESTRICTED TO MLBB ONLY */}
+        {isMlbb && (
+          <div className="absolute top-1.5 left-1.5 z-30 bg-primary/90 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10">
+            <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
+          </div>
+        )}
 
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
       </div>

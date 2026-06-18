@@ -34,8 +34,6 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const items = useMemo(() => {
     if (!rawItems) return [];
     
-    console.log(`[PERF_HUB] ServiceCarousel (${category}): Raw Entities ->`, rawItems.length);
-    
     return rawItems
       .filter(i => i.status === 'active')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
@@ -105,10 +103,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                 </div>
               )}
 
-              {/* INSTANT BADGE OVERLAY - LEFT POSITIONED, REDUCED SIZE */}
-              <div className="absolute top-1.5 left-1.5 z-30 bg-primary/90 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10">
-                <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
-              </div>
+              {/* INSTANT BADGE REMOVED FOR OTT AND SOCIAL SERVICES */}
             </div>
             <div className="text-center px-1">
               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-white transition-colors line-clamp-1">
