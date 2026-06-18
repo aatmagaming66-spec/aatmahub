@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
@@ -37,14 +36,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    const startTime = performance.now();
-
+    // Initial handshake with Firebase Auth
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      const authTime = performance.now() - startTime;
-      console.log(`[PERF_HUB] Auth Handshake: ${authTime.toFixed(2)}ms`);
-      
       setUser(firebaseUser);
-      // PERFORMANCE: We are now "initialized" as soon as we know IF there is a user.
+      // PERFORMANCE: Signal that we know the auth state so UI can render immediately
       setInitialized(true);
       
       if (!firebaseUser) {
@@ -59,26 +54,20 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
 
-    const startTime = performance.now();
     const userDocRef = doc(db, 'users', user.uid);
     
-    // Hydrate profile in background
+    // Non-blocking background hydration
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
-      const hydrationTime = performance.now() - startTime;
-      console.log(`[PERF_HUB] Profile Hydration: ${hydrationTime.toFixed(2)}ms`);
-      
       if (docSnap.exists()) {
         const data = docSnap.data();
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         
-        // CRITICAL: Force role elevation for the authenticated super_admin account
         if (isSuperAdminTarget && data.role !== 'super_admin') {
-           console.log('[PERF_HUB] Elevating session to super_admin...');
            updateDoc(userDocRef, { 
              role: 'super_admin', 
              active: true,
              updatedAt: new Date().toISOString()
-           }).catch((e) => console.error('Role elevation rejected by rules', e));
+           }).catch(() => {});
         }
         setProfile(data);
       } else {
@@ -96,7 +85,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(false);
     }, (error) => {
-      console.error('[PERF_HUB] Profile Sync Error:', error);
+      console.error('[AUTH_SYNC] Background hydration failed', error);
       setLoading(false);
     });
 

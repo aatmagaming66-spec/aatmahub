@@ -31,18 +31,31 @@ export function AppSidebar() {
   const router = useRouter();
   const { user, initialized } = useUser();
 
-  // Prefetch critical routes for instant transition
+  // HIGH-PRIORITY PREFETCH: Ensure all critical page chunks are ready before first interaction
   useEffect(() => {
-    router.prefetch('/');
-    router.prefetch('/games');
-    router.prefetch('/ott-services');
-    router.prefetch('/social-services');
-    router.prefetch('/orders');
-    router.prefetch('/profile');
-    router.prefetch('/login');
-    router.prefetch('/contact');
-    router.prefetch('/terms');
-    router.prefetch('/privacy');
+    const criticalRoutes = [
+      '/',
+      '/games',
+      '/ott-services',
+      '/social-services',
+      '/orders',
+      '/profile',
+      '/login',
+      '/wallet',
+      '/cart',
+      '/contact'
+    ];
+    
+    // Use requestIdleCallback if available, otherwise setTimeout
+    const prefetcher = () => {
+      criticalRoutes.forEach(route => router.prefetch(route));
+    };
+
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(prefetcher);
+    } else {
+      setTimeout(prefetcher, 100);
+    }
   }, [router]);
 
   const navigateTo = useCallback((href: string) => {
@@ -98,7 +111,6 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                {/* Direct Resolution: Skip intermediary account page */}
                 <SidebarMenuButton onClick={() => navigateTo(user ? '/profile' : '/login')}>
                   <Settings className="h-4 w-4" />
                   <span className="font-bold text-sm">Account Settings</span>

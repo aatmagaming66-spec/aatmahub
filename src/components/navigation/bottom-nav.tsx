@@ -20,16 +20,15 @@ export function BottomNav() {
       { label: "Wallet", icon: Wallet, href: "/wallet" },
       { label: "Orders", icon: ClipboardList, href: "/orders" },
       { 
-        // Direct Resolution: Avoid intermediary account page
         label: !initialized || user ? "Account" : "Login", 
         icon: !initialized || user ? UserCircle : LogIn, 
-        // Point directly to the final destination based on auth state
         href: initialized && !user ? "/login" : "/profile",
         isActive: isProfileActive
       },
     ];
   }, [user, initialized, pathname]);
 
+  // AGGRESSIVE PREFETCH: Ensure navigation targets are pre-cached for zero-delay transition
   useEffect(() => {
     NAV_ITEMS.forEach((item) => {
       router.prefetch(item.href);
@@ -50,6 +49,7 @@ export function BottomNav() {
             <Link 
               key={item.href} 
               href={item.href}
+              prefetch={true}
               onClick={() => handleTrackClick(item.href)}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative",
