@@ -18,10 +18,10 @@ import {
   BarChart3,
   FileText,
   ShieldCheck,
-  Palette,
   Gamepad2,
   Trophy,
-  Wallet
+  Home as HomeIcon,
+  Settings
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -33,15 +33,12 @@ const ADMIN_LINKS = [
 const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Intelligence', icon: BarChart3 },
   { href: '/admin/games', label: 'Game Management', icon: Gamepad2 },
-  { href: '/admin/ranks', label: 'Rank Manager', icon: Trophy },
-  { href: '/admin/products', label: 'Package Registry', icon: Package },
-  { href: '/admin/users', label: 'Identity Registry', icon: Users },
-  { href: '/admin/wallet', label: 'Wallet Registry', icon: Wallet },
-  { href: '/admin/regions', label: 'Global Grid', icon: Globe },
-  { href: '/admin/homepage', label: 'Home Control', icon: Globe },
+  { href: '/admin/products', label: 'Product Management', icon: Package },
+  { href: '/admin/users', label: 'User Management', icon: Users },
   { href: '/admin/settings/payments', label: 'Payment Hub', icon: CreditCard },
-  { href: '/admin/system', label: 'Kernel Stats', icon: Activity },
-  { href: '/admin/backups', label: 'Data Archives', icon: Database },
+  { href: '/admin/homepage', label: 'Home Control', icon: HomeIcon },
+  { href: '/admin/system', label: 'System Settings', icon: Settings },
+  { href: '/admin/backups', label: 'Archives', icon: Database },
 ];
 
 export const AdminNav = memo(function AdminNav() {

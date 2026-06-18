@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -7,9 +6,9 @@ import { collection, getDocs } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Download, Database, ShieldCheck, History, Loader2, FileJson } from 'lucide-react';
+import { Download, Database, ShieldCheck, History, Loader2, FileJson, Vault } from 'lucide-react';
 
-export default function BackupsPage() {
+export default function ArchivesPage() {
   const db = useFirestore();
   const { toast } = useToast();
   const [exporting, setExporting] = useState(false);
@@ -26,7 +25,7 @@ export default function BackupsPage() {
       link.download = `aatma-hub-${colName}-${new Date().toISOString().split('T')[0]}.json`;
       link.click();
       URL.revokeObjectURL(url);
-      toast({ title: "Backup Secure", description: `${colName.toUpperCase()} data exported successfully.` });
+      toast({ title: "Archive Extracted", description: `${colName.toUpperCase()} data secured.` });
     } catch (e: any) {
       toast({ variant: 'destructive', title: "Export Failed", description: e.message });
     } finally {
@@ -37,22 +36,21 @@ export default function BackupsPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Data Archives</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Vault & Backup Management</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Archives</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Identity & Financial Data Vault</p>
       </header>
 
       <div className="grid lg:grid-cols-2 gap-8">
         <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 border-b border-border">
-            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-              <Download className="h-4 w-4 text-primary" /> Extraction Hub
+          <CardHeader className="p-8 border-b border-border bg-black/20">
+            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-white">
+              <Vault className="h-4 w-4 text-primary" /> Extraction Matrix
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 space-y-4">
-            <p className="text-[11px] text-muted-foreground uppercase tracking-widest font-bold mb-4">Select collection to export as encrypted JSON:</p>
-            
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold mb-4">Export Registry as Encrypted JSON:</p>
             <div className="grid grid-cols-2 gap-4">
-               {['orders', 'users', 'transactions', 'wallets'].map((col) => (
+               {['orders', 'users', 'transactions', 'wallets', 'products', 'games'].map((col) => (
                  <Button 
                    key={col}
                    variant="outline" 
@@ -69,8 +67,8 @@ export default function BackupsPage() {
         </Card>
 
         <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 border-b border-border">
-            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
+          <CardHeader className="p-8 border-b border-border bg-black/20">
+            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-white">
               <ShieldCheck className="h-4 w-4 text-accent" /> Security Protocol
             </CardTitle>
           </CardHeader>
@@ -78,18 +76,18 @@ export default function BackupsPage() {
             <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-4">
               <div className="flex items-center gap-2">
                 <Database className="h-4 w-4 text-primary" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Data Integrity Note</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Data Integrity</span>
               </div>
               <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-                All exported records contain raw Firestore data. Ensure downloads are stored in encrypted vaults. Periodic backups are recommended before major system updates.
+                Extracted records contain raw system data. Store all archives in isolated offline environments. This is a manual snapshot protocol for security audit purposes.
               </p>
             </div>
             
             <div className="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/5">
-              <History className="h-5 w-5 text-muted-foreground" />
+              <History className="h-5 w-5 text-muted-foreground opacity-40" />
               <div className="space-y-0.5">
-                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Last Global Vault Check</p>
-                <p className="text-[10px] font-black text-white uppercase">Today, 04:30 AM</p>
+                <p className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Global Snapshot Frequency</p>
+                <p className="text-[10px] font-black text-white uppercase tracking-tighter">Manual Trigger (On-Demand)</p>
               </div>
             </div>
           </CardContent>

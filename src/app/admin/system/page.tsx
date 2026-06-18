@@ -2,96 +2,121 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, collection, query, limit, orderBy } from 'firebase/firestore';
+import { doc, getDoc, collection, query, limit, orderBy, setDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { Card, CardContent } from '@/components/ui/card';
-import { Activity, Database, Bot, Terminal, Loader2, History } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Activity, Database, Bot, Terminal, Loader2, History, Settings, ShieldCheck, Zap, Globe, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
 
-export default function SystemHealthPage() {
+export default function SystemSettingsPage() {
   const db = useFirestore();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [health, setHealth] = useState<any>({
-    firestore: 'checking',
-    telegram: 'checking'
+  const [saving, setSaving] = useState(false);
+  const [health, setHealth] = useState<any>({ firestore: 'checking', telegram: 'checking' });
+  const [settings, setSettings] = useState({
+    maintenanceMode: false,
+    maintenanceMessage: 'System is under maintenance.',
+    contactWhatsApp: '+91 8566936666',
+    contactEmail: 'shivatetz@gmail.com',
+    contactTelegram: '@aatmaplays',
+    siteBranding: 'AATMA HUB'
   });
 
-  const logsQuery = useMemo(() => query(
-    collection(db, 'automationLogs'), 
-    orderBy('timestamp', 'desc'), 
-    limit(10)
-  ), [db]);
-
+  const logsQuery = useMemo(() => query(collection(db, 'automationLogs'), orderBy('timestamp', 'desc'), limit(10)), [db]);
   const { data: logs } = useCollection(logsQuery);
 
-  const checkHealth = async () => {
-    setLoading(true);
-    const newHealth = { ...health };
+  useEffect(() => {
+    async function init() {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'site'));
+        if (snap.exists()) setSettings(snap.data() as any);
+        
+        const tg = await getDoc(doc(db, 'settings', 'telegram'));
+        setHealth({
+          firestore: 'operational',
+          telegram: tg.exists() && tg.data().notificationsEnabled ? 'operational' : 'inactive'
+        });
+      } catch (e) { console.error(e); setHealth({ firestore: 'degraded', telegram: 'unknown' }); }
+      finally { setLoading(false); }
+    }
+    init();
+  }, [db]);
+
+  const handleSave = async () => {
+    setSaving(true);
     try {
-      await getDoc(doc(db, 'settings', 'site'));
-      newHealth.firestore = 'operational';
-      const tg = await getDoc(doc(db, 'settings', 'telegram'));
-      newHealth.telegram = tg.exists() && tg.data().notificationsEnabled ? 'operational' : 'inactive';
-    } catch (e) { newHealth.firestore = 'degraded'; }
-    setHealth(newHealth);
-    setLoading(false);
+      await setDoc(doc(db, 'settings', 'site'), { ...settings, updatedAt: new Date().toISOString() }, { merge: true });
+      toast({ title: "Protocol Updated", description: "Global settings synchronized." });
+    } catch (e: any) { toast({ variant: 'destructive', title: "Save Failed", description: e.message }); }
+    finally { setSaving(false); }
   };
 
-  useEffect(() => { checkHealth(); }, []);
+  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Kernel Stats</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">System Core Control</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">System Settings</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">System Core & General Config</p>
         </div>
+        <Button onClick={handleSave} disabled={saving} className="bg-primary h-12 px-8 rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 gap-2">
+           {saving ? <Loader2 className="animate-spin" /> : <><Zap size={14} /> Commit Changes</>}
+        </Button>
       </header>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         <HealthCard icon={Database} label="Core Firestore" status={health.firestore} color="text-blue-400" />
         <HealthCard icon={Bot} label="Telegram Gateway" status={health.telegram} color="text-primary" />
-        <HealthCard icon={Terminal} label="Kernel Logic" status="operational" color="text-purple-400" />
+        <HealthCard icon={ShieldCheck} label="Identity Registry" status="operational" color="text-green-400" />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 bg-card border-border rounded-[2.5rem] p-8 shadow-2xl overflow-hidden">
-          <div className="flex items-center justify-between mb-8">
-             <div className="flex items-center gap-3">
-                <Activity className="h-5 w-5 text-primary" />
-                <h3 className="text-xs font-black uppercase tracking-widest">Operations Hub</h3>
-             </div>
-             <span className="text-[9px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase tracking-[0.2em]">Build v5.0.0-CLEAN</span>
-          </div>
-          
-          <div className="space-y-6">
-            <p className="text-[11px] text-muted-foreground uppercase leading-relaxed font-medium">
-              The AATMA HUB kernel is active. All digital management systems are synchronized. 
-              The core identity and financial registries are operating at peak efficiency.
-            </p>
-          </div>
+      <div className="grid lg:grid-cols-2 gap-8">
+        <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <CardHeader className="p-8 border-b border-border bg-black/20">
+            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-white"><Globe className="h-4 w-4 text-primary" /> Core Protocol</CardTitle>
+          </CardHeader>
+          <CardContent className="p-8 space-y-6">
+            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+              <div className="space-y-0.5"><Label className="text-xs font-black uppercase">Maintenance Mode</Label><p className="text-[8px] text-muted-foreground uppercase font-black">Disable public marketplace access</p></div>
+              <Switch checked={settings.maintenanceMode} onCheckedChange={(val) => setSettings({...settings, maintenanceMode: val})} className="data-[state=checked]:bg-primary" />
+            </div>
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Maintenance Message</Label><Input value={settings.maintenanceMessage} onChange={(e) => setSettings({...settings, maintenanceMessage: e.target.value})} className="bg-black/50 border-border h-12 rounded-xl font-bold" /></div>
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Site Branding</Label><Input value={settings.siteBranding} onChange={(e) => setSettings({...settings, siteBranding: e.target.value})} className="bg-black/50 border-border h-12 rounded-xl font-bold" /></div>
+          </CardContent>
         </Card>
 
-        <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl flex flex-col">
-          <div className="flex items-center gap-3 mb-6 shrink-0">
-            <History className="h-5 w-5 text-accent" />
-            <h3 className="text-xs font-black uppercase tracking-widest">System Logs</h3>
-          </div>
-          <div className="space-y-4 overflow-y-auto no-scrollbar flex-1 max-h-[300px]">
-            {logs?.length === 0 ? (
-               <p className="text-[9px] font-black uppercase text-muted-foreground opacity-30 text-center py-10">No recent logs</p>
-            ) : logs?.map((log: any) => (
-              <div key={log.id || log.logId} className="space-y-1 p-3 bg-white/5 rounded-xl border border-white/5">
-                <div className="flex justify-between items-center">
-                  <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded ${log.type === 'failover' ? 'bg-primary/20 text-primary' : 'bg-accent/20 text-accent'}`}>{log.type}</span>
-                  <span className="text-[7px] text-muted-foreground font-bold">{new Date(log.timestamp).toLocaleTimeString()}</span>
-                </div>
-                <p className="text-[9px] font-bold text-white/90 leading-tight mt-1">{log.details}</p>
-              </div>
-            ))}
-          </div>
+        <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <CardHeader className="p-8 border-b border-border bg-black/20">
+            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-white"><MessageCircle className="h-4 w-4 text-accent" /> Support Identity</CardTitle>
+          </CardHeader>
+          <CardContent className="p-8 space-y-6">
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">WhatsApp Support</Label><Input value={settings.contactWhatsApp} onChange={(e) => setSettings({...settings, contactWhatsApp: e.target.value})} className="bg-black/50 border-border h-12 rounded-xl font-bold" /></div>
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Telegram Handle</Label><Input value={settings.contactTelegram} onChange={(e) => setSettings({...settings, contactTelegram: e.target.value})} className="bg-black/50 border-border h-12 rounded-xl font-bold" /></div>
+            <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Official Email</Label><Input value={settings.contactEmail} onChange={(e) => setSettings({...settings, contactEmail: e.target.value})} className="bg-black/50 border-border h-12 rounded-xl font-bold" /></div>
+          </CardContent>
         </Card>
       </div>
+
+      <Card className="bg-card border-border rounded-[2.5rem] p-8 shadow-2xl">
+        <div className="flex items-center justify-between mb-8">
+           <div className="flex items-center gap-3"><History className="h-5 w-5 text-primary" /><h3 className="text-xs font-black uppercase tracking-widest text-white">System Kernel Logs</h3></div>
+           <span className="text-[8px] font-black bg-primary/10 text-primary px-3 py-1 rounded-full uppercase">Real-time Feed</span>
+        </div>
+        <div className="grid md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto no-scrollbar">
+          {logs?.map((log: any) => (
+            <div key={log.id} className="p-4 bg-white/5 rounded-2xl border border-white/5 flex flex-col gap-2">
+               <div className="flex justify-between items-center"><span className="text-[8px] font-black uppercase px-2 py-0.5 bg-primary/20 text-primary rounded-md">{log.type}</span><span className="text-[7px] text-white/30 font-bold uppercase">{new Date(log.timestamp).toLocaleTimeString()}</span></div>
+               <p className="text-[10px] font-bold text-white/70 leading-relaxed uppercase">{log.details}</p>
+            </div>
+          ))}
+        </div>
+      </Card>
     </div>
   );
 }

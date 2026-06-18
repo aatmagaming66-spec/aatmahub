@@ -24,7 +24,8 @@ import {
   ChevronRight,
   Home as HomeIcon,
   Gamepad2,
-  Trophy
+  Trophy,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
@@ -121,15 +122,13 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = useMemo(() => [
-    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage games, services & tabs' },
-    { label: 'Rank Management', href: '/admin/ranks', icon: Trophy, desc: 'Manage tiers & requirements' },
-    { label: 'Product Registry', href: '/admin/products', icon: Package, desc: 'Manage packages & pricing' },
-    { label: 'User Registry', href: '/admin/users', icon: Users, desc: 'Manage users, roles & access' },
-    { label: 'Region Hub', href: '/admin/regions', icon: Globe, desc: 'Manage global grid logic' },
-    { label: 'Home Control', href: '/admin/homepage', icon: HomeIcon, desc: 'Manage homepage sections' },
-    { label: 'Payment Hub', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Manage payment gateways' },
-    { label: 'Kernel Stats', href: '/admin/system', icon: Activity, desc: 'System configuration & logs' },
-    { label: 'Data Archives', href: '/admin/backups', icon: Database, desc: 'Database backups & secure vault' },
+    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Titles & Regional Grid control' },
+    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'SKU Registry & Rank Protocol' },
+    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Identity & Wallet Registry' },
+    { label: 'Payment Hub', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Gateways & Financial logic' },
+    { label: 'Home Control', href: '/admin/homepage', icon: HomeIcon, desc: 'Layout & Section visibility' },
+    { label: 'System Settings', href: '/admin/system', icon: Settings, desc: 'Global settings & site kernel' },
+    { label: 'Archives', href: '/admin/backups', icon: Database, desc: 'Secure vault & data backups' },
   ], []);
 
   if (!isMounted) return null;
