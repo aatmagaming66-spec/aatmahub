@@ -47,7 +47,7 @@ export default function NotificationSettingsPage() {
 
   const handleSave = async () => {
     if (!user) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Please login to save preferences.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Please log in to save settings.' });
       return;
     }
     
@@ -86,8 +86,8 @@ export default function NotificationSettingsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none text-white">Notification Settings</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Manage alerts and messages</p>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none text-white">Notifications</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage your alerts and messages</p>
         </div>
       </header>
 
@@ -96,8 +96,8 @@ export default function NotificationSettingsPage() {
           <div className="h-16 w-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 border border-primary/20">
             <Bell size={30} className="text-primary" />
           </div>
-          <CardTitle className="text-xl font-black uppercase tracking-tighter text-white">Alert Preferences</CardTitle>
-          <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Configure how we communicate with you</CardDescription>
+          <CardTitle className="text-xl font-black uppercase tracking-tighter text-white">Notification Settings</CardTitle>
+          <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Choose how you want to be notified</CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-6">
           <div className="space-y-4">
@@ -105,7 +105,7 @@ export default function NotificationSettingsPage() {
               icon={Package}
               color="text-primary"
               title="Order Updates"
-              description="Fulfillment status and tracking"
+              description="Status and delivery updates"
               checked={settings.orderUpdates}
               onCheckedChange={() => handleToggle('orderUpdates')}
             />
@@ -120,8 +120,8 @@ export default function NotificationSettingsPage() {
             <NotificationToggle 
               icon={Sparkles}
               color="text-primary"
-              title="Promotional"
-              description="Special offers and discounts"
+              title="Offers & News"
+              description="Special deals and platform news"
               checked={settings.promotional}
               onCheckedChange={() => handleToggle('promotional')}
             />
@@ -143,11 +143,11 @@ export default function NotificationSettingsPage() {
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving Changes...
+                Saving...
               </>
             ) : (
               <>
-                <ShieldCheck size={18} /> Update Preferences
+                <ShieldCheck size={18} /> Update Notifications
               </>
             )}
           </Button>
@@ -157,10 +157,10 @@ export default function NotificationSettingsPage() {
       <div className="bg-primary/5 p-6 rounded-none border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Information</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Please Note</span>
         </div>
         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          System-critical alerts (like payment confirmations) cannot be disabled. These settings only affect optional marketing and dashboard updates.
+          Essential alerts (like payment receipts and security changes) cannot be turned off. These settings only apply to optional marketing and general updates.
         </p>
       </div>
     </div>
