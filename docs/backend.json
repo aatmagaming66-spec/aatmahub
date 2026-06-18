@@ -33,6 +33,24 @@
         }
       },
       "required": ["uid", "email", "fullName", "role"]
+    },
+    "Banner": {
+      "title": "Hero Banner",
+      "description": "Slider content for the homepage",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "ctaText": { "type": "string" },
+        "ctaLink": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "sortOrder": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["imageUrl", "status", "sortOrder"]
     }
   },
   "auth": {
@@ -45,6 +63,7 @@
     "/products/{productId}": { "schema": "Product", "description": "Managed SKU packages" },
     "/wallets/{userId}": { "schema": "object", "description": "User wallet ledgers" },
     "/transactions/{txId}": { "schema": "object", "description": "Financial logs" },
-    "/settings/site": { "schema": "object", "description": "Site global configuration" }
+    "/settings/site": { "schema": "object", "description": "Site global configuration" },
+    "/banners/{bannerId}": { "schema": "Banner", "description": "Hero banners for homepage" }
   }
 }
