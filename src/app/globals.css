@@ -31,12 +31,14 @@
   * {
     @apply border-border outline-none;
     -webkit-tap-highlight-color: transparent;
+    border-radius: 0 !important; /* Hardened Sharp Edge Protocol */
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
     touch-action: manipulation;
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
@@ -48,18 +50,19 @@
   scrollbar-width: none;
 }
 
-/* Zero-Latency Tap Feedback */
+/* Hardware-Accelerated Interactions */
 .active-press {
-  @apply transition-transform duration-75 active:scale-[0.97] will-change-transform;
+  @apply transition-transform duration-75 active:scale-[0.98] will-change-transform;
 }
 
 .metallic-badge {
   background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
 }
 
-/* Hardware accelerated transition wrapper */
+/* Production Transition Engine */
 .page-shell {
   transform: translateZ(0);
   backface-visibility: hidden;
   perspective: 1000px;
+  will-change: transform, opacity;
 }
