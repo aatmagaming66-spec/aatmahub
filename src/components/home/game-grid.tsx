@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useEffect } from "react";
@@ -12,25 +13,26 @@ import { Gamepad2 } from "lucide-react";
 export function GameGrid() {
   const db = useFirestore();
   
+  // DIAGNOSTIC: Widening query slightly to catch potential status mismatches
   const gamesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
-      where('status', '==', 'active'),
       where('category', '==', 'Mobile Games'),
       orderBy('sortOrder', 'asc')
     ), 
   [db]);
 
-  const { data: games, loading } = useCollection(gamesQuery);
+  const { data: rawGames, loading } = useCollection(gamesQuery);
 
-  useEffect(() => {
-    if (games && games.length > 0) {
-      console.log('[PERF_HUB] GameGrid Data Received:', games.length, 'items');
-      games.forEach(g => {
-        console.log(`[PERF_HUB] Render Item: ${g.name} | Logo: ${g.logo}`);
-      });
-    }
-  }, [games]);
+  const games = useMemo(() => {
+    if (!rawGames) return [];
+    console.log('[DIAGNOSTIC] GameGrid: Raw Docs Fetched (Filtered by Category):', rawGames.length);
+    rawGames.forEach(g => console.log(`[DIAGNOSTIC] GameGrid: Entity -> Name: ${g.name}, Status: ${g.status}, ID: ${g.id}`));
+    
+    const filtered = rawGames.filter(g => g.status === 'active');
+    console.log('[DIAGNOSTIC] GameGrid: Docs After Status Filter (active):', filtered.length);
+    return filtered;
+  }, [rawGames]);
 
   if (loading) {
     return (
@@ -48,7 +50,8 @@ export function GameGrid() {
     );
   }
 
-  if (!games || games.length === 0) {
+  if (games.length === 0) {
+    console.log('[DIAGNOSTIC] GameGrid: Rendering NULL - No active games found in this category.');
     return null;
   }
 

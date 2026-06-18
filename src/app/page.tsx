@@ -23,12 +23,16 @@ export default function Home() {
     }
   }, []);
 
-  const homepageConfig = useMemo(() => siteSettings?.homepage || {
-    showGames: true,
-    showOtt: true,
-    showSocial: true,
-    showLiveActivity: true,
-    showTrustBadges: true,
+  const homepageConfig = useMemo(() => {
+    const config = siteSettings?.homepage || {
+      showGames: true,
+      showOtt: true,
+      showSocial: true,
+      showLiveActivity: true,
+      showTrustBadges: true,
+    };
+    console.log('[DIAGNOSTIC] Homepage Visibility Config:', config);
+    return config;
   }, [siteSettings]);
 
   return (

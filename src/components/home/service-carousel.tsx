@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useEffect } from "react";
@@ -22,22 +23,20 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const servicesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
-      where('status', '==', 'active'),
       where('category', '==', category),
       orderBy('sortOrder', 'asc')
     ), 
   [db, category]);
 
-  const { data: items, loading } = useCollection(servicesQuery);
+  const { data: rawItems, loading } = useCollection(servicesQuery);
 
-  useEffect(() => {
-    if (items && items.length > 0) {
-      console.log(`[PERF_HUB] ${title} Data Received:`, items.length, 'items');
-      items.forEach(i => {
-        console.log(`[PERF_HUB] Render Item: ${i.name} | URL Source: ${i.logo}`);
-      });
-    }
-  }, [items, title]);
+  const items = useMemo(() => {
+    if (!rawItems) return [];
+    console.log(`[DIAGNOSTIC] Carousel (${title}): Raw Docs Fetched:`, rawItems.length);
+    const filtered = rawItems.filter(i => i.status === 'active');
+    console.log(`[DIAGNOSTIC] Carousel (${title}): Docs After Status Filter:`, filtered.length);
+    return filtered;
+  }, [rawItems, title]);
 
   if (loading) {
     return (
@@ -55,7 +54,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
     );
   }
 
-  if (!items || items.length === 0) {
+  if (items.length === 0) {
     return null;
   }
 
