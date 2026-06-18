@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -22,16 +23,14 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { 
   ShieldCheck, 
-  CheckCircle2, 
   Wallet, 
   Smartphone, 
   ArrowRight, 
   ArrowLeft,
   Loader2,
   User,
-  Package,
-  Layers,
-  Receipt
+  Receipt,
+  TicketPercent
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
 import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
@@ -64,6 +63,21 @@ export default function CheckoutPage() {
     }
   }, [user, initialized, router, toast]);
 
+  // MEMBERSHIP DISCOUNT ENGINE
+  const rankInfo = useMemo(() => {
+    const spend = profile?.lifetimeSpend || 0;
+    return getRankFromSpend(spend, DEFAULT_RANKS);
+  }, [profile]);
+
+  const discountAmount = useMemo(() => {
+    if (rankInfo.discount <= 0) return 0;
+    return Math.floor((totalAmount * rankInfo.discount) / 100);
+  }, [totalAmount, rankInfo]);
+
+  const grandTotal = useMemo(() => {
+    return totalAmount - discountAmount;
+  }, [totalAmount, discountAmount]);
+
   const groupedIdentities = useMemo(() => {
     if (!items || items.length === 0) return [];
     
@@ -93,20 +107,17 @@ export default function CheckoutPage() {
     return Object.values(groups);
   }, [items]);
 
-  const totalAccounts = groupedIdentities.length;
-  const totalProducts = items.length;
-  
   const payableAmount = useMemo(() => {
     if (paymentMethod === 'wallet') {
-      return Math.max(0, totalAmount - walletBalance);
+      return Math.max(0, grandTotal - walletBalance);
     }
-    return totalAmount;
-  }, [paymentMethod, totalAmount, walletBalance]);
+    return grandTotal;
+  }, [paymentMethod, grandTotal, walletBalance]);
 
   const handlePlaceOrder = async () => {
     if (groupedIdentities.length === 0 || !user || !items || items.length === 0) return;
     
-    if (paymentMethod === 'wallet' && walletBalance < totalAmount) {
+    if (paymentMethod === 'wallet' && walletBalance < grandTotal) {
       toast({ variant: 'destructive', title: 'Insufficient Balance', description: 'Please add funds to your wallet to continue.' });
       return;
     }
@@ -123,23 +134,18 @@ export default function CheckoutPage() {
         userId: user.uid,
         items: items, 
         totalAmount,
-        totalAccounts,
-        totalProducts,
-        grandTotal: totalAmount,
-        walletUsed: paymentMethod === 'wallet' ? Math.min(totalAmount, walletBalance) : 0,
+        discountAmount,
+        grandTotal,
+        totalAccounts: groupedIdentities.length,
+        totalProducts: items.length,
+        walletUsed: paymentMethod === 'wallet' ? Math.min(grandTotal, walletBalance) : 0,
         payableAmount,
-        groupedSnapshots: groupedIdentities.map(g => ({
-          playerId: g.playerId,
-          serverId: g.serverId,
-          verifiedName: g.verifiedName,
-          itemCount: g.items.length,
-          subtotal: g.total
-        })),
+        membershipRank: rankInfo.name,
+        membershipDiscountPct: rankInfo.discount,
         playerInfo: { 
           playerId: primaryIdentity.playerId, 
           serverId: primaryIdentity.serverId,
           verifiedName: primaryIdentity.verifiedName,
-          multiTarget: groupedIdentities.length > 1
         },
         paymentMethod,
         createdAt: new Date().toISOString(),
@@ -156,24 +162,23 @@ export default function CheckoutPage() {
         const txData = {
           transactionId: txId,
           userId: user.uid,
-          amount: totalAmount,
+          amount: grandTotal,
           type: 'purchase',
           status: 'success',
           createdAt: new Date().toISOString(),
           serverTimestamp: serverTimestamp(),
         };
 
-        updateDoc(walletDocRef, { balance: increment(-totalAmount), updatedAt: new Date().toISOString() })
-          .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `decrement(${totalAmount})` } })));
+        updateDoc(walletDocRef, { balance: increment(-grandTotal), updatedAt: new Date().toISOString() })
+          .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `decrement(${grandTotal})` } })));
 
         setDoc(txRef, txData)
           .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: txRef.path, operation: 'create', requestResourceData: txData })));
 
-        await setDoc(orderRef, { ...baseOrderData, status: 'pending' })
-          .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: orderRef.path, operation: 'create', requestResourceData: baseOrderData })));
+        await setDoc(orderRef, { ...baseOrderData, status: 'pending' });
         
         const currentSpend = profile?.lifetimeSpend || 0;
-        const newSpend = currentSpend + totalAmount;
+        const newSpend = currentSpend + grandTotal;
         const newRank = getRankFromSpend(newSpend, DEFAULT_RANKS);
         
         updateDoc(userDocRef, {
@@ -183,7 +188,7 @@ export default function CheckoutPage() {
           updatedAt: new Date().toISOString()
         }).catch(err => console.error("Update fail", err));
 
-        sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nAmount: ₹${totalAmount}`);
+        sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nRank: ${rankInfo.name}\nAmount: ₹${grandTotal}`);
         router.push(`/checkout/success/${orderId}`);
       } else if (paymentMethod === 'phonepe') {
         await setDoc(orderRef, { ...baseOrderData, status: 'pending_payment' });
@@ -191,7 +196,7 @@ export default function CheckoutPage() {
         const res = await fetch('/api/payments/phonepe/initiate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: totalAmount, transactionId: orderId, userId: user.uid, type: 'order', orderId }),
+          body: JSON.stringify({ amount: grandTotal, transactionId: orderId, userId: user.uid, type: 'order', orderId }),
         });
 
         const data = await res.json();
@@ -211,23 +216,12 @@ export default function CheckoutPage() {
   return (
     <div className="flex flex-col w-full p-4 space-y-6 animate-in fade-in duration-700">
       <header className="py-2">
-        <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Checkout</h1>
-        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Review Order Details</p>
+        <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Review Order</h1>
+        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Membership discounts applied</p>
       </header>
 
       <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl relative">
         <CardContent className="p-0">
-          <div className="grid grid-cols-2 border-b border-border">
-            <div className="p-4 border-r border-border text-center space-y-0.5">
-              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Accounts</span>
-              <p className="text-xl font-black text-white">{totalAccounts || '0'}</p>
-            </div>
-            <div className="p-4 text-center space-y-0.5">
-              <span className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">Items</span>
-              <p className="text-xl font-black text-white">{totalProducts || '0'}</p>
-            </div>
-          </div>
-
           <div className="p-3 border-b border-border bg-black/20">
             <div className="flex items-center gap-2 mb-2 px-1">
                <ShieldCheck className="h-2.5 w-2.5 text-green-500" />
@@ -258,18 +252,12 @@ export default function CheckoutPage() {
                     </AccordionTrigger>
                     <AccordionContent className="px-3 pb-3 pt-0">
                       <div className="space-y-2 pt-2 border-t border-white/5">
-                        <div className="flex justify-between items-center text-[8px] font-black uppercase">
-                          <span className="text-muted-foreground">Server:</span>
-                          <span className="text-white">{group.serverId}</span>
-                        </div>
-                        <div className="space-y-1">
-                          {group.items.map((item, i) => (
-                            <div key={i} className="flex justify-between items-center bg-black/40 p-1.5">
-                              <span className="text-[7px] font-bold text-white/70 uppercase truncate max-w-[140px]">{item.name}</span>
-                              <span className="text-[7px] font-black text-primary">₹{item.price * item.quantity}</span>
-                            </div>
-                          ))}
-                        </div>
+                        {group.items.map((item, i) => (
+                          <div key={i} className="flex justify-between items-center bg-black/40 p-1.5">
+                            <span className="text-[7px] font-bold text-white/70 uppercase truncate max-w-[140px]">{item.name}</span>
+                            <span className="text-[7px] font-black text-primary">₹{item.price * item.quantity}</span>
+                          </div>
+                        ))}
                       </div>
                     </AccordionContent>
                   </AccordionItem>
@@ -283,13 +271,19 @@ export default function CheckoutPage() {
               <span>Order Subtotal</span>
               <span className="text-white">₹{totalAmount}</span>
             </div>
+            
+            {discountAmount > 0 && (
+              <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-green-500">
+                <span className="flex items-center gap-1"><TicketPercent size={10} /> {rankInfo.name} Discount ({rankInfo.discount}%)</span>
+                <span>-₹{discountAmount}</span>
+              </div>
+            )}
+
             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
               <span>Wallet Balance</span>
-              {walletLoading ? <Skeleton className="h-4 w-12 bg-white/10" /> : (
-                <span className={walletBalance < totalAmount && paymentMethod === 'wallet' ? 'text-primary' : 'text-green-500'}>
-                  ₹{walletBalance.toLocaleString()}
-                </span>
-              )}
+              <span className={walletBalance < grandTotal && paymentMethod === 'wallet' ? 'text-primary' : 'text-white'}>
+                ₹{walletBalance.toLocaleString()}
+              </span>
             </div>
             
             <div className="pt-3 border-t border-border flex justify-between items-end">
@@ -315,10 +309,8 @@ export default function CheckoutPage() {
               <Wallet size={14} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
             </div>
             <div className="text-center">
-              <span className="text-[10px] font-black uppercase block leading-none mb-1">Pay with Wallet</span>
-              {walletLoading ? <Skeleton className="h-2 w-10 mx-auto bg-white/10" /> : (
-                <span className={`text-[7px] font-bold uppercase ${walletBalance < totalAmount ? 'text-primary' : 'text-green-500'}`}>Balance: ₹{walletBalance.toLocaleString()}</span>
-              )}
+              <span className="text-[10px] font-black uppercase block leading-none mb-1">Hub Wallet</span>
+              <span className={`text-[7px] font-bold uppercase ${walletBalance < grandTotal ? 'text-primary' : 'text-green-500'}`}>Balance: ₹{walletBalance.toLocaleString()}</span>
             </div>
             <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
           </Label>
@@ -340,16 +332,11 @@ export default function CheckoutPage() {
         <Button 
           className="w-full h-14 bg-primary hover:bg-secondary text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-none group transition-all"
           onClick={handlePlaceOrder} 
-          disabled={submitting || totalAccounts === 0}
+          disabled={submitting || groupedIdentities.length === 0}
         >
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Place Order <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /></>}
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Complete Purchase <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /></>}
         </Button>
         <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-10 text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-white rounded-none"><ArrowLeft className="mr-2 h-2.5 w-2.5" /> Back to Cart</Button>
-      </div>
-
-      <div className="flex items-center justify-center gap-2 py-4 opacity-20">
-        <ShieldCheck className="h-3 w-3" />
-        <span className="text-[6px] font-black uppercase tracking-[0.4em]">Secure Encrypted Payment</span>
       </div>
     </div>
   );
