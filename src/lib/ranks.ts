@@ -1,7 +1,6 @@
-
 /**
  * Global Membership Configuration
- * Optimized for the 10-tier MLBB hierarchy with a 5 Lakh cap.
+ * Optimized for the 10-tier MLBB hierarchy with a 1 Lakh cap.
  * Warrior -> Elite -> Master -> Grandmaster -> Epic -> Legend -> Mythic -> Honor -> Glory -> Immortal
  */
 
@@ -63,7 +62,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'master',
     name: 'Master', 
-    threshold: 2500, 
+    threshold: 1000, 
     discount: 2, 
     color: '#3b82f6', 
     benefits: ['Faster Queue'],
@@ -80,7 +79,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'grandmaster',
     name: 'Grandmaster', 
-    threshold: 10000, 
+    threshold: 2500, 
     discount: 3, 
     color: '#a855f7', 
     benefits: ['Premium Profile Badge'],
@@ -97,7 +96,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'epic',
     name: 'Epic', 
-    threshold: 25000, 
+    threshold: 5000, 
     discount: 5, 
     color: '#ec4899', 
     benefits: ['Priority Support'],
@@ -114,7 +113,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'legend',
     name: 'Legend', 
-    threshold: 50000, 
+    threshold: 10000, 
     discount: 7, 
     color: '#eab308', 
     benefits: ['Exclusive Community Perks'],
@@ -131,7 +130,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'mythic',
     name: 'Mythic', 
-    threshold: 100000, 
+    threshold: 25000, 
     discount: 10, 
     color: '#ef4444', 
     benefits: ['Highest Priority'],
@@ -148,7 +147,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'mythic_honor',
     name: 'Mythic Honor', 
-    threshold: 200000, 
+    threshold: 50000, 
     discount: 12, 
     color: '#f97316', 
     benefits: ['Advanced Rewards'],
@@ -165,7 +164,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'mythic_glory',
     name: 'Mythic Glory', 
-    threshold: 350000, 
+    threshold: 75000, 
     discount: 15, 
     color: '#dc2626', 
     benefits: ['VVIP Concierge'],
@@ -182,7 +181,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
   { 
     id: 'mythic_immortal',
     name: 'Mythic Immortal', 
-    threshold: 500000, 
+    threshold: 100000, 
     discount: 20, 
     color: '#fbbf24', 
     benefits: ['Platform Legend Status'],
