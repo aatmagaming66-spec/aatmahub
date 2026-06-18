@@ -72,15 +72,15 @@ function GameCard({ game }: { game: any }) {
   return (
     <Link 
       href={`/product/${game.id}`} 
-      className="w-full group flex flex-col active:scale-95 transition-all duration-300"
+      className="w-full group flex flex-col active-press"
     >
-      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-transparent border border-white/10 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
+      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-transparent border border-white/10 shadow-2xl transition-all duration-300">
         {game.logo ? (
           <Image 
             src={game.logo} 
             alt={game.name} 
             fill 
-            className="object-contain opacity-100 transition-transform duration-700 group-hover:scale-110 z-10"
+            className="object-contain opacity-100 transition-transform duration-700 group-hover:scale-105 z-10"
             sizes="(max-width: 768px) 33vw, 120px"
           />
         ) : (
@@ -90,7 +90,7 @@ function GameCard({ game }: { game: any }) {
         )}
 
         {isMlbb && (
-          <div className="absolute top-1 left-1 z-30 bg-primary/95 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10 scale-90 origin-top-left">
+          <div className="absolute top-1 left-1 z-30 bg-primary/95 px-1 py-0.5 rounded-none flex items-center justify-center shadow-md border border-white/10 scale-75 origin-top-left">
             <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
           </div>
         )}

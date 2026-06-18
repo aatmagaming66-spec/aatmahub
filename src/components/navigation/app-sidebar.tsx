@@ -23,48 +23,13 @@ import {
   Package
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 import { useUser } from "@/firebase/auth/use-user";
 
 export function AppSidebar() {
   const { setOpenMobile } = useSidebar();
   const router = useRouter();
-  const { user, initialized } = useUser();
-
-  // HIGH-PRIORITY PREFETCH: Ensure all critical page chunks are ready before first interaction
-  useEffect(() => {
-    const criticalRoutes = [
-      '/',
-      '/games',
-      '/ott-services',
-      '/social-services',
-      '/orders',
-      '/profile',
-      '/login',
-      '/wallet',
-      '/cart',
-      '/contact'
-    ];
-    
-    // Use requestIdleCallback to avoid blocking the main thread during initial load
-    const prefetcher = () => {
-      criticalRoutes.forEach(route => {
-        try {
-          router.prefetch(route);
-        } catch (e) {
-          // silent fail for prefetch
-        }
-      });
-    };
-
-    if (typeof window !== 'undefined') {
-      if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(prefetcher, { timeout: 2000 });
-      } else {
-        setTimeout(prefetcher, 100);
-      }
-    }
-  }, [router]);
+  const { user } = useUser();
 
   const navigateTo = useCallback((href: string) => {
     setOpenMobile(false);
@@ -75,7 +40,7 @@ export function AppSidebar() {
     <Sidebar className="border-r border-white/5">
       <SidebarHeader className="h-14 flex items-center px-4 border-b border-white/5">
         <button 
-          className="font-headline font-bold text-lg text-primary text-left uppercase tracking-tighter"
+          className="font-headline font-bold text-lg text-primary text-left uppercase tracking-tighter active:scale-95 transition-transform"
           onClick={() => navigateTo('/')}
         >
           AATMA HUB

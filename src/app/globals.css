@@ -37,10 +37,13 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-none;
+    -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-background text-foreground font-body;
+    @apply bg-background text-foreground font-body antialiased;
+    touch-action: manipulation;
+    text-rendering: optimizeLegibility;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline tracking-tight;
@@ -53,4 +56,9 @@
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Instant Response Utility */
+.active-press {
+  @apply transition-transform duration-75 active:scale-[0.97] will-change-transform;
 }

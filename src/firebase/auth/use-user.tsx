@@ -23,8 +23,8 @@ const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
 const SUPER_ADMIN_UID = 'iDeDaksq2hUmkyyIxvlNHgvb2y43';
 
 /**
- * ProfileProvider - Performance Optimized
- * Decouples Auth initialization from Profile data loading to ensure zero-delay navigation.
+ * ProfileProvider - Optimized for instant resolution
+ * The 'initialized' state is prioritized to unlock the UI immediately.
  */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -35,10 +35,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // 1. FAST PATH: Detect Auth status immediately
+    // Detect Auth status and signal initialization immediately
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      // SET INITIALIZED IMMEDIATELY - This enables first-click navigation
       setInitialized(true);
       
       if (!firebaseUser) {
@@ -53,19 +52,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
 
-    // 2. BACKGROUND PATH: Load profile data without blocking route changes
     const userDocRef = doc(db, 'users', user.uid);
     
+    // Background listener for profile data - does not block 'initialized'
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         
         if (isSuperAdminTarget && data.role !== 'super_admin') {
-           updateDoc(userDocRef, { 
-             role: 'super_admin', 
-             updatedAt: new Date().toISOString()
-           }).catch(() => {});
+           updateDoc(userDocRef, { role: 'super_admin', updatedAt: new Date().toISOString() }).catch(() => {});
         }
         setProfile(data);
       } else {
@@ -82,7 +78,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         setDoc(userDocRef, newProfile).catch(() => {});
       }
       setLoading(false);
-    }, (error) => {
+    }, () => {
       setLoading(false);
     });
 
