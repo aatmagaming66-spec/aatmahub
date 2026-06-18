@@ -45,7 +45,7 @@ export function GameGrid() {
         </div>
         <div className="flex gap-4 overflow-x-auto no-scrollbar">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="flex-shrink-0 w-[calc((100vw-48px)/3)] aspect-[3/4] rounded-[24px] bg-white/5" />
+            <Skeleton key={i} className="flex-shrink-0 w-[calc((100vw-48px)/3)] aspect-square rounded-none bg-white/5" />
           ))}
         </div>
       </section>
@@ -99,7 +99,7 @@ function GameCard({ game }: { game: any }) {
       href={`/product/${game.id}`} 
       className="w-[calc((100vw-48px)/3)] sm:w-[120px] group flex flex-col active:scale-95 transition-all duration-300"
     >
-      <div className="relative aspect-[3/4] w-full rounded-[24px] overflow-hidden bg-card border border-white/5 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
+      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-card border border-white/5 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card" />
         
         {game.logo ? (
@@ -107,7 +107,7 @@ function GameCard({ game }: { game: any }) {
             src={game.logo} 
             alt={game.name} 
             fill 
-            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            className="object-contain transition-transform duration-700 group-hover:scale-110"
             sizes="(max-width: 768px) 33vw, 120px"
           />
         ) : (
@@ -123,7 +123,7 @@ function GameCard({ game }: { game: any }) {
           </div>
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
       </div>
       
       <div className="text-center mt-3 px-1">
