@@ -36,10 +36,11 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Initial handshake with Firebase Auth
+    // Initial handshake with Firebase Auth - HIGH PRIORITY
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       // PERFORMANCE: Signal that we know the auth state so UI can render immediately
+      // This is the key to fixing the first-click delay.
       setInitialized(true);
       
       if (!firebaseUser) {

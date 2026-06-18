@@ -46,15 +46,23 @@ export function AppSidebar() {
       '/contact'
     ];
     
-    // Use requestIdleCallback if available, otherwise setTimeout
+    // Use requestIdleCallback to avoid blocking the main thread during initial load
     const prefetcher = () => {
-      criticalRoutes.forEach(route => router.prefetch(route));
+      criticalRoutes.forEach(route => {
+        try {
+          router.prefetch(route);
+        } catch (e) {
+          // silent fail for prefetch
+        }
+      });
     };
 
-    if (window.requestIdleCallback) {
-      window.requestIdleCallback(prefetcher);
-    } else {
-      setTimeout(prefetcher, 100);
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(prefetcher, { timeout: 2000 });
+      } else {
+        setTimeout(prefetcher, 100);
+      }
     }
   }, [router]);
 
@@ -81,19 +89,19 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigateTo('/games')}>
                   <Gamepad2 className="h-4 w-4" />
-                  <span className="font-bold text-sm">Games</span>
+                  <span className="font-bold text-sm text-white">Games</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigateTo('/ott-services')}>
                   <Tv className="h-4 w-4" />
-                  <span className="font-bold text-sm">OTT Services</span>
+                  <span className="font-bold text-sm text-white">OTT Services</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigateTo('/social-services')}>
                   <Share2 className="h-4 w-4" />
-                  <span className="font-bold text-sm">Social Services</span>
+                  <span className="font-bold text-sm text-white">Social Services</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -107,19 +115,19 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigateTo('/orders')}>
                   <Package className="h-4 w-4" />
-                  <span className="font-bold text-sm">My Orders</span>
+                  <span className="font-bold text-sm text-white">My Orders</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigateTo(user ? '/profile' : '/login')}>
                   <Settings className="h-4 w-4" />
-                  <span className="font-bold text-sm">Account Settings</span>
+                  <span className="font-bold text-sm text-white">Account Settings</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigateTo('/contact')}>
                   <HelpCircle className="h-4 w-4" />
-                  <span className="font-bold text-sm">Support</span>
+                  <span className="font-bold text-sm text-white">Support</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -133,13 +141,13 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigateTo('/terms')}>
                   <FileText className="h-4 w-4" />
-                  <span className="font-bold text-sm">Terms & Conditions</span>
+                  <span className="font-bold text-sm text-white">Terms & Conditions</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton onClick={() => navigateTo('/privacy')}>
                   <ShieldCheck className="h-4 w-4" />
-                  <span className="font-bold text-sm">Privacy Policy</span>
+                  <span className="font-bold text-sm text-white">Privacy Policy</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

@@ -30,13 +30,30 @@ export function BottomNav() {
 
   // AGGRESSIVE PREFETCH: Ensure navigation targets are pre-cached for zero-delay transition
   useEffect(() => {
-    NAV_ITEMS.forEach((item) => {
-      router.prefetch(item.href);
-    });
+    const prefetcher = () => {
+      NAV_ITEMS.forEach((item) => {
+        try {
+          router.prefetch(item.href);
+        } catch (e) {
+          // silent fail
+        }
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(prefetcher, { timeout: 2000 });
+      } else {
+        setTimeout(prefetcher, 100);
+      }
+    }
   }, [NAV_ITEMS, router]);
 
   const handleTrackClick = (href: string) => {
-    window.__nav_click_time = performance.now();
+    // Analytics timing mark
+    if (typeof window !== 'undefined') {
+      (window as any).__nav_click_time = performance.now();
+    }
   };
 
   return (
@@ -53,7 +70,7 @@ export function BottomNav() {
               onClick={() => handleTrackClick(item.href)}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative",
-                isActive ? "text-primary" : "text-muted-foreground hover:text-accent"
+                isActive ? "text-primary" : "text-muted-foreground hover:text-white"
               )}
             >
               <item.icon className={cn(
