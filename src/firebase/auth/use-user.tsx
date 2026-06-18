@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { useAuth, useFirestore } from '../provider';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 
 interface ProfileContextType {
   user: User | null;
@@ -20,9 +20,8 @@ const ProfileContext = createContext<ProfileContextType>({
 });
 
 /**
- * ProfileProvider - Stable Shell Refactor
- * Ensures {children} are ALWAYS rendered immediately to prevent navigation "blank flashes".
- * Auth and Profile hydration happens optimistically in the background.
+ * ProfileProvider - Dynamic Membership Backend
+ * Ensures session stability and performs real-time rank expiry checks.
  */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -33,18 +32,14 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Stage 1: Detect Auth Session (Immediate logic-only)
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      // We signal initialized immediately on the first check to unlock the UI shell
       setInitialized(true);
-      
       if (!firebaseUser) {
         setProfile(null);
         setLoading(false);
       }
     });
-
     return () => unsubscribeAuth();
   }, [auth]);
 
@@ -53,18 +48,38 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
     const userDocRef = doc(db, 'users', user.uid);
     
-    // Stage 2: Background Profile Hydration
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
-        setProfile(docSnap.data());
+        const data = docSnap.data();
+        
+        // BACKEND RANK SYNC: Immediate local expiry check
+        if (data.rankExpiry && data.rankId !== 'warrior') {
+          const now = new Date();
+          const expiry = new Date(data.rankExpiry);
+          
+          if (now > expiry) {
+            console.log('[Membership Sync] Rank expired. Resetting status.');
+            updateDoc(userDocRef, {
+              currentRank: 'Warrior',
+              rankId: 'warrior',
+              rankExpiry: null,
+              updatedAt: new Date().toISOString()
+            });
+            // Profile will update on next snapshot emission
+            return;
+          }
+        }
+        
+        setProfile(data);
       } else {
         const newProfile = {
           uid: user.uid,
-          fullName: user.displayName || 'Aatma Member',
+          fullName: user.displayName || 'Member',
           email: user.email!,
           role: 'user',
           lifetimeSpend: 0,
           currentRank: 'Warrior',
+          rankId: 'warrior',
           createdAt: new Date().toISOString(),
         };
         setDoc(userDocRef, newProfile).catch(() => {});
@@ -81,10 +96,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ProfileContext.Provider value={value}>
-      {/* 
-        CRITICAL: We render children immediately. 
-        Pages handle their own skeleton states internally to prevent a blank full-page flash.
-      */}
       {children}
     </ProfileContext.Provider>
   );
