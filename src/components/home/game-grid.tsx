@@ -12,7 +12,6 @@ import { Gamepad2 } from "lucide-react";
 export function GameGrid() {
   const db = useFirestore();
   
-  // FETCH ALL ACTIVE GAMES IN CATEGORY
   const gamesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
@@ -24,8 +23,6 @@ export function GameGrid() {
 
   const games = useMemo(() => {
     if (!rawGames) return [];
-    
-    // Client-side sorting for maximum resilience
     return rawGames
       .filter(g => g.status === 'active')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
@@ -47,9 +44,7 @@ export function GameGrid() {
     );
   }
 
-  if (games.length === 0) {
-    return null;
-  }
+  if (games.length === 0) return null;
 
   return (
     <section className="py-6 px-4">
@@ -80,8 +75,6 @@ function GameCard({ game }: { game: any }) {
       className="w-full group flex flex-col active:scale-95 transition-all duration-300"
     >
       <div className="relative aspect-square w-full rounded-none overflow-hidden bg-white/5 border border-white/10 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
-        <div className="absolute inset-0 bg-neutral-900/40" />
-        
         {game.logo ? (
           <Image 
             src={game.logo} 
@@ -96,7 +89,6 @@ function GameCard({ game }: { game: any }) {
           </div>
         )}
 
-        {/* INSTANT BADGE OVERLAY - RESTRICTED TO MLBB ONLY */}
         {isMlbb && (
           <div className="absolute top-1 left-1 z-30 bg-primary/95 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10 scale-90 origin-top-left">
             <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>

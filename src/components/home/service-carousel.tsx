@@ -18,10 +18,8 @@ interface ServiceCarouselProps {
 export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const db = useFirestore();
   const isOtt = category === 'OTT Services';
-  const isSocial = category === 'Social Services';
   const Icon = isOtt ? Tv : Share2;
 
-  // FETCH ALL ACTIVE ITEMS IN CATEGORY
   const servicesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
@@ -33,11 +31,10 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
 
   const items = useMemo(() => {
     if (!rawItems) return [];
-    
     return rawItems
       .filter(i => i.status === 'active')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-  }, [rawItems, category]);
+  }, [rawItems]);
 
   if (loading) {
     return (
@@ -50,7 +47,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className={cn(
               "flex-shrink-0 w-[120px] bg-white/5",
-              isSocial ? "aspect-square rounded-none" : "aspect-[2/3] rounded-xl"
+              isOtt ? "aspect-[2/3] rounded-[20px]" : "aspect-square rounded-none"
             )} />
           ))}
         </div>
@@ -58,9 +55,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
     );
   }
 
-  if (items.length === 0) {
-    return null;
-  }
+  if (items.length === 0) return null;
 
   return (
     <section className="py-6 overflow-hidden">
@@ -83,19 +78,15 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
           >
             <div className={cn(
               "relative overflow-hidden mb-2.5 border border-white/5 bg-white/5 shadow-xl group-hover:border-white/20 transition-all",
-              isSocial ? "aspect-square rounded-none" : "aspect-[2/3] rounded-[20px]"
+              isOtt ? "aspect-[2/3] rounded-[20px]" : "aspect-square rounded-none"
             )}>
-              <div className="absolute inset-0 bg-neutral-900/30" />
-              
               {item.logo ? (
                 <Image 
                   src={item.logo} 
                   alt={item.name} 
                   fill 
-                  className={cn(
-                    "transition-transform duration-500 group-hover:scale-110 z-10",
-                    isSocial ? "object-contain" : "object-cover"
-                  )}
+                  className="object-contain transition-transform duration-500 group-hover:scale-110 z-10"
+                  sizes="(max-width: 768px) 33vw, 100px"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center opacity-10">
