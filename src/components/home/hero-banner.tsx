@@ -15,7 +15,6 @@ import Image from "next/image";
 export function HeroBanner() {
   const db = useFirestore();
   
-  // OPTIMIZATION: Simple query to avoid composite index requirements
   const bannersQuery = React.useMemo(() => query(
     collection(db, 'banners'),
     orderBy('sortOrder', 'asc')
@@ -30,13 +29,11 @@ export function HeroBanner() {
   
   const [selectedIndex, setSelectedIndex] = React.useState(0);
 
-  // CRITICAL FIX: Only include banners that are active AND have an image URL
   const activeBanners = React.useMemo(() => {
     return allBanners?.filter(b => b.status === 'active' && b.imageUrl) || [];
   }, [allBanners]);
 
   const displayBanners = React.useMemo(() => {
-    // If we have no valid banners, show the professional fallback
     if (!loading && activeBanners.length === 0) {
       return [
         {
@@ -98,28 +95,34 @@ export function HeroBanner() {
                   priority={index === 0}
                   className="object-cover z-0"
                   sizes="(max-width: 768px) 100vw, 1200px"
-                  data-ai-hint="hero banner"
                 />
               )}
               
-              <div className="absolute inset-0 bg-black/40 z-10" />
+              {/* Only show dark fade if there is some text or a button */}
+              {(slide.title || slide.subtitle || (slide.ctaText && slide.ctaLink)) && (
+                <div className="absolute inset-0 bg-black/40 z-10" />
+              )}
               
               <div className="absolute inset-0 z-20 flex flex-col justify-center px-8">
-                <h2 className="text-2xl font-headline font-black text-white mb-1.5 leading-tight tracking-tighter max-w-[200px] uppercase">
-                  {slide.title}
-                </h2>
+                {slide.title && (
+                  <h2 className="text-2xl font-headline font-black text-white mb-1.5 leading-tight tracking-tighter max-w-[200px] uppercase">
+                    {slide.title}
+                  </h2>
+                )}
                 {slide.subtitle && (
                   <p className="text-[10px] text-white/70 max-w-[240px] font-black uppercase tracking-widest leading-none mb-5">
                     {slide.subtitle}
                   </p>
                 )}
-                <div>
-                  <Link href={slide.ctaLink || '/'}>
-                    <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-none border-none active-press">
-                      {slide.ctaText || 'Shop Now'}
-                    </Button>
-                  </Link>
-                </div>
+                {slide.ctaText && slide.ctaLink && (
+                  <div>
+                    <Link href={slide.ctaLink}>
+                      <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-none border-none active-press">
+                        {slide.ctaText}
+                      </Button>
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           ))}

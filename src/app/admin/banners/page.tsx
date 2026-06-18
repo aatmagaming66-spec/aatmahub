@@ -6,7 +6,6 @@ import { collection, setDoc, deleteDoc, doc, query, orderBy } from 'firebase/fir
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { 
@@ -38,8 +37,8 @@ export default function BannerManagementPage() {
     title: '',
     subtitle: '',
     imageUrl: '',
-    ctaText: 'Shop Now',
-    ctaLink: '/',
+    ctaText: '',
+    ctaLink: '',
     status: 'active',
     sortOrder: 0
   });
@@ -57,8 +56,8 @@ export default function BannerManagementPage() {
         title: banner.title || '',
         subtitle: banner.subtitle || '',
         imageUrl: banner.imageUrl || '',
-        ctaText: banner.ctaText || 'Shop Now',
-        ctaLink: banner.ctaLink || '/',
+        ctaText: banner.ctaText || '',
+        ctaLink: banner.ctaLink || '',
         status: banner.status || 'active',
         sortOrder: banner.sortOrder || 0
       });
@@ -69,8 +68,8 @@ export default function BannerManagementPage() {
         title: '',
         subtitle: '',
         imageUrl: '',
-        ctaText: 'Shop Now',
-        ctaLink: '/',
+        ctaText: '',
+        ctaLink: '',
         status: 'active',
         sortOrder: (banners?.length || 0) + 1
       });
@@ -95,7 +94,6 @@ export default function BannerManagementPage() {
   };
 
   const handleSave = async () => {
-    // STRICTOR VALIDATION: Require either a new file or an existing image URL
     if (!file && !formData.imageUrl) {
       toast({ variant: 'destructive', title: 'Image Required', description: 'You must provide a banner image.' });
       return;
@@ -278,6 +276,7 @@ export default function BannerManagementPage() {
                 <input 
                   value={formData.ctaText} 
                   onChange={(e) => setFormData({...formData, ctaText: e.target.value})} 
+                  placeholder="e.g. Shop Now"
                   className="bg-black/50 border-border h-12 rounded-none text-xs font-bold focus:border-primary w-full px-4 outline-none" 
                 />
               </div>
@@ -286,6 +285,7 @@ export default function BannerManagementPage() {
                 <input 
                   value={formData.ctaLink} 
                   onChange={(e) => setFormData({...formData, ctaLink: e.target.value})} 
+                  placeholder="e.g. /games"
                   className="bg-black/50 border-border h-12 rounded-none text-xs font-bold focus:border-primary w-full px-4 outline-none" 
                 />
               </div>
