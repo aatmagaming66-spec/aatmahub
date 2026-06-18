@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ShieldCheck, Zap, ArrowRight, Loader2, Smartphone, PackageSearch, ImageIcon } from "lucide-react";
+import { ShieldCheck, Zap, ArrowRight, Loader2, Smartphone, PackageSearch, ImageIcon, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCart } from "@/context/cart-context";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +16,7 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where, doc } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { useDoc } from "@/firebase/firestore/use-doc";
+import { useGlobalSettings } from "@/firebase/settings-context";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -24,6 +25,7 @@ export default function ProductPage() {
   const { addItem, clearCart } = useCart();
   const { user } = useUser();
   const db = useFirestore();
+  const { siteSettings } = useGlobalSettings();
   
   const gameDocRef = useMemo(() => id ? doc(db, 'games', id as string) : null, [db, id]);
   const { data: gameInfo, loading: gameLoading } = useDoc(gameDocRef);
@@ -43,6 +45,10 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
+  const isManualCategory = useMemo(() => {
+    return gameInfo?.category === "OTT Services" || gameInfo?.category === "Social Services";
+  }, [gameInfo]);
+
   const productName = gameInfo?.name || id?.toString().replace(/-/g, ' ').toUpperCase() || "Product Details";
 
   useEffect(() => {
@@ -55,18 +61,31 @@ export default function ProductPage() {
 
   const handleVerify = () => {
     if (!playerId) {
-      toast({ variant: "destructive", title: "Information Required", description: "Player ID is needed to proceed." });
+      toast({ variant: "destructive", title: "Information Required", description: isManualCategory ? "Target link or ID is needed." : "Player ID is needed to proceed." });
       return;
     }
     setVerifying(true);
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      toast({ title: "Account Verified", description: "Your game account has been found." });
-    }, 1200);
+      toast({ title: isManualCategory ? "Information Saved" : "Account Verified", description: isManualCategory ? "Details captured for manual processing." : "Your game account has been found." });
+    }, 800);
+  };
+
+  const handleOrderWhatsApp = () => {
+    if (!selectedPack || !playerId) {
+      toast({ variant: "destructive", title: "Incomplete Details", description: "Select a package and provide target details." });
+      return;
+    }
+    
+    const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
+    const message = `Hi AATMA HUB, I want to order:\n\n*Service:* ${productName}\n*Package:* ${selectedPack.name}\n*Price:* ₹${selectedPack.price}\n*Target ID/Link:* ${playerId}\n${serverId ? `*Extra Info:* ${serverId}` : ''}\n\nPlease guide me with the next steps.`;
+    
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   const handleBuyNow = () => {
+    if (isManualCategory) { handleOrderWhatsApp(); return; }
     if (!user) { router.push('/login'); return; }
     if (!isVerified) { toast({ variant: "destructive", title: "Verification Required" }); return; }
     if (!selectedPack) return;
@@ -88,6 +107,7 @@ export default function ProductPage() {
   };
 
   const handleAddToCart = () => {
+    if (isManualCategory) { handleOrderWhatsApp(); return; }
     if (!user) { router.push('/login'); return; }
     if (!isVerified) { toast({ variant: "destructive", title: "Verification Required" }); return; }
     if (!selectedPack) return;
@@ -160,7 +180,9 @@ export default function ProductPage() {
           <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl">
             {productName}
           </h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-black opacity-40">Store Product Details</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-black opacity-40">
+            {isManualCategory ? "Manual Order Protocol" : "Store Product Details"}
+          </p>
         </div>
 
         <section className="bg-card border border-border p-6 rounded-none space-y-4 shadow-2xl relative overflow-hidden">
@@ -168,22 +190,40 @@ export default function ProductPage() {
             <Smartphone size={140} />
           </div>
           <div className="flex items-center gap-2 px-1">
-            <Smartphone size={16} className="text-primary" />
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Game Account Details</h3>
+            {isManualCategory ? <MessageCircle size={16} className="text-primary" /> : <Smartphone size={16} className="text-primary" />}
+            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">
+              {isManualCategory ? "Required Information" : "Game Account Details"}
+            </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-1.5">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Player User ID</Label>
-               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter Account ID" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" />
+               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">
+                 {isManualCategory ? "Target ID / Profile Link" : "Player User ID"}
+               </Label>
+               <Input 
+                 value={playerId} 
+                 onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} 
+                 placeholder={isManualCategory ? "Enter Link or Username" : "Enter Account ID"} 
+                 className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" 
+               />
              </div>
              <div className="space-y-1.5">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">Server Name (Optional)</Label>
-               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. Asia-1" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" />
+               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">
+                 {isManualCategory ? "Additional Note (Optional)" : "Server Name (Optional)"}
+               </Label>
+               <Input 
+                 value={serverId} 
+                 onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} 
+                 placeholder={isManualCategory ? "e.g. Email or region" : "e.g. Asia-1"} 
+                 className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" 
+               />
              </div>
           </div>
-          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-none font-black uppercase text-[11px] tracking-widest shadow-xl transition-all", isVerified ? "bg-green-600 hover:bg-green-600 shadow-green-500/20" : "bg-primary shadow-primary/20 shadow-primary/20")}>
-            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Account Verified Successfully" : "Verify My Account")}
-          </Button>
+          {!isManualCategory && (
+            <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-none font-black uppercase text-[11px] tracking-widest shadow-xl transition-all", isVerified ? "bg-green-600 hover:bg-green-600 shadow-green-500/20" : "bg-primary shadow-primary/20")}>
+              {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Account Verified Successfully" : "Verify My Account")}
+            </Button>
+          )}
         </section>
 
         <section className="space-y-4">
@@ -235,12 +275,24 @@ export default function ProductPage() {
         </section>
 
         <div className="flex flex-col gap-4 pb-24">
-          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-primary/30 group transition-all h-20">
-            Buy Now <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
-          </Button>
-          <Button variant="outline" onClick={handleAddToCart} disabled={!selectedPack || !isVerified} className="w-full h-16 border-border bg-transparent text-[11px] font-black uppercase tracking-widest rounded-none hover:bg-white/5 transition-all">
-            Add to Cart
-          </Button>
+          {isManualCategory ? (
+            <Button 
+              onClick={handleOrderWhatsApp} 
+              disabled={!selectedPack || !playerId} 
+              className="w-full bg-green-600 hover:bg-green-700 text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-green-500/20 group transition-all h-20 gap-3"
+            >
+              <MessageCircle size={24} /> Order via WhatsApp <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
+          ) : (
+            <>
+              <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-primary/30 group transition-all h-20">
+                Buy Now <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
+              </Button>
+              <Button variant="outline" onClick={handleAddToCart} disabled={!selectedPack || !isVerified} className="w-full h-16 border-border bg-transparent text-[11px] font-black uppercase tracking-widest rounded-none hover:bg-white/5 transition-all">
+                Add to Cart
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>
