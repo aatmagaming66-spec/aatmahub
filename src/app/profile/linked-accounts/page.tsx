@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -16,7 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 
 /**
- * Linked Accounts Sector
+ * Linked Accounts Page
  * Optimized for instant shell mounting and zero-latency navigation.
  */
 export default function LinkedAccountsPage() {
@@ -34,39 +33,39 @@ export default function LinkedAccountsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none text-white">Identity Sector</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Cross-Platform Linkage</p>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none text-white">Linked Accounts</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Manage your connected accounts</p>
         </div>
       </header>
 
-      <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+      <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl">
         <CardHeader className="p-8 text-center border-b border-white/5 bg-gradient-to-b from-primary/5 to-transparent">
-          <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
+          <div className="h-16 w-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 border border-primary/20">
             <LinkIcon size={30} className="text-primary" />
           </div>
-          <CardTitle className="text-xl font-black uppercase tracking-tighter text-white">Linked Identities</CardTitle>
-          <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Manage your third-party connections</CardDescription>
+          <CardTitle className="text-xl font-black uppercase tracking-tighter text-white">Connected Accounts</CardTitle>
+          <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Manage your social login methods</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-white/5">
             <LinkedAccountItem 
               icon={Mail}
-              title="Email Authentication"
-              description="Primary sign-in method"
+              title="Email Login"
+              description="Your primary sign-in method"
               status="Connected"
               color="text-primary"
             />
             <LinkedAccountItem 
               icon={Globe}
-              title="Google Identity"
-              description="Sync your Google account"
+              title="Google Account"
+              description="Login using Google"
               status="Disconnected"
               color="text-white/20"
             />
             <LinkedAccountItem 
               icon={Facebook}
-              title="Facebook Connect"
-              description="Legacy social linkage"
+              title="Facebook Account"
+              description="Login using Facebook"
               status="Unavailable"
               color="text-white/20"
               disabled
@@ -75,13 +74,13 @@ export default function LinkedAccountsPage() {
         </CardContent>
       </Card>
 
-      <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
+      <div className="bg-primary/5 p-6 rounded-none border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Identity Protocol</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Security Note</span>
         </div>
         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          Linking multiple accounts allows you to recover access to the HUB through different authentication vectors. Secure your primary email before modifying linked identities.
+          Linking multiple accounts helps you recover access to your account easily. Make sure your primary email is secure before changing your linked accounts.
         </p>
       </div>
     </div>
@@ -98,7 +97,7 @@ function LinkedAccountItem({ icon: Icon, title, description, status, color, disa
       )}
     >
       <div className="flex items-center gap-4">
-        <div className="h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center transition-transform group-active:scale-95 text-white/80">
+        <div className="h-10 w-10 rounded-none bg-white/5 flex items-center justify-center transition-transform group-active:scale-95 text-white/80">
           <Icon size={18} />
         </div>
         <div className="text-left space-y-0.5">
