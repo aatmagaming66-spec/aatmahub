@@ -40,11 +40,13 @@ export function RankAvatar({ src, fallback, rank = 'Warrior', className, size = 
 
   return (
     <div className={cn("relative inline-block shrink-0", className)}>
-      <Avatar className={cn(sizes[size], "transition-all duration-500 bg-black/60 rounded-none overflow-visible", getRankStyles())}>
-        {src && <AvatarImage src={src} className="object-cover rounded-none" />}
-        <AvatarFallback className="bg-gradient-to-br from-white/10 to-transparent text-white font-black uppercase text-center leading-none rounded-none w-full h-full flex items-center justify-center">
-          {fallback || rank.charAt(0)}
-        </AvatarFallback>
+      <Avatar className={cn(sizes[size], "transition-all duration-500 bg-black/60 rounded-full overflow-visible", getRankStyles())}>
+        <div className="absolute inset-0 rounded-full overflow-hidden">
+          {src && <AvatarImage src={src} className="object-cover h-full w-full" />}
+          <AvatarFallback className="bg-gradient-to-br from-white/10 to-transparent text-white font-black uppercase text-center leading-none w-full h-full flex items-center justify-center">
+            {fallback || rank.charAt(0)}
+          </AvatarFallback>
+        </div>
       </Avatar>
       
       {/* Immortal Crown Overlay */}
@@ -56,9 +58,9 @@ export function RankAvatar({ src, fallback, rank = 'Warrior', className, size = 
 
       {/* Mythic Flame Overlay */}
       {(r.includes('mythic') || r.includes('glory') || r.includes('honor')) && (
-        <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-none p-0.5 border border-white/30 shadow-lg z-10">
+        <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-full p-0.5 border border-white/30 shadow-lg z-10">
           {r.includes('immortal') ? (
-            <Flame className="h-3 w-3 text-white fill-white animate-pulse" />
+            <Zap className="h-3 w-3 text-white fill-white animate-pulse" />
           ) : (
             <Zap className="h-2.5 w-2.5 text-white fill-white" />
           )}

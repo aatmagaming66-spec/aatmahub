@@ -56,7 +56,6 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // Skip the 'Guest' screen by redirecting to login immediately
   useEffect(() => {
     if (initialized && !user) {
       router.replace('/login');
@@ -141,7 +140,6 @@ export default function ProfilePage() {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  // Prevent flash of content during redirect
   if (!initialized || !user) {
     return (
       <div className="flex flex-col w-full min-h-screen items-center justify-center">
@@ -162,10 +160,10 @@ export default function ProfilePage() {
                 src={photoURL}
                 rank={rankInfo.name} 
                 size="xl" 
-                className="shadow-2xl rounded-none" 
+                className="shadow-2xl" 
                 fallback={profile?.fullName?.charAt(0)}
               />
-              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full">
                 {uploading ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
               </div>
               <input 

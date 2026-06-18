@@ -31,7 +31,6 @@
   * {
     @apply border-border outline-none;
     -webkit-tap-highlight-color: transparent;
-    border-radius: 0 !important; /* Hardened Sharp Edge Protocol */
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
