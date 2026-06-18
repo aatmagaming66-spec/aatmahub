@@ -32,10 +32,6 @@ export function GameGrid() {
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
-  // Split games into two rows for independent scrolling
-  const row1 = useMemo(() => games.filter((_, i) => i % 2 === 0), [games]);
-  const row2 = useMemo(() => games.filter((_, i) => i % 2 !== 0), [games]);
-
   if (loading) {
     return (
       <section className="py-6 px-4">
@@ -43,9 +39,9 @@ export function GameGrid() {
           <div className="w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">Mobile Games</h2>
         </div>
-        <div className="flex gap-4 overflow-x-auto no-scrollbar">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="flex-shrink-0 w-[calc((100vw-48px)/3)] aspect-square rounded-none bg-white/5" />
+        <div className="grid grid-cols-3 gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="w-full aspect-square rounded-none bg-white/5" />
           ))}
         </div>
       </section>
@@ -57,37 +53,21 @@ export function GameGrid() {
   }
 
   return (
-    <section className="py-6 overflow-hidden">
-      <div className="flex items-center justify-between mb-6 px-4">
+    <section className="py-6 px-4">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">
             Mobile Games
           </h2>
         </div>
-        <Link href="/games" className="text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:text-white transition-colors">View All</Link>
       </div>
       
-      <div className="space-y-6">
-        {/* ROW 1 SCROLL (INDEPENDENT) */}
-        <div className="overflow-x-auto no-scrollbar pb-1">
-          <div className="flex gap-3 px-4 w-max">
-            {row1.map((game) => (
-              <GameCard key={game.id} game={game} />
-            ))}
-          </div>
-        </div>
-
-        {/* ROW 2 SCROLL (INDEPENDENT) */}
-        {row2.length > 0 && (
-          <div className="overflow-x-auto no-scrollbar pb-1">
-            <div className="flex gap-3 px-4 w-max">
-              {row2.map((game) => (
-                <GameCard key={game.id} game={game} />
-              ))}
-            </div>
-          </div>
-        )}
+      {/* FULL GRID DISPLAY - ALL CARDS VISIBLE */}
+      <div className="grid grid-cols-3 gap-3">
+        {games.map((game) => (
+          <GameCard key={game.id} game={game} />
+        ))}
       </div>
     </section>
   );
@@ -97,7 +77,7 @@ function GameCard({ game }: { game: any }) {
   return (
     <Link 
       href={`/product/${game.id}`} 
-      className="w-[calc((100vw-48px)/3)] sm:w-[120px] group flex flex-col active:scale-95 transition-all duration-300"
+      className="w-full group flex flex-col active:scale-95 transition-all duration-300"
     >
       <div className="relative aspect-square w-full rounded-none overflow-hidden bg-card border border-white/5 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card" />
