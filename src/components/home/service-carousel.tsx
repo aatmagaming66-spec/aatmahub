@@ -7,8 +7,10 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tv, Share2 } from "lucide-react";
+import { Tv, Share2, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useGlobalSettings } from "@/firebase/settings-context";
+import { Button } from "@/components/ui/button";
 
 interface ServiceCarouselProps {
   title: string;
@@ -17,6 +19,7 @@ interface ServiceCarouselProps {
 
 export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const db = useFirestore();
+  const { siteSettings } = useGlobalSettings();
   const isOtt = category === 'OTT Services';
   const Icon = isOtt ? Tv : Share2;
 
@@ -36,6 +39,12 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawItems]);
 
+  const handleWhatsAppOrder = (serviceName: string) => {
+    const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
+    const message = `Hello Aatma HUB,\nI want to order ${serviceName}.\n\nPlease provide available options and pricing.`;
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+  };
+
   if (loading) {
     return (
       <section className="py-6 px-4">
@@ -46,8 +55,8 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
         <div className="flex gap-4 overflow-x-auto no-scrollbar">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className={cn(
-              "flex-shrink-0 w-[120px] bg-white/5",
-              isOtt ? "aspect-[2/3] rounded-[20px]" : "aspect-square rounded-none"
+              "flex-shrink-0 w-[140px] bg-white/5",
+              isOtt ? "aspect-[2/3] rounded-none" : "aspect-square rounded-none"
             )} />
           ))}
         </div>
@@ -69,38 +78,46 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
         <Link href={isOtt ? "/ott-services" : "/social-services"} prefetch={false} className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] hover:text-white transition-colors">Explorer</Link>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
+      <div className="flex gap-4 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => (
-          <Link 
+          <div 
             key={item.id} 
-            href={`/product/${item.id}`} 
-            prefetch={false}
-            className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all flex flex-col"
+            className="flex-shrink-0 w-[140px] group transition-all flex flex-col"
           >
             <div className={cn(
-              "relative overflow-hidden mb-2.5 border border-white/5 bg-transparent shadow-xl group-hover:border-white/20 transition-all",
-              isOtt ? "aspect-[2/3] rounded-[20px]" : "aspect-square rounded-none"
+              "relative overflow-hidden mb-3 border border-white/5 bg-card shadow-xl transition-all",
+              isOtt ? "aspect-[2/3]" : "aspect-square"
             )}>
               {item.logo ? (
                 <Image 
                   src={item.logo} 
                   alt={item.name} 
                   fill 
-                  className="object-contain opacity-100 transition-transform duration-500 group-hover:scale-110 z-10"
-                  sizes="(max-width: 768px) 33vw, 100px"
+                  className="object-contain p-4 opacity-100 transition-transform duration-500 group-hover:scale-105 z-10"
+                  sizes="140px"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                  <Icon size={24} className="text-white" />
+                  <Icon size={32} className="text-white" />
                 </div>
               )}
             </div>
-            <div className="text-center px-1">
-              <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-white transition-colors line-clamp-1">
-                {item.name} {item.flag}
-              </span>
+            <div className="text-center px-1 mb-3">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-tight line-clamp-1">
+                {item.name}
+              </h3>
             </div>
-          </Link>
+            <Button 
+              onClick={() => handleWhatsAppOrder(item.name)}
+              className={cn(
+                "w-full h-8 rounded-none text-[8px] font-black uppercase tracking-widest gap-1.5 shadow-xl",
+                isOtt ? "bg-accent hover:bg-accent/90" : "bg-primary hover:bg-primary/90"
+              )}
+            >
+              <MessageCircle size={10} />
+              Order via WA
+            </Button>
+          </div>
         ))}
       </div>
     </section>

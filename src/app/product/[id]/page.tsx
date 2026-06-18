@@ -1,35 +1,42 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ShieldCheck, Zap, ArrowRight, Loader2, Smartphone, PackageSearch, ImageIcon, MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useCart } from "@/context/cart-context";
-import { useToast } from "@/hooks/use-toast";
+import { ShieldCheck, Zap, ArrowRight, Loader2, ImageIcon, MessageCircle } from "lucide-react";
 import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, where, doc } from "firebase/firestore";
-import { useCollection } from "@/firebase/firestore/use-collection";
+import { doc } from "firebase/firestore";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import { useGlobalSettings } from "@/firebase/settings-context";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { useState, useEffect } from "react";
+import { useCart } from "@/context/cart-context";
+import { useToast } from "@/hooks/use-toast";
+import { useCollection } from "@/firebase/firestore/use-collection";
+import { collection, query, where } from "firebase/firestore";
+import { cn } from "@/lib/utils";
 
 export default function ProductPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { toast } = useToast();
-  const { addItem, clearCart } = useCart();
-  const { user } = useUser();
   const db = useFirestore();
   const { siteSettings } = useGlobalSettings();
+  const { user } = useUser();
+  const { addItem, clearCart } = useCart();
+  const { toast } = useToast();
   
   const gameDocRef = useMemo(() => id ? doc(db, 'games', id as string) : null, [db, id]);
   const { data: gameInfo, loading: gameLoading } = useDoc(gameDocRef);
 
+  const isManualCategory = useMemo(() => {
+    return gameInfo?.category === "OTT Services" || gameInfo?.category === "Social Services";
+  }, [gameInfo]);
+
+  // PRODUCT LOGIC FOR GAMES
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
     where('category', '==', id),
@@ -45,55 +52,36 @@ export default function ProductPage() {
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
 
-  const isManualCategory = useMemo(() => {
-    return gameInfo?.category === "OTT Services" || gameInfo?.category === "Social Services";
-  }, [gameInfo]);
-
-  const productName = gameInfo?.name || id?.toString().replace(/-/g, ' ').toUpperCase() || "Product Details";
-
   useEffect(() => {
-    if (packs && packs.length > 0 && !selectedPack) {
+    if (!isManualCategory && packs && packs.length > 0 && !selectedPack) {
       const defaultPack = packs.find(p => p.tab === activeTab) || packs[0];
       setSelectedPack(defaultPack);
       if (defaultPack.tab) setActiveTab(defaultPack.tab);
     }
-  }, [packs, selectedPack, activeTab]);
+  }, [packs, selectedPack, activeTab, isManualCategory]);
+
+  const handleWhatsAppOrder = () => {
+    const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
+    const message = `Hello Aatma HUB,\nI want to order ${gameInfo?.name || id}.\n\nPlease provide available options and pricing.`;
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+  };
 
   const handleVerify = () => {
-    if (!playerId) {
-      toast({ variant: "destructive", title: "Information Required", description: isManualCategory ? "Target link or ID is needed." : "Player ID is needed to proceed." });
-      return;
-    }
+    if (!playerId) return;
     setVerifying(true);
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      toast({ title: isManualCategory ? "Information Saved" : "Account Verified", description: isManualCategory ? "Details captured for manual processing." : "Your game account has been found." });
     }, 800);
   };
 
-  const handleOrderWhatsApp = () => {
-    if (!selectedPack || !playerId) {
-      toast({ variant: "destructive", title: "Incomplete Details", description: "Select a package and provide target details." });
-      return;
-    }
-    
-    const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
-    const message = `Hi AATMA HUB, I want to order:\n\n*Service:* ${productName}\n*Package:* ${selectedPack.name}\n*Price:* ₹${selectedPack.price}\n*Target ID/Link:* ${playerId}\n${serverId ? `*Extra Info:* ${serverId}` : ''}\n\nPlease guide me with the next steps.`;
-    
-    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
   const handleBuyNow = () => {
-    if (isManualCategory) { handleOrderWhatsApp(); return; }
     if (!user) { router.push('/login'); return; }
-    if (!isVerified) { toast({ variant: "destructive", title: "Verification Required" }); return; }
-    if (!selectedPack) return;
-
+    if (!isVerified || !selectedPack) return;
     clearCart();
     addItem({
       id: `${id}-${selectedPack.id}-${playerId}`,
-      name: `${productName} - ${selectedPack.name}`,
+      name: `${gameInfo?.name} - ${selectedPack.name}`,
       price: selectedPack.price,
       quantity: 1,
       image: gameInfo?.logo || "",
@@ -106,193 +94,108 @@ export default function ProductPage() {
     router.push('/checkout');
   };
 
-  const handleAddToCart = () => {
-    if (isManualCategory) { handleOrderWhatsApp(); return; }
-    if (!user) { router.push('/login'); return; }
-    if (!isVerified) { toast({ variant: "destructive", title: "Verification Required" }); return; }
-    if (!selectedPack) return;
-
-    addItem({
-      id: `${id}-${selectedPack.id}-${playerId}`,
-      name: `${productName} - ${selectedPack.name}`,
-      price: selectedPack.price,
-      quantity: 1,
-      image: gameInfo?.logo || "",
-      region: selectedPack.region || "Global",
-      tabName: selectedPack.tab || "Pack",
-      playerId,
-      serverId,
-      verifiedName: "Verified User"
-    });
-    toast({ title: "Added to Cart" });
-  };
-
   if (gameLoading) {
+    return <div className="flex h-[80vh] items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
+  }
+
+  if (isManualCategory) {
     return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+      <div className="flex flex-col w-full animate-in fade-in duration-700">
+        <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl">
+          {gameInfo?.banner && <Image src={gameInfo.banner} alt={gameInfo.name} fill className="object-cover" priority />}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-20" />
+        </div>
+        <div className="p-6 max-w-4xl mx-auto w-full -mt-20 relative z-30 space-y-8 text-center">
+          <div className="inline-flex bg-accent/20 border border-accent/30 px-4 py-2 rounded-none items-center gap-2 shadow-2xl">
+            <MessageCircle size={16} className="text-accent" />
+            <span className="text-[10px] font-black uppercase text-accent tracking-[0.2em]">Manual Order Required</span>
+          </div>
+          <h1 className="text-4xl md:text-6xl font-headline font-black text-white uppercase tracking-tighter drop-shadow-2xl">
+            {gameInfo?.name}
+          </h1>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium max-w-md mx-auto leading-relaxed">
+            Pricing and plans for {gameInfo?.name} are managed manually to ensure instant delivery. Please contact our support hub for current availability.
+          </p>
+          <div className="pt-8">
+            <Button 
+              onClick={handleWhatsAppOrder} 
+              className="w-full max-w-md h-20 bg-green-600 hover:bg-green-700 text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-green-500/20 group transition-all gap-4"
+            >
+              <MessageCircle size={24} /> 
+              Order via WhatsApp 
+              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
-
-  const isMlbb = productName.toLowerCase().includes('mlbb');
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
       <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl">
         {gameInfo?.banner ? (
-          <Image 
-            src={gameInfo.banner} 
-            alt={productName} 
-            fill 
-            className="object-cover opacity-100 transition-all duration-1000 scale-100" 
-            priority 
-          />
+          <Image src={gameInfo.banner} alt={gameInfo.name} fill className="object-cover" priority />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center z-0 opacity-10">
-            <ImageIcon size={80} />
-          </div>
+          <div className="absolute inset-0 flex items-center justify-center z-0 opacity-10"><ImageIcon size={80} /></div>
         )}
         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-20" />
       </div>
 
       <div className="p-4 pt-0 space-y-6 max-w-4xl mx-auto w-full relative z-30 -mt-12">
         <div className="flex flex-row justify-center gap-3">
-          {isMlbb && (
-            <div className="bg-primary px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8">
-              <Zap size={10} className="text-white fill-white" />
-              <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
-            </div>
-          )}
+          <div className="bg-primary px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8">
+            <Zap size={10} className="text-white fill-white" />
+            <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
+          </div>
           <div className="bg-green-600 px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8">
             <ShieldCheck size={10} className="text-white fill-white" />
             <span className="text-[9px] font-black uppercase text-white tracking-widest">Official Partner</span>
           </div>
-          {gameInfo?.flag && (
-            <div className="bg-white/10 backdrop-blur-md px-3 py-1 flex items-center gap-2 shadow-xl border border-white/10 h-8">
-              <span className="text-xs">{gameInfo.flag}</span>
-              <span className="text-[9px] font-black uppercase text-white tracking-widest">Region</span>
-            </div>
-          )}
         </div>
 
         <div className="text-center space-y-1">
-          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter leading-tight drop-shadow-2xl">
-            {productName}
+          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter drop-shadow-2xl">
+            {gameInfo?.name}
           </h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] font-black opacity-40">
-            {isManualCategory ? "Manual Order Protocol" : "Store Product Details"}
-          </p>
         </div>
 
-        <section className="bg-card border border-border p-6 rounded-none space-y-4 shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-[0.03] pointer-events-none -rotate-12">
-            <Smartphone size={140} />
-          </div>
-          <div className="flex items-center gap-2 px-1">
-            {isManualCategory ? <MessageCircle size={16} className="text-primary" /> : <Smartphone size={16} className="text-primary" />}
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">
-              {isManualCategory ? "Required Information" : "Game Account Details"}
-            </h3>
-          </div>
+        <section className="bg-card border border-border p-6 rounded-none space-y-4 shadow-2xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-1.5">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">
-                 {isManualCategory ? "Target ID / Profile Link" : "Player User ID"}
-               </Label>
-               <Input 
-                 value={playerId} 
-                 onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} 
-                 placeholder={isManualCategory ? "Enter Link or Username" : "Enter Account ID"} 
-                 className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" 
-               />
+               <Label className="text-[9px] font-black uppercase text-muted-foreground">User ID</Label>
+               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter ID" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold" />
              </div>
              <div className="space-y-1.5">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground ml-1">
-                 {isManualCategory ? "Additional Note (Optional)" : "Server Name (Optional)"}
-               </Label>
-               <Input 
-                 value={serverId} 
-                 onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} 
-                 placeholder={isManualCategory ? "e.g. Email or region" : "e.g. Asia-1"} 
-                 className="bg-black/50 border-border h-14 rounded-none text-sm font-bold focus:ring-1 focus:ring-primary/50" 
-               />
+               <Label className="text-[9px] font-black uppercase text-muted-foreground">Server</Label>
+               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 1234" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold" />
              </div>
           </div>
-          {!isManualCategory && (
-            <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-none font-black uppercase text-[11px] tracking-widest shadow-xl transition-all", isVerified ? "bg-green-600 hover:bg-green-600 shadow-green-500/20" : "bg-primary shadow-primary/20")}>
-              {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Account Verified Successfully" : "Verify My Account")}
-            </Button>
-          )}
+          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-none font-black uppercase text-[11px] tracking-widest transition-all", isVerified ? "bg-green-600 hover:bg-green-600" : "bg-primary")}>
+            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Verified" : "Verify Account")}
+          </Button>
         </section>
 
         <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <PackageSearch size={16} className="text-primary" />
-            <h3 className="text-[11px] font-black uppercase tracking-widest text-white/70">Choose Package</h3>
-          </div>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-none mb-6 shadow-inner">
-              {['small', 'large', 'pass', 'promo'].map(t => (
-                <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary transition-all duration-300">
-                  {t}
-                </TabsTrigger>
-              ))}
+            <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-none mb-6">
+              {['small', 'large', 'pass', 'promo'].map(t => <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary">{t}</TabsTrigger>)}
             </TabsList>
-            
-            {productsLoading ? (
-              <div className="flex justify-center py-20"><Loader2 className="animate-spin h-10 w-10 text-primary" /></div>
-            ) : packs.filter(p => p.tab === activeTab).length === 0 ? (
-              <div className="bg-card/20 border border-dashed border-border rounded-none p-16 text-center">
-                <PackageSearch className="mx-auto h-12 w-12 text-muted-foreground opacity-20 mb-4" />
-                <p className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-40">No packs available in this category</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {packs.filter(p => p.tab === activeTab).map((pack) => (
-                  <button 
-                    key={pack.id} 
-                    onClick={() => setSelectedPack(pack)} 
-                    className={cn(
-                      "p-6 rounded-none border transition-all text-left bg-card group relative shadow-2xl active:scale-95", 
-                      selectedPack?.id === pack.id ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border hover:border-white/10"
-                    )}
-                  >
-                    <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight mb-3 uppercase tracking-tight">
-                      {pack.name}
-                    </p>
-                    <p className="text-2xl font-black text-primary leading-none tracking-tighter">
-                      ₹{pack.price}
-                    </p>
-                    {selectedPack?.id === pack.id && (
-                      <div className="absolute top-4 right-4 h-2 w-2 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,1)] animate-pulse" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {packs?.filter(p => p.tab === activeTab).map((pack) => (
+                <button key={pack.id} onClick={() => setSelectedPack(pack)} className={cn("p-6 rounded-none border transition-all text-left bg-card group relative shadow-2xl", selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border")}>
+                  <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight mb-3 uppercase">{pack.name}</p>
+                  <p className="text-2xl font-black text-primary leading-none tracking-tighter">₹{pack.price}</p>
+                </button>
+              ))}
+            </div>
           </Tabs>
         </section>
 
-        <div className="flex flex-col gap-4 pb-24">
-          {isManualCategory ? (
-            <Button 
-              onClick={handleOrderWhatsApp} 
-              disabled={!selectedPack || !playerId} 
-              className="w-full bg-green-600 hover:bg-green-700 text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-green-500/20 group transition-all h-20 gap-3"
-            >
-              <MessageCircle size={24} /> Order via WhatsApp <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          ) : (
-            <>
-              <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-primary/30 group transition-all h-20">
-                Buy Now <ArrowRight size={20} className="ml-2 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button variant="outline" onClick={handleAddToCart} disabled={!selectedPack || !isVerified} className="w-full h-16 border-border bg-transparent text-[11px] font-black uppercase tracking-widest rounded-none hover:bg-white/5 transition-all">
-                Add to Cart
-              </Button>
-            </>
-          )}
+        <div className="flex flex-col gap-4 pb-24 pt-4">
+          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl h-20">
+            Buy Now <ArrowRight size={20} className="ml-2" />
+          </Button>
         </div>
       </div>
     </div>
