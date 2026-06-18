@@ -119,11 +119,11 @@ export default function ProductPage() {
           <div className="pt-8">
             <Button 
               onClick={handleWhatsAppOrder} 
-              className="w-full max-w-md h-20 bg-green-600 hover:bg-green-700 text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-green-500/20 group transition-all gap-4"
+              className="w-full max-w-md h-14 bg-green-600 hover:bg-green-700 text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-green-500/20 group transition-all gap-3"
             >
-              <MessageCircle size={24} /> 
+              <MessageCircle size={18} /> 
               Order via WhatsApp 
-              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
         </div>
