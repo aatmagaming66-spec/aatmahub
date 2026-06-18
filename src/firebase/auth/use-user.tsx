@@ -23,9 +23,8 @@ const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
 const SUPER_ADMIN_UID = 'iDeDaksq2hUmkyyIxvlNHgvb2y43';
 
 /**
- * ProfileProvider - Optimized for zero-block rendering.
- * Sets initialized: true as soon as the Auth state is determined,
- * allowing the UI to mount immediately with background profile hydration.
+ * ProfileProvider - Performance Optimized
+ * Decouples Auth initialization from Profile data loading to ensure zero-delay navigation.
  */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -36,11 +35,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Initial handshake with Firebase Auth - HIGH PRIORITY
+    // 1. FAST PATH: Detect Auth status immediately
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      // PERFORMANCE: Signal that we know the auth state so UI can render immediately
-      // This is the key to fixing the first-click delay.
+      // SET INITIALIZED IMMEDIATELY - This enables first-click navigation
       setInitialized(true);
       
       if (!firebaseUser) {
@@ -55,9 +53,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
 
+    // 2. BACKGROUND PATH: Load profile data without blocking route changes
     const userDocRef = doc(db, 'users', user.uid);
     
-    // Non-blocking background hydration
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -66,7 +64,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         if (isSuperAdminTarget && data.role !== 'super_admin') {
            updateDoc(userDocRef, { 
              role: 'super_admin', 
-             active: true,
              updatedAt: new Date().toISOString()
            }).catch(() => {});
         }
@@ -86,7 +83,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(false);
     }, (error) => {
-      console.error('[AUTH_SYNC] Background hydration failed', error);
       setLoading(false);
     });
 
