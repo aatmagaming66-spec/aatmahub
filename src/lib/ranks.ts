@@ -2,6 +2,7 @@
  * Global Membership Configuration
  * Optimized for the 10-tier MLBB hierarchy with a 1 Lakh cap.
  * Warrior -> Elite -> Master -> Grandmaster -> Epic -> Legend -> Mythic -> Honor -> Glory -> Immortal
+ * Discount Engine: 0.5% to 7% starting from Master.
  */
 
 export interface RankBenefits {
@@ -46,11 +47,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'elite',
     name: 'Elite', 
     threshold: 500, 
-    discount: 1, 
+    discount: 0, 
     color: '#10b981', 
     benefits: ['Priority Processing'],
     detailedBenefits: {
-      discount: '1%',
+      discount: '0%',
       cashback: '0.5%',
       priority: 'Basic',
       promotions: 'Elite Only',
@@ -63,11 +64,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'master',
     name: 'Master', 
     threshold: 1000, 
-    discount: 2, 
+    discount: 0.5, 
     color: '#3b82f6', 
     benefits: ['Faster Queue'],
     detailedBenefits: {
-      discount: '2%',
+      discount: '0.5%',
       cashback: '1%',
       priority: 'Standard',
       promotions: 'Master Perks',
@@ -80,11 +81,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'grandmaster',
     name: 'Grandmaster', 
     threshold: 2500, 
-    discount: 3, 
+    discount: 1, 
     color: '#a855f7', 
     benefits: ['Premium Profile Badge'],
     detailedBenefits: {
-      discount: '3%',
+      discount: '1%',
       cashback: '1.5%',
       priority: 'High',
       promotions: 'GM Events',
@@ -97,11 +98,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'epic',
     name: 'Epic', 
     threshold: 5000, 
-    discount: 5, 
+    discount: 2, 
     color: '#ec4899', 
     benefits: ['Priority Support'],
     detailedBenefits: {
-      discount: '5%',
+      discount: '2%',
       cashback: '2.5%',
       priority: 'Premium',
       promotions: 'Epic Deals',
@@ -114,11 +115,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'legend',
     name: 'Legend', 
     threshold: 10000, 
-    discount: 7, 
+    discount: 3, 
     color: '#eab308', 
     benefits: ['Exclusive Community Perks'],
     detailedBenefits: {
-      discount: '7%',
+      discount: '3%',
       cashback: '4%',
       priority: 'Ultra',
       promotions: 'Legendary',
@@ -131,11 +132,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'mythic',
     name: 'Mythic', 
     threshold: 25000, 
-    discount: 10, 
+    discount: 4, 
     color: '#ef4444', 
     benefits: ['Highest Priority'],
     detailedBenefits: {
-      discount: '10%',
+      discount: '4%',
       cashback: '6%',
       priority: 'Critical',
       promotions: 'Mythic Drop',
@@ -148,11 +149,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'mythic_honor',
     name: 'Mythic Honor', 
     threshold: 50000, 
-    discount: 12, 
+    discount: 5, 
     color: '#f97316', 
     benefits: ['Advanced Rewards'],
     detailedBenefits: {
-      discount: '12%',
+      discount: '5%',
       cashback: '8%',
       priority: 'Honorary',
       promotions: 'Limited Ed.',
@@ -165,11 +166,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'mythic_glory',
     name: 'Mythic Glory', 
     threshold: 75000, 
-    discount: 15, 
+    discount: 6, 
     color: '#dc2626', 
     benefits: ['VVIP Concierge'],
     detailedBenefits: {
-      discount: '15%',
+      discount: '6%',
       cashback: '10%',
       priority: 'Immediate',
       promotions: 'Glory Perks',
@@ -182,11 +183,11 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     id: 'mythic_immortal',
     name: 'Mythic Immortal', 
     threshold: 100000, 
-    discount: 20, 
+    discount: 7, 
     color: '#fbbf24', 
     benefits: ['Platform Legend Status'],
     detailedBenefits: {
-      discount: '20%',
+      discount: '7%',
       cashback: '15%',
       priority: 'Legendary',
       promotions: 'Unlimited',
