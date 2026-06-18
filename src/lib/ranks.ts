@@ -1,7 +1,8 @@
 
 /**
- * Global Rank Configuration & Thresholds
- * Optimized for the 8-tier hierarchy: Warrior -> Bronze -> Silver -> Gold -> Platinum -> Diamond -> Elite -> Legend
+ * Global Membership Configuration
+ * Optimized for the 10-tier MLBB hierarchy: 
+ * Warrior -> Elite -> Master -> Grandmaster -> Epic -> Legend -> Mythic -> Honor -> Glory -> Immortal
  */
 
 export interface RankBenefits {
@@ -19,7 +20,7 @@ export interface RankDefinition {
   threshold: number;
   discount: number;
   color: string;
-  benefits: string[]; // Key benefits list
+  benefits: string[];
   detailedBenefits: RankBenefits;
   sortOrder: number;
 }
@@ -31,7 +32,7 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     threshold: 0, 
     discount: 0, 
     color: '#94a3b8', 
-    benefits: ['Basic HUB Access'],
+    benefits: ['Basic Store Access'],
     detailedBenefits: {
       discount: '0%',
       cashback: '0%',
@@ -43,123 +44,157 @@ export const DEFAULT_RANKS: RankDefinition[] = [
     sortOrder: 0
   },
   { 
-    id: 'bronze',
-    name: 'Bronze', 
+    id: 'elite',
+    name: 'Elite', 
     threshold: 1000, 
     discount: 1, 
-    color: '#cd7f32', 
-    benefits: ['Priority Order Processing'],
+    color: '#10b981', 
+    benefits: ['Priority Processing'],
     detailedBenefits: {
       discount: '1%',
       cashback: '0.5%',
       priority: 'Basic',
-      promotions: 'Bronze',
+      promotions: 'Elite Only',
       limitBonus: '1%',
-      accessLevel: 'Bronze'
+      accessLevel: 'Elite'
     },
     sortOrder: 1
   },
   { 
-    id: 'silver',
-    name: 'Silver', 
+    id: 'master',
+    name: 'Master', 
     threshold: 5000, 
     discount: 2, 
-    color: '#c0c0c0', 
-    benefits: ['Faster Order Queue'],
+    color: '#3b82f6', 
+    benefits: ['Faster Queue'],
     detailedBenefits: {
       discount: '2%',
       cashback: '1%',
       priority: 'Standard',
-      promotions: 'Silver',
+      promotions: 'Master Perks',
       limitBonus: '2%',
-      accessLevel: 'Silver'
+      accessLevel: 'Master'
     },
     sortOrder: 2
   },
   { 
-    id: 'gold',
-    name: 'Gold', 
+    id: 'grandmaster',
+    name: 'Grandmaster', 
     threshold: 10000, 
     discount: 3, 
-    color: '#ffd700', 
+    color: '#a855f7', 
     benefits: ['Premium Profile Badge'],
     detailedBenefits: {
       discount: '3%',
       cashback: '1.5%',
       priority: 'High',
-      promotions: 'Gold',
+      promotions: 'GM Events',
       limitBonus: '3%',
-      accessLevel: 'Gold'
+      accessLevel: 'Grandmaster'
     },
     sortOrder: 3
   },
   { 
-    id: 'platinum',
-    name: 'Platinum', 
+    id: 'epic',
+    name: 'Epic', 
     threshold: 25000, 
     discount: 5, 
-    color: '#e5e4e2', 
-    benefits: ['Priority Customer Support'],
+    color: '#ec4899', 
+    benefits: ['Priority Support'],
     detailedBenefits: {
       discount: '5%',
       cashback: '2.5%',
       priority: 'Premium',
-      promotions: 'Platinum',
+      promotions: 'Epic Deals',
       limitBonus: '5%',
-      accessLevel: 'Platinum'
+      accessLevel: 'Epic'
     },
     sortOrder: 4
   },
   { 
-    id: 'diamond',
-    name: 'Diamond', 
+    id: 'legend',
+    name: 'Legend', 
     threshold: 50000, 
     discount: 7, 
-    color: '#b9f2ff', 
+    color: '#eab308', 
     benefits: ['Exclusive Community Perks'],
     detailedBenefits: {
       discount: '7%',
       cashback: '4%',
       priority: 'Ultra',
-      promotions: 'Diamond',
+      promotions: 'Legendary',
       limitBonus: '8%',
-      accessLevel: 'Diamond'
+      accessLevel: 'Legend'
     },
     sortOrder: 5
   },
   { 
-    id: 'elite',
-    name: 'Elite', 
+    id: 'mythic',
+    name: 'Mythic', 
     threshold: 100000, 
     discount: 10, 
-    color: '#dc2626', 
-    benefits: ['Highest Order Priority'],
+    color: '#ef4444', 
+    benefits: ['Highest Priority'],
     detailedBenefits: {
       discount: '10%',
       cashback: '6%',
       priority: 'Critical',
-      promotions: 'Elite',
+      promotions: 'Mythic Drop',
       limitBonus: '15%',
-      accessLevel: 'Elite'
+      accessLevel: 'Mythic'
     },
     sortOrder: 6
   },
   { 
-    id: 'legend',
-    name: 'Legend', 
+    id: 'mythic_honor',
+    name: 'Mythic Honor', 
+    threshold: 250000, 
+    discount: 12, 
+    color: '#f97316', 
+    benefits: ['Advanced Rewards'],
+    detailedBenefits: {
+      discount: '12%',
+      cashback: '8%',
+      priority: 'Honorary',
+      promotions: 'Limited Ed.',
+      limitBonus: '20%',
+      accessLevel: 'Honor'
+    },
+    sortOrder: 7
+  },
+  { 
+    id: 'mythic_glory',
+    name: 'Mythic Glory', 
     threshold: 500000, 
     discount: 15, 
-    color: '#fbbf24', 
-    benefits: ['Platform Legend Status'],
+    color: '#dc2626', 
+    benefits: ['VVIP Concierge'],
     detailedBenefits: {
       discount: '15%',
       cashback: '10%',
-      priority: 'Legendary',
-      promotions: 'Legend',
+      priority: 'Immediate',
+      promotions: 'Glory Perks',
       limitBonus: '25%',
-      accessLevel: 'Legend'
+      accessLevel: 'Glory'
     },
-    sortOrder: 7
+    sortOrder: 8
+  },
+  { 
+    id: 'mythic_immortal',
+    name: 'Mythic Immortal', 
+    threshold: 1000000, 
+    discount: 20, 
+    color: '#fbbf24', 
+    benefits: ['Platform Legend Status'],
+    detailedBenefits: {
+      discount: '20%',
+      cashback: '15%',
+      priority: 'Legendary',
+      promotions: 'Unlimited',
+      limitBonus: '50%',
+      accessLevel: 'Immortal'
+    },
+    sortOrder: 9
   },
 ];
 

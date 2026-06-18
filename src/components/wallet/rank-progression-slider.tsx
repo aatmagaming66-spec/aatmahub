@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, useEffect } from 'react';
@@ -8,15 +9,12 @@ import { DEFAULT_RANKS, type RankDefinition, getRankFromSpend } from '@/lib/rank
 import { cn } from '@/lib/utils';
 import { 
   ShieldCheck, 
-  CheckCircle2, 
   Star, 
   Crown, 
   Zap,
   Ticket,
   CreditCard,
   Sparkles,
-  Lock,
-  ArrowUpCircle,
   Activity,
   Trophy
 } from 'lucide-react';
@@ -85,7 +83,7 @@ function RankCard({ rank, lifetimeSpend, isCurrent, isUnlocked }: {
     return Math.min(100, Math.floor((lifetimeSpend / rank.threshold) * 100));
   }, [lifetimeSpend, rank.threshold]);
 
-  const isImmortal = rank.id === 'immortal' || rank.name?.toLowerCase().includes('legend');
+  const isHighTier = rank.name?.toLowerCase().includes('immortal') || rank.name?.toLowerCase().includes('glory');
 
   return (
     <Card className={cn(
@@ -96,7 +94,7 @@ function RankCard({ rank, lifetimeSpend, isCurrent, isUnlocked }: {
         "absolute -bottom-6 -right-6 z-0 opacity-10 pointer-events-none transition-all duration-1000",
         isCurrent && "opacity-20 scale-125 rotate-12"
       )} style={{ color: rank.color }}>
-         {isImmortal ? <Crown size={160} className="fill-current" /> : <Star size={160} className="fill-current" />}
+         {isHighTier ? <Crown size={160} className="fill-current" /> : <Star size={160} className="fill-current" />}
       </div>
 
       <CardContent className="p-6 space-y-6 relative z-10 flex flex-col justify-between h-full">
@@ -110,13 +108,13 @@ function RankCard({ rank, lifetimeSpend, isCurrent, isUnlocked }: {
                 "text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-none border",
                 isCurrent ? "bg-primary text-white border-primary" : (isUnlocked ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-white/5 text-white/30 border-white/10")
               )}>
-                {isCurrent ? 'Current Level' : (isUnlocked ? 'Unlocked' : 'Locked')}
+                {isCurrent ? 'Current Tier' : (isUnlocked ? 'Achieved' : 'Locked')}
               </span>
             </div>
           </div>
           
           <div className="h-12 w-12 rounded-none bg-white/5 flex items-center justify-center border border-white/10 shadow-xl" style={{ color: rank.color }}>
-             {isImmortal ? <Crown size={24} className="fill-current" /> : <Trophy size={24} />}
+             {isHighTier ? <Crown size={24} className="fill-current" /> : <Trophy size={24} />}
           </div>
         </div>
 
@@ -150,19 +148,18 @@ function RankBenefitsList({ rank, isUnlocked }: { rank: RankDefinition, isUnlock
     { icon: Ticket, label: 'Order Discount', value: b.discount },
     { icon: CreditCard, label: 'Cashback Rewards', value: b.cashback },
     { icon: Zap, label: 'Support Priority', value: b.priority },
-    { icon: Sparkles, label: 'Member Offers', value: b.promotions },
-    { icon: ArrowUpCircle, label: 'Bonus Credits', value: b.limitBonus },
-    { icon: Activity, label: 'Tier Status', value: b.accessLevel },
+    { icon: Sparkles, label: 'Special Offers', value: b.promotions },
+    { icon: Activity, label: 'Membership Level', value: b.accessLevel },
   ];
 
   return (
     <div className="space-y-3 animate-in slide-in-from-bottom-2 duration-700">
       <div className="flex items-center gap-2 px-1 mb-1">
         <ShieldCheck size={10} className="text-primary" />
-        <span className="text-[8px] font-black uppercase tracking-widest text-white/40">Exclusive Benefits</span>
+        <span className="text-[8px] font-black uppercase tracking-widest text-white/40">Tier Benefits</span>
       </div>
       
-      <div className="bg-[#111111] border border-white/5 rounded-none overflow-hidden shadow-2xl">
+      <div className="bg-card border border-white/5 rounded-none overflow-hidden shadow-2xl">
         {BENEFIT_ITEMS.map((item, idx) => (
           <div key={idx} className={cn("flex items-center justify-between p-4 border-b border-white/5 last:border-0", !isUnlocked && "opacity-40 grayscale")}>
             <div className="flex items-center gap-4">
