@@ -40,22 +40,22 @@ export default function ChangePasswordPage() {
     e.preventDefault();
 
     if (!user || !user.email) {
-      toast({ variant: 'destructive', title: 'Session Lost', description: 'Please re-authenticate to continue.' });
+      toast({ variant: 'destructive', title: 'Session Lost', description: 'Please log in again to continue.' });
       return;
     }
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      toast({ variant: 'destructive', title: 'Validation Error', description: 'All fields are mandatory.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'All fields are required.' });
       return;
     }
 
     if (newPassword.length < 8) {
-      toast({ variant: 'destructive', title: 'Security Requirement', description: 'New password must be at least 8 characters.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'New password must be at least 8 characters.' });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast({ variant: 'destructive', title: 'Mismatch', description: 'New passwords do not match.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Passwords do not match.' });
       return;
     }
 
@@ -67,8 +67,8 @@ export default function ChangePasswordPage() {
       await updatePassword(user, newPassword);
 
       toast({
-        title: "Security Updated",
-        description: "Your account password has been successfully modified.",
+        title: "Success",
+        description: "Your password has been changed successfully.",
       });
       
       router.push('/profile');
@@ -77,14 +77,14 @@ export default function ChangePasswordPage() {
       let errorMessage = 'An internal system error occurred.';
       
       if (error.code === 'auth/wrong-password') {
-        errorMessage = 'The current password provided is incorrect.';
+        errorMessage = 'The current password you entered is incorrect.';
       } else if (error.code === 'auth/too-many-requests') {
         errorMessage = 'Too many attempts. Please try again later.';
       }
 
       toast({ 
         variant: 'destructive', 
-        title: 'Update Rejected', 
+        title: 'Update Failed', 
         description: errorMessage 
       });
     } finally {
@@ -104,8 +104,8 @@ export default function ChangePasswordPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none">Password Protocol</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Identity Protection</p>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none">Change Password</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Update your security settings</p>
         </div>
       </header>
 
@@ -114,8 +114,8 @@ export default function ChangePasswordPage() {
           <div className="h-16 w-16 bg-accent/10 rounded-none flex items-center justify-center mx-auto mb-4 border border-accent/20">
             <Key size={30} className="text-accent" />
           </div>
-          <CardTitle className="text-xl font-black uppercase tracking-tighter">Modify Credentials</CardTitle>
-          <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Verification required for sensitive changes</CardDescription>
+          <CardTitle className="text-xl font-black uppercase tracking-tighter">Update Password</CardTitle>
+          <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Set a new secure password for your account</CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-6">
           <form onSubmit={handleUpdate} className="space-y-6">
@@ -124,7 +124,7 @@ export default function ChangePasswordPage() {
               <div className="relative">
                 <Input 
                   type={showCurrent ? "text" : "password"}
-                  placeholder="Verify existing password" 
+                  placeholder="Enter current password" 
                   className="bg-black/50 border-border h-14 rounded-none focus:border-primary font-bold text-sm"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
@@ -165,7 +165,7 @@ export default function ChangePasswordPage() {
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confirm New Password</Label>
               <Input 
                 type="password"
-                placeholder="Repeat new credentials" 
+                placeholder="Repeat new password" 
                 className="bg-black/50 border-border h-14 rounded-none focus:border-accent font-bold text-sm"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -174,17 +174,17 @@ export default function ChangePasswordPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20 gap-2"
+              className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20 gap-2 mt-4"
               disabled={loading}
             >
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Securing Identity...
+                  Updating Password...
                 </>
               ) : (
                 <>
-                  <ShieldCheck size={18} /> Authorize Change
+                  <ShieldCheck size={18} /> Change Password
                 </>
               )}
             </Button>
@@ -198,7 +198,7 @@ export default function ChangePasswordPage() {
           <span className="text-[10px] font-black uppercase tracking-widest text-primary">Security Note</span>
         </div>
         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          Passwords are encrypted using industry-standard hashing protocols. Your session will remain active after the password update is confirmed.
+          Your password is encrypted for your safety. We recommend using a unique password that you don't use on other websites.
         </p>
       </div>
     </div>
