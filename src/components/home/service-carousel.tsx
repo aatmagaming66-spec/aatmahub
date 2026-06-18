@@ -43,11 +43,11 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
           <div className={isOtt ? "w-1 h-5 bg-accent rounded-full shadow-[0_0_8px_#EC4899]" : "w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]"} />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter">{title}</h2>
         </div>
-        <div className="flex gap-4 overflow-x-auto no-scrollbar">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="flex gap-3 overflow-x-auto no-scrollbar">
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className={cn(
-              "flex-shrink-0 w-[140px] bg-white/5",
-              isOtt ? "aspect-[2/3] rounded-none" : "aspect-square rounded-none"
+              "flex-shrink-0 w-[calc((100vw-56px)/3)] bg-white/5",
+              isOtt ? "aspect-[3/4] rounded-none" : "aspect-square rounded-none"
             )} />
           ))}
         </div>
@@ -69,13 +69,13 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
         <Link href={isOtt ? "/ott-services" : "/social-services"} prefetch={false} className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] hover:text-white transition-colors">Explorer</Link>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto px-4 no-scrollbar">
+      <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => (
           <Link 
             key={item.id} 
             href={`/product/${item.id}`}
             prefetch={false}
-            className="flex-shrink-0 w-[140px] group transition-all flex flex-col active:scale-95"
+            className="flex-shrink-0 w-[calc((100vw-56px)/3)] group transition-all flex flex-col active:scale-95"
           >
             <div className={cn(
               "relative overflow-hidden mb-2 border border-white/5 bg-card shadow-xl transition-all",
@@ -87,16 +87,16 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                   alt={item.name} 
                   fill 
                   className="object-cover opacity-100 transition-transform duration-500 group-hover:scale-105 z-10"
-                  sizes="140px"
+                  sizes="(max-width: 768px) 33vw, 200px"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                  <Icon size={32} className="text-white" />
+                  <Icon size={24} className="text-white" />
                 </div>
               )}
             </div>
             <div className="text-center px-1">
-              <h3 className="text-[11px] font-black text-white uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
+              <h3 className="text-[10px] font-black text-white uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
                 {item.name}
               </h3>
             </div>
