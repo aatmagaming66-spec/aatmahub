@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -177,14 +176,18 @@ export default function CheckoutPage() {
 
         await setDoc(orderRef, { ...baseOrderData, status: 'pending' });
         
+        // Update user spend and rank with 90-day expiry
         const currentSpend = profile?.lifetimeSpend || 0;
         const newSpend = currentSpend + grandTotal;
         const newRank = getRankFromSpend(newSpend, DEFAULT_RANKS);
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 90);
         
         updateDoc(userDocRef, {
           lifetimeSpend: newSpend,
           currentRank: newRank.name,
           rankId: newRank.id,
+          rankExpiry: expiryDate.toISOString(),
           updatedAt: new Date().toISOString()
         }).catch(err => console.error("Update fail", err));
 

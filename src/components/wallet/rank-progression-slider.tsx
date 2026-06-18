@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Card, CardContent } from '@/components/ui/card';
 import { DEFAULT_RANKS, type RankDefinition, getRankFromSpend, getNextRank } from '@/lib/ranks';
 import { cn } from '@/lib/utils';
+import { useUser } from '@/firebase/auth/use-user';
 import { 
   ShieldCheck, 
   Star, 
@@ -17,7 +18,8 @@ import {
   Activity,
   Trophy,
   ArrowRight,
-  Info
+  Info,
+  Clock
 } from 'lucide-react';
 
 interface RankProgressionSliderProps {
@@ -26,6 +28,7 @@ interface RankProgressionSliderProps {
 }
 
 export function RankProgressionSlider({ lifetimeSpend, ranks = DEFAULT_RANKS }: RankProgressionSliderProps) {
+  const { profile } = useUser();
   const safeRanks = Array.isArray(ranks) && ranks.length > 0 ? ranks : DEFAULT_RANKS;
   const sortedRanks = useMemo(() => [...safeRanks].sort((a, b) => a.sortOrder - b.sortOrder), [safeRanks]);
   const currentRank = useMemo(() => getRankFromSpend(lifetimeSpend, safeRanks), [lifetimeSpend, safeRanks]);
@@ -50,10 +53,14 @@ export function RankProgressionSlider({ lifetimeSpend, ranks = DEFAULT_RANKS }: 
   }, [emblaApi, currentRank, sortedRanks, isMounted]);
 
   const expiryDate = useMemo(() => {
-    const d = new Date();
-    d.setFullYear(d.getFullYear() + 1);
-    return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-  }, []);
+    if (!profile?.rankExpiry) return 'Awaiting Verification';
+    try {
+      const d = new Date(profile.rankExpiry);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (e) {
+      return '---';
+    }
+  }, [profile?.rankExpiry]);
 
   return (
     <section className="space-y-6 animate-in fade-in duration-700">
@@ -63,7 +70,8 @@ export function RankProgressionSlider({ lifetimeSpend, ranks = DEFAULT_RANKS }: 
           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Upgrade Center</h3>
         </div>
         <div className="flex items-center gap-2">
-           <span className="text-[7px] font-black uppercase text-white/30 tracking-widest">Membership Expires:</span>
+           <Clock size={10} className="text-green-500" />
+           <span className="text-[7px] font-black uppercase text-white/30 tracking-widest">Maintenance Check:</span>
            <span className="text-[8px] font-black text-green-500 uppercase">{expiryDate}</span>
         </div>
       </div>
@@ -108,7 +116,7 @@ export function RankProgressionSlider({ lifetimeSpend, ranks = DEFAULT_RANKS }: 
       <div className="mx-2 bg-primary/5 p-4 rounded-none border border-primary/10 flex gap-3">
          <Info size={14} className="text-primary shrink-0" />
          <p className="text-[9px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-           Membership levels are calculated based on your total lifetime spending. Discounts are automatically applied at checkout for all members.
+           Membership levels are maintained through activity. Spending contributions remain valid for a 90-day maintenance cycle from achievement.
          </p>
       </div>
     </section>
