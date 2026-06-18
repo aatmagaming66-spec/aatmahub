@@ -19,6 +19,8 @@ import {
 import { Plus, Edit2, Trash2, Loader2, Image as ImageIcon, Save, X, MoveUp, MoveDown, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dynduenfb/image/upload";
 const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
@@ -117,25 +119,42 @@ export default function BannerManagementPage() {
         createdAt: editingBanner?.createdAt || new Date().toISOString()
       };
       
-      await setDoc(bannerRef, payload, { merge: true });
+      // NON-BLOCKING MUTATION: Optimistic update pattern
+      setDoc(bannerRef, payload, { merge: true })
+        .catch(async (error) => {
+          errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: bannerRef.path,
+            operation: 'write',
+            requestResourceData: payload
+          }));
+        });
       
       toast({ title: 'Success', description: 'Hero banner saved successfully.' });
       setIsModalOpen(false);
+      setSaving(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
-    } finally { 
       setSaving(false); 
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Permanently delete this banner?')) return;
-    try {
-      await deleteDoc(doc(db, 'banners', id));
-      toast({ title: 'Banner Removed' });
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Error', description: e.message });
-    }
+  const handleDelete = (id: string) => {
+    if (!id) return;
+    if (!window.confirm('Permanently delete this banner?')) return;
+    
+    const bannerRef = doc(db, 'banners', id);
+    
+    // NON-BLOCKING MUTATION
+    deleteDoc(bannerRef)
+      .then(() => {
+        toast({ title: 'Banner Removed' });
+      })
+      .catch(async (error) => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+          path: bannerRef.path,
+          operation: 'delete',
+        }));
+      });
   };
 
   return (
