@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from "react";
@@ -105,16 +106,14 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                 </div>
               )}
 
-              {/* REGIONAL FLAG OVERLAY */}
-              {item.flag && (
-                <div className="absolute top-2.5 right-2.5 z-30 h-6 w-6 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-[10px] shadow-lg">
-                  {item.flag}
-                </div>
-              )}
+              {/* INSTANT BADGE OVERLAY */}
+              <div className="absolute top-2 right-2 z-30 bg-primary/90 px-1.5 py-0.5 rounded flex items-center justify-center shadow-lg border border-white/10">
+                <span className="text-[7px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
+              </div>
             </div>
             <div className="text-center px-1">
               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-white transition-colors line-clamp-1">
-                {item.name}
+                {item.name} {item.flag}
               </span>
             </div>
           </Link>

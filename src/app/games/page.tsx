@@ -65,15 +65,15 @@ export default function GamesPage() {
                   )}
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
-                  {game.flag && (
-                    <div className="absolute top-3 right-3 z-30 h-7 w-7 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-xs shadow-lg">
-                      {game.flag}
-                    </div>
-                  )}
+                  
+                  {/* INSTANT BADGE OVERLAY */}
+                  <div className="absolute top-2 right-2 z-30 bg-primary/90 px-1.5 py-0.5 rounded flex items-center justify-center shadow-lg border border-white/10">
+                    <span className="text-[7px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
+                  </div>
                 </div>
                 <div className="text-center px-1">
                   <h3 className="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-primary transition-colors">
-                    {game.name}
+                    {game.name} {game.flag}
                   </h3>
                 </div>
               </Link>

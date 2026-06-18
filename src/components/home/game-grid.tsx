@@ -96,19 +96,17 @@ function GameCard({ game }: { game: any }) {
           </div>
         )}
 
-        {/* REGIONAL FLAG OVERLAY */}
-        {game.flag && (
-          <div className="absolute top-3 right-3 z-30 h-7 w-7 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-xs shadow-lg">
-            {game.flag}
-          </div>
-        )}
+        {/* INSTANT BADGE OVERLAY */}
+        <div className="absolute top-2 right-2 z-30 bg-primary/90 px-1.5 py-0.5 rounded flex items-center justify-center shadow-lg border border-white/10">
+          <span className="text-[7px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
+        </div>
 
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
       </div>
       
       <div className="text-center mt-3 px-1">
         <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
-          {game.name}
+          {game.name} {game.flag}
         </span>
       </div>
     </Link>
