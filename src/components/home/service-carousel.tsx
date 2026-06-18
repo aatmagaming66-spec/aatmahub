@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from "react";
@@ -9,6 +8,7 @@ import { collection, query, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tv, Share2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ServiceCarouselProps {
   title: string;
@@ -18,6 +18,7 @@ interface ServiceCarouselProps {
 export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const db = useFirestore();
   const isOtt = category === 'OTT Services';
+  const isSocial = category === 'Social Services';
   const Icon = isOtt ? Tv : Share2;
 
   // FETCH ALL ACTIVE ITEMS IN CATEGORY
@@ -49,7 +50,10 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
         </div>
         <div className="flex gap-4 overflow-x-auto no-scrollbar">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="flex-shrink-0 w-[120px] aspect-[2/3] rounded-xl bg-white/5" />
+            <Skeleton key={i} className={cn(
+              "flex-shrink-0 w-[120px] bg-white/5",
+              isSocial ? "aspect-square rounded-none" : "aspect-[2/3] rounded-xl"
+            )} />
           ))}
         </div>
       </section>
@@ -79,7 +83,10 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
             href={`/product/${item.id}`} 
             className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all flex flex-col"
           >
-            <div className="relative aspect-[2/3] rounded-[20px] overflow-hidden mb-2.5 border border-white/5 bg-card shadow-xl group-hover:border-white/20 transition-all">
+            <div className={cn(
+              "relative overflow-hidden mb-2.5 border border-white/5 bg-card shadow-xl group-hover:border-white/20 transition-all",
+              isSocial ? "aspect-square rounded-none" : "aspect-[2/3] rounded-[20px]"
+            )}>
               <div className={isOtt ? "absolute inset-0 bg-gradient-to-br from-accent/10 via-black to-card" : "absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card"} />
               
               {item.logo ? (
@@ -87,7 +94,10 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                   src={item.logo} 
                   alt={item.name} 
                   fill 
-                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  className={cn(
+                    "transition-transform duration-500 group-hover:scale-110",
+                    isSocial ? "object-contain" : "object-cover"
+                  )}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center opacity-10">

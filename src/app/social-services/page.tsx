@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -16,23 +15,27 @@ export default function SocialServicesPage() {
   const socialQuery = useMemo(() => query(
     collection(db, 'games'),
     where('category', '==', 'Social Services'),
-    where('status', '==', 'active'),
-    orderBy('sortOrder', 'asc')
+    where('status', '==', 'active')
   ), [db]);
 
-  const { data: items, loading } = useCollection(socialQuery);
+  const { data: rawItems, loading } = useCollection(socialQuery);
+
+  const items = useMemo(() => {
+    if (!rawItems) return [];
+    return [...rawItems].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  }, [rawItems]);
 
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
         <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Social Hub</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Digital Growth Solutions</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Growth Solutions</p>
       </header>
 
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-video w-full rounded-[24px] bg-white/5" />
+            <Skeleton key={i} className="aspect-square w-full rounded-none bg-white/5" />
           ))}
         </div>
       ) : items.length === 0 ? (
@@ -49,11 +52,11 @@ export default function SocialServicesPage() {
                 href={`/product/${item.id}`} 
                 className="group transition-all duration-300 active:scale-95"
               >
-                <div className="relative aspect-video w-full rounded-[24px] overflow-hidden mb-3 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
+                <div className="relative aspect-square w-full rounded-none overflow-hidden mb-3 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card" />
                   
                   {item.logo ? (
-                    <Image src={item.logo} alt={item.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <Image src={item.logo} alt={item.name} fill className="object-contain transition-transform duration-700 group-hover:scale-110" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center opacity-10">
                       <Share2 size={40} className="text-white" />
