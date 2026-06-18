@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useFirestore } from "@/firebase/provider";
@@ -26,11 +26,15 @@ export function GameGrid() {
   const games = useMemo(() => {
     if (!rawGames) return [];
     
-    // Client-side filtering and sorting for maximum resilience (fixes sortOrder exclusion bug)
+    // Client-side sorting for maximum resilience
     return rawGames
       .filter(g => g.status === 'active')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
+
+  // Split games into two rows for independent scrolling
+  const row1 = useMemo(() => games.filter((_, i) => i % 2 === 0), [games]);
+  const row2 = useMemo(() => games.filter((_, i) => i % 2 !== 0), [games]);
 
   if (loading) {
     return (
@@ -64,51 +68,69 @@ export function GameGrid() {
         <Link href="/games" className="text-[10px] font-black text-primary uppercase tracking-[0.2em] hover:text-white transition-colors">View All</Link>
       </div>
       
-      {/* 2-ROW HORIZONTAL SCROLL CONTAINER */}
-      <div className="overflow-x-auto no-scrollbar pb-4">
-        <div className="grid grid-rows-2 grid-flow-col gap-x-3 gap-y-6 px-4 w-max">
-          {games.map((game) => (
-            <Link 
-              key={game.id} 
-              href={`/product/${game.id}`} 
-              className="w-[calc((100vw-48px)/3)] sm:w-[120px] group flex flex-col active:scale-95 transition-all duration-300"
-            >
-              <div className="relative aspect-[3/4] w-full rounded-[24px] overflow-hidden bg-card border border-white/5 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card" />
-                
-                {game.logo ? (
-                  <Image 
-                    src={game.logo} 
-                    alt={game.name} 
-                    fill 
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    sizes="(max-width: 768px) 33vw, 120px"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                    <Gamepad2 size={32} className="text-white" />
-                  </div>
-                )}
-
-                {/* REGIONAL FLAG OVERLAY */}
-                {game.flag && (
-                  <div className="absolute top-3 right-3 z-30 h-7 w-7 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-xs shadow-lg">
-                    {game.flag}
-                  </div>
-                )}
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-              </div>
-              
-              <div className="text-center mt-3 px-1">
-                <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
-                  {game.name}
-                </span>
-              </div>
-            </Link>
-          ))}
+      <div className="space-y-6">
+        {/* ROW 1 SCROLL (INDEPENDENT) */}
+        <div className="overflow-x-auto no-scrollbar pb-1">
+          <div className="flex gap-3 px-4 w-max">
+            {row1.map((game) => (
+              <GameCard key={game.id} game={game} />
+            ))}
+          </div>
         </div>
+
+        {/* ROW 2 SCROLL (INDEPENDENT) */}
+        {row2.length > 0 && (
+          <div className="overflow-x-auto no-scrollbar pb-1">
+            <div className="flex gap-3 px-4 w-max">
+              {row2.map((game) => (
+                <GameCard key={game.id} game={game} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
+  );
+}
+
+function GameCard({ game }: { game: any }) {
+  return (
+    <Link 
+      href={`/product/${game.id}`} 
+      className="w-[calc((100vw-48px)/3)] sm:w-[120px] group flex flex-col active:scale-95 transition-all duration-300"
+    >
+      <div className="relative aspect-[3/4] w-full rounded-[24px] overflow-hidden bg-card border border-white/5 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card" />
+        
+        {game.logo ? (
+          <Image 
+            src={game.logo} 
+            alt={game.name} 
+            fill 
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
+            sizes="(max-width: 768px) 33vw, 120px"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center opacity-10">
+            <Gamepad2 size={32} className="text-white" />
+          </div>
+        )}
+
+        {/* REGIONAL FLAG OVERLAY */}
+        {game.flag && (
+          <div className="absolute top-3 right-3 z-30 h-7 w-7 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-xs shadow-lg">
+            {game.flag}
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+      </div>
+      
+      <div className="text-center mt-3 px-1">
+        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
+          {game.name}
+        </span>
+      </div>
+    </Link>
   );
 }
