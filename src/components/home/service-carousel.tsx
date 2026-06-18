@@ -82,10 +82,10 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
             className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all flex flex-col"
           >
             <div className={cn(
-              "relative overflow-hidden mb-2.5 border border-white/5 bg-card shadow-xl group-hover:border-white/20 transition-all",
+              "relative overflow-hidden mb-2.5 border border-white/5 bg-white/5 shadow-xl group-hover:border-white/20 transition-all",
               isSocial ? "aspect-square rounded-none" : "aspect-[2/3] rounded-[20px]"
             )}>
-              <div className={isOtt ? "absolute inset-0 bg-gradient-to-br from-accent/10 via-black to-card" : "absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card"} />
+              <div className="absolute inset-0 bg-neutral-900/30" />
               
               {item.logo ? (
                 <Image 
@@ -93,7 +93,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                   alt={item.name} 
                   fill 
                   className={cn(
-                    "transition-transform duration-500 group-hover:scale-110",
+                    "transition-transform duration-500 group-hover:scale-110 z-10",
                     isSocial ? "object-contain" : "object-cover"
                   )}
                 />
@@ -102,8 +102,6 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                   <Icon size={24} className="text-white" />
                 </div>
               )}
-
-              {/* INSTANT BADGE REMOVED FOR OTT AND SOCIAL SERVICES */}
             </div>
             <div className="text-center px-1">
               <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-white transition-colors line-clamp-1">

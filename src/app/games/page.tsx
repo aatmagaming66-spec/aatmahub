@@ -54,22 +54,20 @@ export default function GamesPage() {
                 href={`/product/${game.id}`} 
                 className="group transition-all duration-300 active:scale-95"
               >
-                <div className="relative aspect-square w-full rounded-none overflow-hidden mb-3 border border-border shadow-2xl bg-card group-hover:border-primary/50 transition-all duration-500">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card" />
+                <div className="relative aspect-square w-full rounded-none overflow-hidden mb-3 border border-border shadow-2xl bg-white/5 group-hover:border-primary/50 transition-all duration-500">
+                  <div className="absolute inset-0 bg-neutral-900/20" />
                   
                   {game.logo ? (
-                    <Image src={game.logo} alt={game.name} fill className="object-contain transition-transform duration-700 group-hover:scale-110" />
+                    <Image src={game.logo} alt={game.name} fill className="object-contain transition-transform duration-700 group-hover:scale-110 z-10" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center opacity-10">
                       <Gamepad2 size={40} className="text-white" />
                     </div>
                   )}
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
-                  
                   {/* INSTANT BADGE OVERLAY - RESTRICTED TO MLBB ONLY */}
                   {isMlbb && (
-                    <div className="absolute top-1.5 left-1.5 z-30 bg-primary/90 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10">
+                    <div className="absolute top-1.5 left-1.5 z-30 bg-primary/95 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10 scale-90 origin-top-left">
                       <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
                     </div>
                   )}

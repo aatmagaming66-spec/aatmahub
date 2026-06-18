@@ -79,15 +79,15 @@ function GameCard({ game }: { game: any }) {
       href={`/product/${game.id}`} 
       className="w-full group flex flex-col active:scale-95 transition-all duration-300"
     >
-      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-card border border-white/5 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-black to-card" />
+      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-white/5 border border-white/10 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
+        <div className="absolute inset-0 bg-neutral-900/40" />
         
         {game.logo ? (
           <Image 
             src={game.logo} 
             alt={game.name} 
             fill 
-            className="object-contain transition-transform duration-700 group-hover:scale-110"
+            className="object-contain transition-transform duration-700 group-hover:scale-110 z-10"
             sizes="(max-width: 768px) 33vw, 120px"
           />
         ) : (
@@ -98,15 +98,13 @@ function GameCard({ game }: { game: any }) {
 
         {/* INSTANT BADGE OVERLAY - RESTRICTED TO MLBB ONLY */}
         {isMlbb && (
-          <div className="absolute top-1.5 left-1.5 z-30 bg-primary/90 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10">
+          <div className="absolute top-1 left-1 z-30 bg-primary/95 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10 scale-90 origin-top-left">
             <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
           </div>
         )}
-
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
       </div>
       
-      <div className="text-center mt-3 px-1">
+      <div className="text-center mt-2.5 px-1">
         <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
           {game.name} {game.flag}
         </span>
