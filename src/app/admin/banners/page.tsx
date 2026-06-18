@@ -95,8 +95,9 @@ export default function BannerManagementPage() {
   };
 
   const handleSave = async () => {
-    if (!formData.title && !file && !formData.imageUrl) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Image or Title is required.' });
+    // STRICTOR VALIDATION: Require either a new file or an existing image URL
+    if (!file && !formData.imageUrl) {
+      toast({ variant: 'destructive', title: 'Image Required', description: 'You must provide a banner image.' });
       return;
     }
 
@@ -119,19 +120,22 @@ export default function BannerManagementPage() {
         createdAt: editingBanner?.createdAt || new Date().toISOString()
       };
       
-      // NON-BLOCKING MUTATION: Optimistic update pattern
       setDoc(bannerRef, payload, { merge: true })
+        .then(() => {
+          toast({ title: 'Success', description: 'Hero banner saved successfully.' });
+          setIsModalOpen(false);
+        })
         .catch(async (error) => {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: bannerRef.path,
             operation: 'write',
             requestResourceData: payload
           }));
+        })
+        .finally(() => {
+          setSaving(false);
         });
       
-      toast({ title: 'Success', description: 'Hero banner saved successfully.' });
-      setIsModalOpen(false);
-      setSaving(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
       setSaving(false); 
@@ -144,7 +148,6 @@ export default function BannerManagementPage() {
     
     const bannerRef = doc(db, 'banners', id);
     
-    // NON-BLOCKING MUTATION
     deleteDoc(bannerRef)
       .then(() => {
         toast({ title: 'Banner Removed' });

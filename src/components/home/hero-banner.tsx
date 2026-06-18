@@ -16,7 +16,6 @@ export function HeroBanner() {
   const db = useFirestore();
   
   // OPTIMIZATION: Simple query to avoid composite index requirements
-  // We filter 'active' status on the client side for maximum reliability
   const bannersQuery = React.useMemo(() => query(
     collection(db, 'banners'),
     orderBy('sortOrder', 'asc')
@@ -31,12 +30,13 @@ export function HeroBanner() {
   
   const [selectedIndex, setSelectedIndex] = React.useState(0);
 
-  // Client-side filtering for status to ensure cross-environment stability
+  // CRITICAL FIX: Only include banners that are active AND have an image URL
   const activeBanners = React.useMemo(() => {
-    return allBanners?.filter(b => b.status === 'active') || [];
+    return allBanners?.filter(b => b.status === 'active' && b.imageUrl) || [];
   }, [allBanners]);
 
   const displayBanners = React.useMemo(() => {
+    // If we have no valid banners, show the professional fallback
     if (!loading && activeBanners.length === 0) {
       return [
         {
@@ -64,7 +64,6 @@ export function HeroBanner() {
     emblaApi.on("reInit", onSelect);
   }, [emblaApi, onSelect]);
 
-  // Aggressive re-initialization when the data source changes
   React.useEffect(() => {
     if (emblaApi) emblaApi.reInit();
   }, [emblaApi, displayBanners]);
@@ -73,7 +72,6 @@ export function HeroBanner() {
     emblaApi?.scrollTo(index);
   }, [emblaApi]);
 
-  // Show skeleton if loading and we don't have any cached active banners yet
   if (loading && activeBanners.length === 0) {
     return (
       <section className="relative w-full h-[220px] px-4 mt-4">
@@ -84,10 +82,6 @@ export function HeroBanner() {
 
   return (
     <section className="relative w-full h-[220px] overflow-hidden px-4 mt-4">
-      {/* 
-         The composite key ensures the Embla carousel instance is perfectly 
-         synchronized with both the data presence and the loading state.
-      */}
       <div 
         key={`carousel-${displayBanners.length}-${loading}`}
         className="relative w-full h-full rounded-none overflow-hidden shadow-2xl border border-white/5 bg-neutral-900" 
