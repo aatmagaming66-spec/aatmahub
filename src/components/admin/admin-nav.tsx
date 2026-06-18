@@ -10,18 +10,16 @@ import {
   Package, 
   ShoppingCart, 
   Users, 
-  Globe, 
   CreditCard,
-  Activity,
   Database,
   ArrowLeft,
   BarChart3,
   FileText,
   ShieldCheck,
   Gamepad2,
-  Trophy,
   Home as HomeIcon,
-  Settings
+  Settings,
+  Zap
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
@@ -31,14 +29,16 @@ const ADMIN_LINKS = [
 ];
 
 const SUPER_ADMIN_LINKS = [
-  { href: '/admin/analytics', label: 'Intelligence', icon: BarChart3 },
-  { href: '/admin/games', label: 'Game Management', icon: Gamepad2 },
-  { href: '/admin/products', label: 'Product Management', icon: Package },
-  { href: '/admin/users', label: 'User Management', icon: Users },
-  { href: '/admin/settings/payments', label: 'Payment Hub', icon: CreditCard },
-  { href: '/admin/homepage', label: 'Home Control', icon: HomeIcon },
-  { href: '/admin/system', label: 'System Settings', icon: Settings },
-  { href: '/admin/backups', label: 'Archives', icon: Database },
+  { href: '/admin/analytics', label: 'Store Insights', icon: BarChart3 },
+  { href: '/admin/games', label: 'Products', icon: Gamepad2 },
+  { href: '/admin/users', label: 'Members', icon: Users },
+  { href: '/admin/settings/payments', label: 'Payments', icon: CreditCard },
+  { href: '/admin/settings/smileone', label: 'Smile.one', icon: Zap },
+  { href: '/admin/settings/unipin', label: 'UniPin', icon: Zap },
+  { href: '/admin/settings/moogold', label: 'MooGold', icon: Zap },
+  { href: '/admin/homepage', label: 'Home Editor', icon: HomeIcon },
+  { href: '/admin/system', label: 'Settings', icon: Settings },
+  { href: '/admin/backups', label: 'Backup', icon: Database },
 ];
 
 export const AdminNav = memo(function AdminNav() {
@@ -48,7 +48,7 @@ export const AdminNav = memo(function AdminNav() {
 
   return (
     <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10">
-      <Link href="/" className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors px-4 group">
+      <Link href="/" prefetch={false} className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors px-4 group">
         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Store
       </Link>
       
@@ -60,8 +60,9 @@ export const AdminNav = memo(function AdminNav() {
             <Link
               key={link.href}
               href={link.href}
+              prefetch={false}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all",
+                "flex items-center gap-3 px-4 py-3 rounded-none transition-all",
                 isActive 
                   ? "bg-primary text-white shadow-lg shadow-primary/20" 
                   : "text-muted-foreground hover:bg-white/5 hover:text-white"
@@ -78,7 +79,7 @@ export const AdminNav = memo(function AdminNav() {
         <div className="mt-8 space-y-1">
           <div className="flex items-center gap-2 px-4 mb-2">
             <ShieldCheck className="h-3 w-3 text-primary" />
-            <p className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Super Admin</p>
+            <p className="text-[8px] font-black text-primary uppercase tracking-[0.3em]">Administrator</p>
           </div>
           {SUPER_ADMIN_LINKS.map((link) => {
             const isActive = pathname === link.href;
@@ -86,8 +87,9 @@ export const AdminNav = memo(function AdminNav() {
               <Link
                 key={link.href}
                 href={link.href}
+                prefetch={false}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all",
+                  "flex items-center gap-3 px-4 py-2.5 rounded-none transition-all",
                   isActive 
                     ? "bg-primary/10 text-primary border border-primary/20" 
                     : "text-muted-foreground hover:bg-white/5 hover:text-white"

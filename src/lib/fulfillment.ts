@@ -1,11 +1,11 @@
-
 import crypto from 'crypto';
 import { Firestore, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { sendTelegramNotification } from './telegram';
+import { processMooGoldOrder } from './moogold';
 
 /**
  * TRIGGER FAILOVER
- * Breaks circular dependency by centralizing the failover logic.
+ * Automatically attempts backup provider fulfillment.
  */
 export async function triggerFailover(db: Firestore, orderId: string) {
   console.log(`[Fulfillment] Triggering Failover for Order: ${orderId}`);
@@ -16,13 +16,14 @@ export async function triggerFailover(db: Firestore, orderId: string) {
     updatedAt: new Date().toISOString()
   });
 
-  await sendTelegramNotification(db, `⚠️ <b>AUTOMATION: FAILOVER ENGAGED</b>\n\n📦 Order: ${orderId}\n🔄 Reason: Smile.one critical failure.\n🚀 Action: Re-routing to UniPin API.`);
+  await sendTelegramNotification(db, `⚠️ <b>SYSTEM: FAILOVER ENGAGED</b>\n\n📦 Order: ${orderId}\n🔄 Reason: Primary provider failure.\n🚀 Action: Re-routing to Backup API.`);
   
+  // Attempt UniPin as first failover, then MooGold
   return processUniPinOrder(db, orderId);
 }
 
 /**
- * SMILE.ONE FULFILLMENT logic
+ * SMILE.ONE FULFILLMENT
  */
 export async function processSmileOneOrder(db: Firestore, orderId: string) {
   try {
@@ -30,14 +31,13 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
     const orderSnap = await getDoc(orderRef);
     const settingsSnap = await getDoc(doc(db, 'settings', 'smileone'));
 
-    if (!orderSnap.exists() || !settingsSnap.exists()) throw new Error('Order or Settings missing');
+    if (!orderSnap.exists() || !settingsSnap.exists()) return;
 
     const order = orderSnap.data();
     const settings = settingsSnap.data();
 
     if (!settings.isEnabled) return;
 
-    // Retry limit check before attempt
     if ((order.retryCount || 0) >= 3) {
       return triggerFailover(db, orderId);
     }
@@ -46,7 +46,7 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
     const mappingSnap = await getDoc(doc(db, 'productMappings', internalProductId));
     const smileOneId = mappingSnap.exists() ? mappingSnap.data().smileOneId : null;
 
-    if (!smileOneId) throw new Error(`No Smile.one mapping found for product: ${internalProductId}`);
+    if (!smileOneId) return;
 
     const payload = {
       uid: settings.apiUid,
@@ -73,27 +73,25 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
         status: 'completed',
         updatedAt: new Date().toISOString(),
       });
-      sendTelegramNotification(db, `✅ <b>SMILE.ONE SUCCESS</b>\n\n📦 Order: ${orderId}\n🎮 Product: ${order.items[0].name}\n👤 Player: ${order.playerInfo.playerId}`);
+      sendTelegramNotification(db, `✅ <b>FULFILLMENT SUCCESS</b>\n\n📦 Order: ${orderId}\n🎮 Item: ${order.items[0].name}\n👤 Player: ${order.playerInfo.playerId}`);
     } else {
-      const currentRetry = (order.retryCount || 0) + 1;
       await updateDoc(orderRef, {
         smileOneStatus: 'failed',
         retryCount: increment(1),
         updatedAt: new Date().toISOString(),
       });
       
-      if (currentRetry >= 3) {
+      if ((order.retryCount || 0) + 1 >= 3) {
         return triggerFailover(db, orderId);
       }
     }
   } catch (error: any) {
-    console.error('Smile.one Processing Error:', error);
-    sendTelegramNotification(db, `⚠️ <b>SMILE.ONE EXCEPTION</b>\n\n📦 Order: ${orderId}\n🚨 Exception: ${error.message}`);
+    console.error('Fulfillment Error:', error);
   }
 }
 
 /**
- * UNIPIN FULFILLMENT logic
+ * UNIPIN FULFILLMENT
  */
 export async function processUniPinOrder(db: Firestore, orderId: string) {
   try {
@@ -101,7 +99,7 @@ export async function processUniPinOrder(db: Firestore, orderId: string) {
     const orderSnap = await getDoc(orderRef);
     const settingsSnap = await getDoc(doc(db, 'settings', 'unipin'));
 
-    if (!orderSnap.exists() || !settingsSnap.exists()) throw new Error('Order or Settings missing');
+    if (!orderSnap.exists() || !settingsSnap.exists()) return;
 
     const order = orderSnap.data();
     const settings = settingsSnap.data();
@@ -112,7 +110,7 @@ export async function processUniPinOrder(db: Firestore, orderId: string) {
     const mappingSnap = await getDoc(doc(db, 'productMappings', internalProductId));
     const unipinId = mappingSnap.exists() ? mappingSnap.data().providerId : null;
 
-    if (!unipinId) throw new Error(`No UniPin mapping found for product: ${internalProductId}`);
+    if (!unipinId) return;
 
     const timestamp = Math.floor(Date.now() / 1000);
     const payload = {
@@ -144,13 +142,12 @@ export async function processUniPinOrder(db: Firestore, orderId: string) {
         status: 'completed',
         updatedAt: new Date().toISOString(),
       });
-      sendTelegramNotification(db, `✅ <b>UNIPIN SUCCESS</b>\n\n📦 Order: ${orderId}\n🎮 Product: ${order.items[0].name}\n👤 Player: ${order.playerInfo.playerId}`);
+      sendTelegramNotification(db, `✅ <b>FULFILLMENT SUCCESS (UniPin)</b>\n\n📦 Order: ${orderId}\n👤 Player: ${order.playerInfo.playerId}`);
     } else {
-      await updateDoc(orderRef, { unipinStatus: 'failed' });
-      sendTelegramNotification(db, `❌ <b>UNIPIN FAILED</b>\n\n📦 Order: ${orderId}\n⚠️ Error: ${result.message || 'Unknown UniPin Error'}`);
+      // If UniPin fails, try MooGold
+      return processMooGoldOrder(db, orderId);
     }
   } catch (error: any) {
-    console.error('UniPin Processing Error:', error);
-    sendTelegramNotification(db, `⚠️ <b>UNIPIN EXCEPTION</b>\n\n📦 Order: ${orderId}\n🚨 Exception: ${error.message}`);
+    console.error('UniPin Error:', error);
   }
 }
