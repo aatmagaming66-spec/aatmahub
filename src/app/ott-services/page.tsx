@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -26,7 +25,7 @@ export default function OttServicesPage() {
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
         <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">OTT Hub</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Premium Streaming Access</p>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Premium Streaming Access</p>
       </header>
 
       {loading ? (
@@ -61,6 +60,11 @@ export default function OttServicesPage() {
                   )}
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                  
+                  {/* INSTANT BADGE OVERLAY - LEFT POSITIONED, REDUCED SIZE */}
+                  <div className="absolute top-1.5 left-1.5 z-30 bg-primary/90 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10">
+                    <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
+                  </div>
                 </div>
                 <div className="text-center px-1">
                   <h3 className="text-[10px] font-black text-white uppercase tracking-tight group-hover:text-accent transition-colors">

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -66,9 +65,9 @@ export default function GamesPage() {
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
                   
-                  {/* INSTANT BADGE OVERLAY */}
-                  <div className="absolute top-2 right-2 z-30 bg-primary/90 px-1.5 py-0.5 rounded flex items-center justify-center shadow-lg border border-white/10">
-                    <span className="text-[7px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
+                  {/* INSTANT BADGE OVERLAY - LEFT POSITIONED, REDUCED SIZE */}
+                  <div className="absolute top-1.5 left-1.5 z-30 bg-primary/90 px-1 py-0.5 rounded-sm flex items-center justify-center shadow-md border border-white/10">
+                    <span className="text-[6px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
                   </div>
                 </div>
                 <div className="text-center px-1">
