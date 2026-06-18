@@ -77,7 +77,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
             className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all flex flex-col"
           >
             <div className={cn(
-              "relative overflow-hidden mb-2.5 border border-white/5 bg-white/5 shadow-xl group-hover:border-white/20 transition-all",
+              "relative overflow-hidden mb-2.5 border border-white/5 bg-transparent shadow-xl group-hover:border-white/20 transition-all",
               isOtt ? "aspect-[2/3] rounded-[20px]" : "aspect-square rounded-none"
             )}>
               {item.logo ? (
@@ -85,7 +85,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                   src={item.logo} 
                   alt={item.name} 
                   fill 
-                  className="object-contain transition-transform duration-500 group-hover:scale-110 z-10"
+                  className="object-contain opacity-100 transition-transform duration-500 group-hover:scale-110 z-10"
                   sizes="(max-width: 768px) 33vw, 100px"
                 />
               ) : (

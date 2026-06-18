@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -50,7 +49,6 @@ export default function ProductPage() {
   useEffect(() => {
     if (gameInfo) {
       console.log(`[PERF_HUB] Product Detail Hydrated: ${gameInfo.name}`);
-      console.log(`[PERF_HUB] Rendered Logo: ${gameInfo.logo}`);
     }
   }, [gameInfo]);
 
@@ -124,13 +122,20 @@ export default function ProductPage() {
     );
   }
 
+  const isMlbb = productName.toLowerCase().includes('mlbb');
+
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      {/* PRODUCT HERO / BANNER */}
-      <div className="relative w-full aspect-[21/9] bg-neutral-950 overflow-hidden border-b border-white/5 shadow-2xl">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-background to-black z-10" />
+      {/* PRODUCT HERO / BANNER - HEIGHT INCREASED TO 16:9, CLEAN OVERLAY REMOVED */}
+      <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl">
         {gameInfo?.banner ? (
-          <Image src={gameInfo.banner} alt={productName} fill className="object-cover opacity-50 transition-all duration-1000 scale-105" priority />
+          <Image 
+            src={gameInfo.banner} 
+            alt={productName} 
+            fill 
+            className="object-cover opacity-100 transition-all duration-1000 scale-100" 
+            priority 
+          />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center z-0 opacity-10">
             <ImageIcon size={80} />
@@ -142,10 +147,12 @@ export default function ProductPage() {
       <div className="p-4 pt-0 space-y-6 max-w-4xl mx-auto w-full relative z-30 -mt-12">
         {/* Badges */}
         <div className="flex flex-row justify-center gap-3">
-          <div className="bg-primary px-3 py-1 rounded-lg flex items-center gap-2 shadow-xl border border-white/5 h-8">
-            <Zap size={10} className="text-white fill-white" />
-            <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Top-Up</span>
-          </div>
+          {isMlbb && (
+            <div className="bg-primary px-3 py-1 rounded-lg flex items-center gap-2 shadow-xl border border-white/5 h-8">
+              <Zap size={10} className="text-white fill-white" />
+              <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Top-Up</span>
+            </div>
+          )}
           <div className="bg-green-600 px-3 py-1 rounded-lg flex items-center gap-2 shadow-xl border border-white/5 h-8">
             <ShieldCheck size={10} className="text-white fill-white" />
             <span className="text-[9px] font-black uppercase text-white tracking-widest">Official Channel</span>

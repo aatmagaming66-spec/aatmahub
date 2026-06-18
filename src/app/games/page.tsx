@@ -54,9 +54,14 @@ export default function GamesPage() {
                 href={`/product/${game.id}`} 
                 className="group transition-all duration-300 active:scale-95"
               >
-                <div className="relative aspect-square w-full rounded-none overflow-hidden mb-3 border border-border shadow-2xl bg-white/5 group-hover:border-primary/50 transition-all duration-500">
+                <div className="relative aspect-square w-full rounded-none overflow-hidden mb-3 border border-border shadow-2xl bg-transparent group-hover:border-primary/50 transition-all duration-500">
                   {game.logo ? (
-                    <Image src={game.logo} alt={game.name} fill className="object-contain transition-transform duration-700 group-hover:scale-110 z-10" />
+                    <Image 
+                      src={game.logo} 
+                      alt={game.name} 
+                      fill 
+                      className="object-contain opacity-100 transition-transform duration-700 group-hover:scale-110 z-10" 
+                    />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center opacity-10">
                       <Gamepad2 size={40} className="text-white" />

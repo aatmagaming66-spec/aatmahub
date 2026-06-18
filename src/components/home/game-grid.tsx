@@ -74,13 +74,13 @@ function GameCard({ game }: { game: any }) {
       href={`/product/${game.id}`} 
       className="w-full group flex flex-col active:scale-95 transition-all duration-300"
     >
-      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-white/5 border border-white/10 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
+      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-transparent border border-white/10 shadow-2xl group-hover:border-primary/40 transition-all duration-500">
         {game.logo ? (
           <Image 
             src={game.logo} 
             alt={game.name} 
             fill 
-            className="object-contain transition-transform duration-700 group-hover:scale-110 z-10"
+            className="object-contain opacity-100 transition-transform duration-700 group-hover:scale-110 z-10"
             sizes="(max-width: 768px) 33vw, 120px"
           />
         ) : (

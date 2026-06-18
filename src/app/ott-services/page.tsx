@@ -48,9 +48,14 @@ export default function OttServicesPage() {
                 href={`/product/${item.id}`} 
                 className="group transition-all duration-300 active:scale-95"
               >
-                <div className="relative aspect-video w-full rounded-[24px] overflow-hidden mb-3 border border-border shadow-2xl bg-white/5 group-hover:border-accent/50 transition-all duration-500">
+                <div className="relative aspect-video w-full rounded-[24px] overflow-hidden mb-3 border border-border shadow-2xl bg-transparent group-hover:border-accent/50 transition-all duration-500">
                   {item.logo ? (
-                    <Image src={item.logo} alt={item.name} fill className="object-contain transition-transform duration-700 group-hover:scale-110 z-10" />
+                    <Image 
+                      src={item.logo} 
+                      alt={item.name} 
+                      fill 
+                      className="object-contain opacity-100 transition-transform duration-700 group-hover:scale-110 z-10" 
+                    />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center opacity-10">
                       <Tv size={40} className="text-white" />
