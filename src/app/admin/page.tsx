@@ -25,7 +25,9 @@ import {
   Home as HomeIcon,
   Gamepad2,
   Trophy,
-  Settings
+  Settings,
+  Image as ImageIcon,
+  Zap
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
@@ -42,7 +44,7 @@ const BarChartComponent = dynamic(() => import('recharts').then(mod => {
           <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} content={({ active, payload }) => {
             if (active && payload && payload.length) {
               return (
-                <div className="bg-black border border-border p-2 rounded-lg shadow-2xl">
+                <div className="bg-black border border-border p-2 rounded-none shadow-2xl">
                   <p className="text-[8px] font-black uppercase text-primary">{payload[0].payload.name}</p>
                   <p className="text-sm font-black tracking-tighter text-white">₹{payload[0].value}</p>
                 </div>
@@ -50,14 +52,14 @@ const BarChartComponent = dynamic(() => import('recharts').then(mod => {
             }
             return null;
           }} />
-          <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     );
   };
 }), { 
   ssr: false, 
-  loading: () => <Skeleton className="w-full h-full bg-white/5 rounded-xl" /> 
+  loading: () => <Skeleton className="w-full h-full bg-white/5 rounded-none" /> 
 });
 
 export default function AdminDashboard() {
@@ -66,7 +68,8 @@ export default function AdminDashboard() {
   const [tgStatus, setTgStatus] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  const isSuper = profile?.role === 'super_admin';
+  // Updated to include both admin roles
+  const isSuper = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   const thirtyDaysAgo = useMemo(() => subDays(new Date(), 30).toISOString(), []);
 
@@ -122,10 +125,12 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = useMemo(() => [
+    { label: 'Hero Banners', href: '/admin/banners', icon: ImageIcon, desc: 'Homepage slide management' },
     { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage games and regions' },
     { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage prices and ranks' },
     { label: 'User Management', href: '/admin/users', icon: Users, desc: 'View and edit user accounts' },
     { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Configure payment gateways' },
+    { label: 'Integrations', href: '/admin/settings/smileone', icon: Zap, desc: 'Smile.one, UniPin, MooGold' },
     { label: 'Home Page Editor', href: '/admin/homepage', icon: HomeIcon, desc: 'Change home page layout' },
     { label: 'Global Settings', href: '/admin/system', icon: Settings, desc: 'Website and system settings' },
     { label: 'System Backups', href: '/admin/backups', icon: Database, desc: 'Export and backup data' },
@@ -164,9 +169,9 @@ export default function AdminDashboard() {
         <section className="space-y-3">
            <div className="flex items-center gap-2 px-1">
               <ShieldCheck className="h-3 w-3 text-primary" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Super Admin Tools</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Management Tools</h2>
            </div>
-           <div className="flex flex-col gap-2">
+           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {superModules.map((mod, i) => (
                 <ModuleCard key={i} {...mod} />
               ))}
@@ -179,7 +184,7 @@ export default function AdminDashboard() {
           <div className="flex justify-between items-center mb-2">
             <h3 className="text-[10px] font-black uppercase tracking-widest">Sales Overview</h3>
             <div className="flex items-center gap-1.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <div className="h-1.5 w-1.5 rounded-none bg-primary" />
               <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Last 7 Days</span>
             </div>
           </div>

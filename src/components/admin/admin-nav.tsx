@@ -43,14 +43,14 @@ const SUPER_ADMIN_LINKS = [
   { href: '/admin/backups', label: 'Backup', icon: Database },
 ];
 
-export const AdminNav = memo(function AdminNav() {
+export const AdminNav = memo(function AdminNav({ onItemClick }: { onItemClick?: () => void }) {
   const pathname = usePathname();
   const { profile } = useUser();
   const isSuper = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   return (
-    <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10">
-      <Link href="/" prefetch={false} className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors px-4 group">
+    <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10 flex-1">
+      <Link href="/" prefetch={false} onClick={onItemClick} className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors px-4 group">
         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Store
       </Link>
       
@@ -63,6 +63,7 @@ export const AdminNav = memo(function AdminNav() {
               key={link.href}
               href={link.href}
               prefetch={false}
+              onClick={onItemClick}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 rounded-none transition-all",
                 isActive 
@@ -90,6 +91,7 @@ export const AdminNav = memo(function AdminNav() {
                 key={link.href}
                 href={link.href}
                 prefetch={false}
+                onClick={onItemClick}
                 className={cn(
                   "flex items-center gap-3 px-4 py-2.5 rounded-none transition-all",
                   isActive 
