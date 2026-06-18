@@ -38,7 +38,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 export default function ProfilePage() {
-  const { user, profile, initialized } = useUser();
+  const { user, profile, initialized, loading: authLoading } = useUser();
   const { ranks } = useGlobalSettings();
   const auth = useAuth();
   const db = useFirestore();
@@ -96,12 +96,21 @@ export default function ProfilePage() {
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   return (
-    <div className="flex flex-col w-full animate-in fade-in duration-500 pb-24">
+    <div className="flex flex-col w-full animate-in fade-in duration-300 pb-24">
+      {/* HEADER SHELL - Renders immediately */}
       <div className="relative p-6 pb-8 bg-gradient-to-b from-primary/20 via-primary/5 to-background border-b border-white/5 rounded-none overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-10 opacity-5 -rotate-12"><Shield size={200} className="text-primary" /></div>
         
         <div className="relative z-10">
-          {initialized && !user ? (
+          {!initialized ? (
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-20 w-20 rounded-none bg-white/5" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-32 bg-white/5" />
+                <Skeleton className="h-4 w-24 bg-white/5" />
+              </div>
+            </div>
+          ) : !user ? (
             <div className="flex flex-col items-center justify-center gap-4 py-6 animate-in zoom-in-95 duration-300">
                <div className="h-16 w-16 bg-primary/10 rounded-none flex items-center justify-center border border-primary/20">
                   <User size={30} className="text-primary" />
@@ -113,20 +122,16 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="flex items-center gap-4">
-              {!initialized ? (
-                 <Skeleton className="h-20 w-20 rounded-none bg-white/5" />
-              ) : (
-                <RankAvatar 
-                  rank={rankInfo.name} 
-                  size="xl" 
-                  className="shadow-2xl rounded-none" 
-                  fallback={profile?.fullName?.charAt(0)}
-                />
-              )}
+              <RankAvatar 
+                rank={rankInfo.name} 
+                size="xl" 
+                className="shadow-2xl rounded-none" 
+                fallback={profile?.fullName?.charAt(0)}
+              />
               <div className="flex-1 space-y-1.5 min-w-0">
                 <div className="flex flex-col">
-                  {!initialized || !profile ? (
-                    <Skeleton className="h-6 w-32 bg-white/5" />
+                  {!profile ? (
+                    <Skeleton className="h-6 w-32 bg-white/5 mb-2" />
                   ) : (
                     <h2 className="text-xl font-headline font-black uppercase tracking-tighter leading-tight truncate text-white">{profile?.fullName || 'Aatma Member'}</h2>
                   )}
@@ -161,10 +166,16 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* BODY SECTION */}
       <div className="p-6 space-y-8">
-        {initialized && !user ? (
+        {!initialized ? (
+          <div className="space-y-4">
+            <Skeleton className="h-16 w-full bg-white/5" />
+            <Skeleton className="h-64 w-full bg-white/5" />
+          </div>
+        ) : !user ? (
           <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-            <Link href="/login" className="block">
+            <Link href="/login" className="block" prefetch={false}>
               <Button className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-xl shadow-primary/20 gap-3">
                 <LogIn size={18} /> Establish Connection
               </Button>
@@ -173,7 +184,7 @@ export default function ProfilePage() {
         ) : (
           <div className="space-y-8 animate-in fade-in duration-500">
             {isAdmin && (
-              <Link href="/admin" prefetch={true}>
+              <Link href="/admin" prefetch={false}>
                 <Button className="w-full h-16 bg-primary font-black text-[11px] uppercase tracking-[0.2em] gap-3 rounded-none shadow-2xl group border-none">
                   <ShieldCheck size={20} /> Admin Command Center <ArrowRight size={16} />
                 </Button>
@@ -195,7 +206,7 @@ export default function ProfilePage() {
                     <ChevronRight size={16} className={cn("text-white/20 transition-transform", editing && "rotate-90")} />
                   </button>
 
-                  <Link href="/profile/change-password">
+                  <Link href="/profile/change-password" prefetch={false}>
                     <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-9 w-9 rounded-none bg-white/5 flex items-center justify-center text-accent"><Key size={16} /></div>
@@ -205,7 +216,7 @@ export default function ProfilePage() {
                     </div>
                   </Link>
 
-                  <Link href="/profile/notifications">
+                  <Link href="/profile/notifications" prefetch={false}>
                     <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-9 w-9 rounded-none bg-white/5 flex items-center justify-center text-primary"><Bell size={16} /></div>
@@ -215,7 +226,7 @@ export default function ProfilePage() {
                     </div>
                   </Link>
 
-                  <Link href="/profile/security">
+                  <Link href="/profile/security" prefetch={false}>
                     <div className="w-full flex items-center justify-between p-5 border-b border-white/5 hover:bg-white/5 group transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-9 w-9 rounded-none bg-white/5 flex items-center justify-center text-accent"><Fingerprint size={16} /></div>
@@ -225,7 +236,7 @@ export default function ProfilePage() {
                     </div>
                   </Link>
 
-                  <Link href="/profile/linked-accounts">
+                  <Link href="/profile/linked-accounts" prefetch={false}>
                     <div className="w-full flex items-center justify-between p-5 hover:bg-white/5 group transition-colors">
                       <div className="flex items-center gap-4">
                         <div className="h-9 w-9 rounded-none bg-white/5 flex items-center justify-center text-primary"><LinkIcon size={16} /></div>

@@ -53,7 +53,8 @@ export default function RootLayout({
                   <MaintenanceCheck />
                   <AnnouncementBar />
                   <TopHeader />
-                  <main className="flex-1 pb-20 w-full overflow-x-hidden">
+                  {/* hardware-accelerated wrapper to prevent browser paint-stalls */}
+                  <main className="flex-1 pb-20 w-full overflow-x-hidden transform-gpu backface-hidden">
                     {children}
                   </main>
                   <BottomNav />

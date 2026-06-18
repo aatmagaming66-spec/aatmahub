@@ -20,7 +20,7 @@ export default function OrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
 
-  // REDIRECT GATING
+  // Non-blocking redirect guard
   useEffect(() => {
     if (initialized && !user) {
       router.push('/login');
@@ -62,7 +62,7 @@ export default function OrdersPage() {
   };
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-500">
+    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-300">
       <header className="py-4">
         <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">My Orders</h1>
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Asset Tracking</p>
@@ -74,24 +74,29 @@ export default function OrdersPage() {
           placeholder="Search by Order ID or Product..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-card border-border pl-12 h-14 rounded-2xl text-sm font-bold shadow-xl"
+          className="bg-card border-border pl-12 h-14 rounded-none text-sm font-bold shadow-xl"
         />
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-2xl mb-8">
+        <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-none mb-8">
           {['all', 'pending', 'processing', 'completed'].map(t => (
-            <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-xl data-[state=active]:bg-primary">{t}</TabsTrigger>
+            <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary">{t}</TabsTrigger>
           ))}
         </TabsList>
 
         <TabsContent value={activeTab} className="space-y-4">
-          {ordersLoading || !initialized ? (
-            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-[2rem] bg-card" />)
+          {(!initialized || ordersLoading) ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border p-6 rounded-none space-y-4">
+                <Skeleton className="h-6 w-1/3 bg-white/5" />
+                <Skeleton className="h-20 w-full bg-white/5" />
+              </div>
+            ))
           ) : filteredOrders.length === 0 ? (
-            <div className="py-20 text-center space-y-4 bg-card/20 rounded-[2.5rem] border border-dashed border-border">
+            <div className="py-20 text-center space-y-4 bg-card/20 rounded-none border border-dashed border-border">
               <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">No orders found</p>
-              <Link href="/"><Button variant="link" className="text-primary font-black uppercase text-[10px]">Start Shopping</Button></Link>
+              <Link href="/" prefetch={false}><Button variant="link" className="text-primary font-black uppercase text-[10px]">Start Shopping</Button></Link>
             </div>
           ) : (
             filteredOrders.map((order) => {
@@ -100,8 +105,8 @@ export default function OrdersPage() {
               const StatusIcon = s.icon;
 
               return (
-                <Link key={order.orderId} href={`/orders/${order.orderId}`} className="block">
-                  <div className="bg-card border border-border p-6 rounded-[2rem] space-y-5 shadow-xl hover:border-primary/40 transition-all active:scale-[0.98]">
+                <Link key={order.orderId} href={`/orders/${order.orderId}`} prefetch={false} className="block">
+                  <div className="bg-card border border-border p-6 rounded-none space-y-5 shadow-xl hover:border-primary/40 transition-all active:scale-[0.98]">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5 text-primary">
@@ -110,7 +115,7 @@ export default function OrdersPage() {
                         </div>
                         <h4 className="text-base font-black uppercase tracking-tight">{firstItem.name}</h4>
                       </div>
-                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl ${s.bg} border border-white/5`}>
+                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-none ${s.bg} border border-white/5`}>
                         <StatusIcon size={12} className={`${s.color} ${s.animate || ''}`} />
                         <span className={`text-[9px] font-black uppercase tracking-[0.1em] ${s.color}`}>{order.status}</span>
                       </div>
