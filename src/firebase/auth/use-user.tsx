@@ -19,12 +19,9 @@ const ProfileContext = createContext<ProfileContextType>({
   initialized: false,
 });
 
-const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
-const SUPER_ADMIN_UID = 'iDeDaksq2hUmkyyIxvlNHgvb2y43';
-
 /**
- * ProfileProvider - Performance Optimized
- * Prioritizes the 'initialized' state for zero-latency UI unlocking.
+ * ProfileProvider - Zero-Latency Refactor
+ * Prioritizes immediate 'initialized' state to prevent first-click delays.
  */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -35,11 +32,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    // Detect Auth status and signal initialization immediately
-    // In many browsers, this happens in < 50ms if session is active
+    // Stage 1: Detect Auth Session (Immediate)
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
-      setInitialized(true);
+      setInitialized(true); // Signal readiness immediately
       
       if (!firebaseUser) {
         setProfile(null);
@@ -55,23 +51,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
 
     const userDocRef = doc(db, 'users', user.uid);
     
-    // Background listener for profile data - non-blocking
+    // Stage 2: Background Profile Hydration (Non-blocking)
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
-        const data = docSnap.data();
-        const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
-        
-        if (isSuperAdminTarget && data.role !== 'super_admin') {
-           updateDoc(userDocRef, { role: 'super_admin', updatedAt: new Date().toISOString() }).catch(() => {});
-        }
-        setProfile(data);
+        setProfile(docSnap.data());
       } else {
-        const isSuperAdminTarget = user.uid === SUPER_ADMIN_UID || user.email?.toLowerCase() === SUPER_ADMIN_EMAIL;
         const newProfile = {
           uid: user.uid,
-          fullName: user.displayName || (isSuperAdminTarget ? 'Super Admin' : 'Aatma Member'),
+          fullName: user.displayName || 'Aatma Member',
           email: user.email!,
-          role: isSuperAdminTarget ? 'super_admin' : 'user',
+          role: 'user',
           lifetimeSpend: 0,
           currentRank: 'Warrior',
           createdAt: new Date().toISOString(),

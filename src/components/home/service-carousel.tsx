@@ -66,7 +66,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
             {title}
           </h2>
         </div>
-        <Link href={isOtt ? "/ott-services" : "/social-services"} className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] hover:text-white transition-colors">Explorer</Link>
+        <Link href={isOtt ? "/ott-services" : "/social-services"} prefetch={false} className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] hover:text-white transition-colors">Explorer</Link>
       </div>
 
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
@@ -74,6 +74,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
           <Link 
             key={item.id} 
             href={`/product/${item.id}`} 
+            prefetch={false}
             className="flex-shrink-0 w-[calc((100%-24px)/3)] group active:scale-95 transition-all flex flex-col"
           >
             <div className={cn(
