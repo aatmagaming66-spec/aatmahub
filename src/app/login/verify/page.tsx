@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,12 +34,29 @@ export default function Verify2FAPage() {
 
     setVerifying(true);
     try {
-      const userSnap = await getDoc(doc(db, 'users', uid));
+      const userDocRef = doc(db, 'users', uid);
+      const userSnap = await getDoc(userDocRef);
+      
+      if (!userSnap.exists()) throw new Error('User registry not found.');
+      
       const profile = userSnap.data();
+      
+      // Check if OTP matches
+      if (code === profile?.twoFactorSecret) {
+        // Check if OTP has expired
+        const expiry = profile.twoFactorExpiry ? new Date(profile.twoFactorExpiry) : null;
+        const now = new Date();
+        
+        if (expiry && now > expiry) {
+          throw new Error('Verification code has expired. Please request a new one.');
+        }
 
-      // MOCK 2FA LOGIC (In production, this checks a hashed TOTP or server-side OTP)
-      // For MVP, we simulate a check against a temporary code
-      if (code === '123456' || code === profile?.twoFactorSecret) {
+        // OTP Valid: Clear secret and complete login
+        await updateDoc(userDocRef, {
+          twoFactorSecret: null,
+          twoFactorExpiry: null
+        });
+
         sessionStorage.removeItem('pending_2fa_uid');
         toast({ title: "Authorized", description: "Identity confirmed via 2FA." });
         router.push('/profile');
@@ -49,6 +65,29 @@ export default function Verify2FAPage() {
       }
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Verification Failed', description: error.message });
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!uid) return;
+    setVerifying(true);
+    try {
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiry = new Date();
+      expiry.setMinutes(expiry.getMinutes() + 5);
+
+      const userDocRef = doc(db, 'users', uid);
+      await updateDoc(userDocRef, {
+        twoFactorSecret: otp,
+        twoFactorExpiry: expiry.toISOString()
+      });
+
+      console.log(`[SECURITY] RESENT 2FA OTP: ${otp}`);
+      toast({ title: "Code Sent", description: "A new security code has been generated." });
+    } catch (e: any) {
+      toast({ variant: 'destructive', title: 'Resend Failed', description: e.message });
     } finally {
       setVerifying(false);
     }
@@ -76,7 +115,7 @@ export default function Verify2FAPage() {
                 className="bg-black/50 border-border h-16 rounded-none text-center text-2xl font-black tracking-[0.5em] focus:border-accent"
                 autoFocus
               />
-              <p className="text-[8px] text-muted-foreground uppercase text-center font-black">Check your authenticator app or email</p>
+              <p className="text-[8px] text-muted-foreground uppercase text-center font-black">Check your email for the code</p>
             </div>
 
             <Button 
@@ -89,8 +128,12 @@ export default function Verify2FAPage() {
           </form>
 
           <div className="flex flex-col items-center gap-3">
-            <button className="text-[9px] font-black uppercase text-muted-foreground hover:text-white transition-colors flex items-center gap-2">
-              <RefreshCcw size={10} /> Resend OTP Code
+            <button 
+              onClick={handleResend}
+              disabled={verifying}
+              className="text-[9px] font-black uppercase text-muted-foreground hover:text-white transition-colors flex items-center gap-2"
+            >
+              <RefreshCcw size={10} className={verifying ? "animate-spin" : ""} /> Resend OTP Code
             </button>
             <button onClick={() => router.replace('/login')} className="text-[9px] font-black uppercase text-primary hover:underline">
               Back to Login

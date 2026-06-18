@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,9 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Loader2, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -29,7 +28,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (initialized && user) {
       router.replace('/profile');
@@ -38,16 +36,33 @@ export default function LoginPage() {
 
   const handleAuthSuccess = async (uid: string) => {
     try {
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      const profile = userDoc.exists() ? userDoc.data() : null;
+      const userDocRef = doc(db, 'users', uid);
+      const userSnap = await getDoc(userDocRef);
+      const profile = userSnap.exists() ? userSnap.data() : null;
 
       if (profile?.is2FAEnabled) {
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiry = new Date();
+        expiry.setMinutes(expiry.getMinutes() + 5); // 5 minute expiry
+
+        // Save OTP to user profile (In production, this should be done via Server Action/Cloud Function)
+        await updateDoc(userDocRef, {
+          twoFactorSecret: otp,
+          twoFactorExpiry: expiry.toISOString()
+        });
+
+        // MOCK EMAIL LOG:
+        console.log(`[SECURITY] 2FA OTP for ${profile.email}: ${otp}`);
+        
         sessionStorage.setItem('pending_2fa_uid', uid);
+        toast({ title: "Verification Required", description: "A security code has been sent to your email." });
         router.push('/login/verify');
       } else {
         router.push('/profile');
       }
     } catch (e) {
+      console.error("Auth success processing error:", e);
       router.push('/profile');
     }
   };
@@ -77,10 +92,8 @@ export default function LoginPage() {
     
     try {
       const result = await signInWithPopup(auth, provider);
-      toast({ title: "Authorized", description: `Signed in as ${result.user.displayName}` });
       await handleAuthSuccess(result.user.uid);
     } catch (error: any) {
-      console.error('Google Login Error:', error);
       let msg = "Google Login Failed.";
       if (error.code === 'auth/unauthorized-domain') {
         msg = "Domain not authorized in Firebase Console.";
@@ -91,13 +104,8 @@ export default function LoginPage() {
     }
   };
 
-  // Prevent flash of content during redirect
   if (initialized && user) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
-      </div>
-    );
+    return <div className="flex h-[80vh] items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
   }
 
   return (
