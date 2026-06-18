@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useMemo, useEffect } from "react";
+import { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, orderBy, where } from "firebase/firestore";
+import { collection, query, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tv, Share2 } from "lucide-react";
@@ -20,11 +20,11 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const isOtt = category === 'OTT Services';
   const Icon = isOtt ? Tv : Share2;
 
+  // Removed orderBy to prevent document exclusion on missing fields
   const servicesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
-      where('category', '==', category),
-      orderBy('sortOrder', 'asc')
+      where('category', '==', category)
     ), 
   [db, category]);
 
@@ -32,11 +32,11 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
 
   const items = useMemo(() => {
     if (!rawItems) return [];
-    console.log(`[DIAGNOSTIC] Carousel (${title}): Raw Docs Fetched:`, rawItems.length);
-    const filtered = rawItems.filter(i => i.status === 'active');
-    console.log(`[DIAGNOSTIC] Carousel (${title}): Docs After Status Filter:`, filtered.length);
-    return filtered;
-  }, [rawItems, title]);
+    
+    return rawItems
+      .filter(i => i.status === 'active')
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  }, [rawItems]);
 
   if (loading) {
     return (

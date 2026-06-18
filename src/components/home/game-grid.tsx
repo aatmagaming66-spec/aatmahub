@@ -5,7 +5,7 @@ import { useMemo, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, orderBy, where } from "firebase/firestore";
+import { collection, query, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Gamepad2 } from "lucide-react";
@@ -13,12 +13,11 @@ import { Gamepad2 } from "lucide-react";
 export function GameGrid() {
   const db = useFirestore();
   
-  // DIAGNOSTIC: Widening query slightly to catch potential status mismatches
+  // Removed orderBy from query level to prevent documents with missing sortOrder from being excluded
   const gamesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
-      where('category', '==', 'Mobile Games'),
-      orderBy('sortOrder', 'asc')
+      where('category', '==', 'Mobile Games')
     ), 
   [db]);
 
@@ -26,12 +25,11 @@ export function GameGrid() {
 
   const games = useMemo(() => {
     if (!rawGames) return [];
-    console.log('[DIAGNOSTIC] GameGrid: Raw Docs Fetched (Filtered by Category):', rawGames.length);
-    rawGames.forEach(g => console.log(`[DIAGNOSTIC] GameGrid: Entity -> Name: ${g.name}, Status: ${g.status}, ID: ${g.id}`));
     
-    const filtered = rawGames.filter(g => g.status === 'active');
-    console.log('[DIAGNOSTIC] GameGrid: Docs After Status Filter (active):', filtered.length);
-    return filtered;
+    // Client-side sorting and filtering
+    return rawGames
+      .filter(g => g.status === 'active')
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
   if (loading) {
@@ -51,7 +49,6 @@ export function GameGrid() {
   }
 
   if (games.length === 0) {
-    console.log('[DIAGNOSTIC] GameGrid: Rendering NULL - No active games found in this category.');
     return null;
   }
 
