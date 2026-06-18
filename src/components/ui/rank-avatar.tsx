@@ -40,8 +40,8 @@ export function RankAvatar({ fallback, rank = 'Warrior', className, size = 'md' 
 
   return (
     <div className={cn("relative inline-block shrink-0", className)}>
-      <Avatar className={cn(sizes[size], "transition-all duration-500 bg-black/40", getRankStyles())}>
-        <AvatarFallback className="bg-primary/10 text-primary font-black uppercase text-center leading-none">
+      <Avatar className={cn(sizes[size], "transition-all duration-500 bg-black/40 rounded-none", getRankStyles())}>
+        <AvatarFallback className="bg-primary/10 text-primary font-black uppercase text-center leading-none rounded-none">
           {fallback || rank.charAt(0)}
         </AvatarFallback>
       </Avatar>
@@ -55,7 +55,7 @@ export function RankAvatar({ fallback, rank = 'Warrior', className, size = 'md' 
 
       {/* Mythic Flame Icon Overlay */}
       {(r.includes('mythic') || r.includes('glory') || r.includes('honor')) && !r.includes('immortal') && (
-        <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-full p-0.5 border border-white/20 shadow-lg">
+        <div className="absolute -bottom-1 -right-1 bg-red-600 rounded-none p-0.5 border border-white/20 shadow-lg">
           <Zap className="h-2 w-2 text-white fill-white" />
         </div>
       )}

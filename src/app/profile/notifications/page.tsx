@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,10 +21,6 @@ import {
   ShieldAlert
 } from 'lucide-react';
 
-/**
- * Broadcast Sector (Notification Settings)
- * Optimized for 0ms render-blocking and background hydration.
- */
 export default function NotificationSettingsPage() {
   const { user, profile } = useUser();
   const db = useFirestore();
@@ -40,7 +35,6 @@ export default function NotificationSettingsPage() {
     securityAlerts: true
   });
 
-  // OPTIMIZATION: Background hydration logic - only sync if not currently saving/interacting
   useEffect(() => {
     if (profile?.notifications && !saving) {
       setSettings(profile.notifications);
@@ -53,7 +47,7 @@ export default function NotificationSettingsPage() {
 
   const handleSave = async () => {
     if (!user) {
-      toast({ variant: 'destructive', title: 'Session Lost', description: 'Please login to save preferences.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Please login to save preferences.' });
       return;
     }
     
@@ -66,15 +60,14 @@ export default function NotificationSettingsPage() {
       });
 
       toast({
-        title: "Preferences Updated",
-        description: "Your notification settings have been synchronized.",
+        title: "Settings Saved",
+        description: "Your notification preferences have been updated.",
       });
     } catch (error: any) {
-      console.error('Save failed:', error);
       toast({
         variant: 'destructive',
-        title: 'Update Rejected',
-        description: error.message || 'An internal system error occurred.',
+        title: 'Save Failed',
+        description: error.message || 'An error occurred.',
       });
     } finally {
       setSaving(false);
@@ -88,23 +81,23 @@ export default function NotificationSettingsPage() {
           variant="ghost" 
           size="icon" 
           onClick={() => router.back()}
-          className="rounded-full hover:bg-white/5"
+          className="rounded-none hover:bg-white/5"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none text-white">Broadcast Sector</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Communication Protocols</p>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none text-white">Notification Settings</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Manage alerts and messages</p>
         </div>
       </header>
 
-      <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-        <CardHeader className="p-8 text-center border-b border-white/5 bg-gradient-to-b from-primary/5 to-transparent">
-          <div className="h-16 w-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-primary/20">
+      <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl">
+        <CardHeader className="p-8 text-center border-b border-white/5">
+          <div className="h-16 w-16 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-4 border border-primary/20">
             <Bell size={30} className="text-primary" />
           </div>
-          <CardTitle className="text-xl font-black uppercase tracking-tighter text-white">Alert Matrix</CardTitle>
-          <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Configure global system notifications</CardDescription>
+          <CardTitle className="text-xl font-black uppercase tracking-tighter text-white">Alert Preferences</CardTitle>
+          <CardDescription className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Configure how we communicate with you</CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-6">
           <div className="space-y-4">
@@ -112,7 +105,7 @@ export default function NotificationSettingsPage() {
               icon={Package}
               color="text-primary"
               title="Order Updates"
-              description="Status changes and fulfillment logs"
+              description="Fulfillment status and tracking"
               checked={settings.orderUpdates}
               onCheckedChange={() => handleToggle('orderUpdates')}
             />
@@ -128,7 +121,7 @@ export default function NotificationSettingsPage() {
               icon={Sparkles}
               color="text-primary"
               title="Promotional"
-              description="Special offers and rank bonuses"
+              description="Special offers and discounts"
               checked={settings.promotional}
               onCheckedChange={() => handleToggle('promotional')}
             />
@@ -136,7 +129,7 @@ export default function NotificationSettingsPage() {
               icon={ShieldAlert}
               color="text-accent"
               title="Security Alerts"
-              description="Login activity and identity checks"
+              description="Login activity and account changes"
               checked={settings.securityAlerts}
               onCheckedChange={() => handleToggle('securityAlerts')}
             />
@@ -144,30 +137,30 @@ export default function NotificationSettingsPage() {
 
           <Button 
             onClick={handleSave}
-            className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-primary/20 gap-2 mt-4"
+            className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20 gap-2 mt-4"
             disabled={saving}
           >
             {saving ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating Protocols...
+                Saving Changes...
               </>
             ) : (
               <>
-                <ShieldCheck size={18} /> Synchronize Preferences
+                <ShieldCheck size={18} /> Update Preferences
               </>
             )}
           </Button>
         </CardContent>
       </Card>
 
-      <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-3">
+      <div className="bg-primary/5 p-6 rounded-none border border-primary/10 space-y-3">
         <div className="flex items-center gap-2">
           <Bell className="h-4 w-4 text-primary" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Intelligence Note</span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary">Information</span>
         </div>
         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-          System-critical alerts cannot be disabled. These settings affect non-critical dashboard broadcasts and secondary communication channels.
+          System-critical alerts (like payment confirmations) cannot be disabled. These settings only affect optional marketing and dashboard updates.
         </p>
       </div>
     </div>
@@ -176,9 +169,9 @@ export default function NotificationSettingsPage() {
 
 function NotificationToggle({ icon: Icon, color, title, description, checked, onCheckedChange }: any) {
   return (
-    <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/10 transition-colors">
+    <div className="flex items-center justify-between p-4 bg-white/5 rounded-none border border-white/5 hover:border-white/10 transition-colors">
       <div className="flex items-center gap-4">
-        <div className={`h-10 w-10 rounded-xl bg-white/5 flex items-center justify-center ${color}`}>
+        <div className={`h-10 w-10 rounded-none bg-white/5 flex items-center justify-center ${color}`}>
           <Icon size={18} />
         </div>
         <div className="space-y-0.5 text-left">

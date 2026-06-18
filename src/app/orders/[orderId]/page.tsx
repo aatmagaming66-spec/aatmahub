@@ -14,12 +14,9 @@ import {
   ShieldCheck, 
   ArrowLeft, 
   Loader2, 
-  Info,
   Clock,
   Smartphone,
-  Hash,
   Copy,
-  User,
   Zap
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -75,8 +72,8 @@ export default function OrderDetailsPage() {
   const steps = [
     { title: 'Order Created', status: 'completed', icon: Clock },
     { title: 'Payment Verified', status: order?.status === 'pending' ? 'pending' : 'completed', icon: ShieldCheck },
-    { title: 'Distribution', status: order?.status === 'processing' ? 'active' : (order?.status === 'completed' ? 'completed' : 'pending'), icon: Zap },
-    { title: 'Completed', status: order?.status === 'completed' ? 'completed' : 'pending', icon: CheckCircle2 },
+    { title: 'Processing', status: order?.status === 'processing' ? 'active' : (order?.status === 'completed' ? 'completed' : 'pending'), icon: Zap },
+    { title: 'Success', status: order?.status === 'completed' ? 'completed' : 'pending', icon: CheckCircle2 },
   ];
 
   return (
@@ -86,20 +83,20 @@ export default function OrderDetailsPage() {
           variant="ghost" 
           size="icon" 
           onClick={() => router.back()}
-          className="rounded-full hover:bg-white/5"
+          className="rounded-none hover:bg-white/5"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
           <h1 className="text-2xl font-headline font-black tracking-tighter uppercase leading-none">Order Details</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">HUB RECORD • {orderId}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Order ID • {orderId}</p>
         </div>
       </header>
 
       {!loading && !order ? (
         <div className="flex flex-col items-center justify-center h-[50vh] p-6 text-center">
           <h2 className="text-xl font-black uppercase tracking-tighter mb-4">Order Not Found</h2>
-          <Button onClick={() => router.push('/orders')} className="bg-primary rounded-2xl">Return to Orders</Button>
+          <Button onClick={() => router.push('/orders')} className="bg-primary rounded-none">Return to Orders</Button>
         </div>
       ) : (
         <>
@@ -108,7 +105,7 @@ export default function OrderDetailsPage() {
               <div className="absolute top-5 left-0 right-0 h-0.5 bg-white/5 z-0" />
               {steps.map((step, i) => (
                 <div key={i} className="relative z-10 flex flex-col items-center gap-2 group">
-                  <div className={`h-10 w-10 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${
+                  <div className={`h-10 w-10 rounded-none flex items-center justify-center border-2 transition-all duration-500 ${
                     step.status === 'completed' ? 'bg-green-500 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.3)]' :
                     step.status === 'active' ? 'bg-accent border-accent animate-pulse shadow-[0_0_15px_rgba(236,72,153,0.3)]' :
                     'bg-background border-white/10'
@@ -127,14 +124,14 @@ export default function OrderDetailsPage() {
             </div>
           </section>
 
-          <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+          <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl">
             <CardContent className="p-8 space-y-8">
               {loading ? (
                 <div className="space-y-6">
-                  <Skeleton className="h-8 w-1/2 bg-white/5" />
+                  <Skeleton className="h-8 w-1/2" />
                   <div className="grid grid-cols-2 gap-4">
-                    <Skeleton className="h-10 w-full bg-white/5" />
-                    <Skeleton className="h-10 w-full bg-white/5" />
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
                   </div>
                 </div>
               ) : (
@@ -147,35 +144,35 @@ export default function OrderDetailsPage() {
                       <p className={`text-xl font-black uppercase ${getStatusColor(order.status)}`}>{order.status}</p>
                     </div>
                     <div className="text-right space-y-1">
-                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Order Amount</span>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Total Amount</span>
                       <p className="text-3xl font-black text-primary tracking-tighter">₹{order.totalAmount}</p>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-6 pt-6 border-t border-border">
                     <div className="space-y-1.5">
-                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Order ID</span>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Reference ID</span>
                       <div className="flex items-center gap-2 group cursor-pointer" onClick={() => copyToClipboard(order.orderId, 'Order ID')}>
                         <p className="text-xs font-black text-white uppercase">{order.orderId}</p>
                         <Copy size={10} className="text-white/20 group-hover:text-primary transition-colors" />
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Transaction Date</span>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Order Date</span>
                       <p className="text-xs font-black text-white uppercase">
                         {isMounted ? new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '...'}
                       </p>
                     </div>
                     <div className="space-y-1.5">
-                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Payment Source</span>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Payment Method</span>
                       <p className="text-xs font-black text-white uppercase flex items-center gap-1.5">
                         <Smartphone size={10} className="text-primary" /> {order.paymentMethod}
                       </p>
                     </div>
                     <div className="space-y-1.5">
-                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Platform Info</span>
+                      <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest">Security</span>
                       <p className="text-xs font-black text-white uppercase flex items-center gap-1.5">
-                        <ShieldCheck size={10} className="text-green-500" /> AATMA SECURED
+                        <ShieldCheck size={10} className="text-green-500" /> Secure Payment
                       </p>
                     </div>
                   </div>
@@ -184,22 +181,22 @@ export default function OrderDetailsPage() {
             </CardContent>
           </Card>
 
-          <div className="space-y-4">
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50 px-2">Digital Products</h3>
+          <div className="space-y-4 pb-10">
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50 px-2">Items Purchased</h3>
             <div className="space-y-3">
               {loading ? (
-                Array.from({ length: 1 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-3xl bg-white/5" />)
+                Array.from({ length: 1 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
               ) : (
                 order.items?.map((item: any, i: number) => (
-                  <div key={i} className="bg-card border border-border p-5 rounded-3xl flex items-center justify-between shadow-lg">
+                  <div key={i} className="bg-card border border-border p-5 rounded-none flex items-center justify-between shadow-lg">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/10">
+                      <div className="h-12 w-12 bg-primary/10 rounded-none flex items-center justify-center border border-primary/10">
                         <Package className="h-6 w-6 text-primary" />
                       </div>
                       <div>
                         <h4 className="text-sm font-black uppercase tracking-tight">{item.name}</h4>
                         <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest">
-                          {item.region} • QTY: {item.quantity}
+                          {item.region} • Qty: {item.quantity}
                         </p>
                       </div>
                     </div>

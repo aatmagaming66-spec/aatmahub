@@ -6,13 +6,12 @@ import { useDoc } from '@/firebase/firestore/use-doc';
 import { useGlobalSettings } from '@/firebase/settings-context';
 import { doc, query, collection, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, Loader2, ArrowLeft, Crown } from 'lucide-react';
+import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, ArrowLeft, Crown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
+import { getRankFromSpend } from '@/lib/ranks';
 import { RankProgressionSlider } from '@/components/wallet/rank-progression-slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -23,9 +22,10 @@ export default function WalletDashboard() {
   const db = useFirestore();
   const router = useRouter();
   const [isFlipped, setIsFlipped] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Non-blocking redirect
   useEffect(() => {
+    setIsMounted(true);
     if (initialized && !user) {
       router.push('/login');
     }
@@ -62,14 +62,14 @@ export default function WalletDashboard() {
   const balance = wallet?.balance || 0;
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-300 pb-20">
+    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-300 pb-20 page-shell">
       <header className="flex items-center gap-4 py-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-none hover:bg-white/5">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">My Wallet</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Balance and Payment History</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Balance and Transaction History</p>
         </div>
       </header>
 
@@ -86,9 +86,9 @@ export default function WalletDashboard() {
             <div className="mt-auto space-y-4">
               <div className="space-y-1.5">
                 {!initialized || !profile ? (
-                  <Skeleton className="h-5 w-32 bg-white/10" />
+                  <Skeleton className="h-5 w-32" />
                 ) : (
-                  <p className="text-base font-black text-white uppercase truncate">{profile?.fullName || 'User Name'}</p>
+                  <p className="text-base font-black text-white uppercase truncate">{profile?.fullName || 'My Profile'}</p>
                 )}
                 <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name} Rank</p>
               </div>
@@ -103,12 +103,12 @@ export default function WalletDashboard() {
             <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2.5">
               <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Balance</span>
               <h2 className="text-3xl font-black text-white tracking-tighter">
-                {(!initialized || walletLoading) ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/40">.00</span>
+                {(!initialized || walletLoading) ? <Skeleton className="h-10 w-24 mx-auto" /> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/40">.00</span>
               </h2>
             </div>
             <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest">
               <span>Account ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
-              <span>Account Spend: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
+              <span>Total Volume: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
             </div>
           </div>
         </div>
@@ -134,12 +134,12 @@ export default function WalletDashboard() {
           <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Recent Transactions</h3>
           <Link href="/wallet/history" prefetch={false}><span className="text-[10px] font-black text-primary uppercase border-b border-primary/30">View All</span></Link>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-3 pb-10">
           {(!initialized || transactionsLoading) ? (
-            Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-none bg-card" />)
+            Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
           ) : recentTransactions.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-10 rounded-none text-center">
-              <p className="text-[10px] font-black uppercase text-muted-foreground">No recent activity</p>
+              <p className="text-[10px] font-black uppercase text-muted-foreground">No recent activity found</p>
             </div>
           ) : (
              recentTransactions.map((tx) => (
@@ -148,9 +148,18 @@ export default function WalletDashboard() {
                     <div className={cn("h-12 w-12 rounded-none flex items-center justify-center border", tx.type === 'deposit' ? 'bg-green-500/10 border-green-500/10' : 'bg-primary/10 border-primary/10')}>
                       {tx.type === 'deposit' ? <ArrowDownLeft className="h-6 w-6 text-green-500" /> : <ArrowUpRight className="h-6 w-6 text-primary" />}
                     </div>
-                    <div><h4 className="text-sm font-black uppercase text-white">{tx.type}</h4><p className="text-[9px] text-muted-foreground uppercase font-bold">{new Date(tx.createdAt).toLocaleDateString()} • {tx.status}</p></div>
+                    <div>
+                      <h4 className="text-sm font-black uppercase text-white">{tx.type}</h4>
+                      <p className="text-[9px] text-muted-foreground uppercase font-bold">
+                        {isMounted ? new Date(tx.createdAt).toLocaleDateString() : '...'} • {tx.status}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right"><p className={cn("text-sm font-black", tx.type === 'deposit' ? 'text-green-400' : 'text-primary')}>{tx.type === 'deposit' ? '+' : '-'} ₹{tx.amount}</p></div>
+                  <div className="text-right">
+                    <p className={cn("text-sm font-black", tx.type === 'deposit' ? 'text-green-400' : 'text-primary')}>
+                      {tx.type === 'deposit' ? '+' : '-'} ₹{tx.amount}
+                    </p>
+                  </div>
                </div>
              ))
           )}
