@@ -6,7 +6,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, orderBy, where } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
@@ -15,14 +15,14 @@ import Image from "next/image";
 export function HeroBanner() {
   const db = useFirestore();
   
-  // Memoize query to prevent identity shifts
+  // OPTIMIZATION: Simple query to avoid composite index requirements
+  // We filter 'active' status on the client side for maximum reliability
   const bannersQuery = React.useMemo(() => query(
     collection(db, 'banners'),
-    where('status', '==', 'active'),
     orderBy('sortOrder', 'asc')
   ), [db]);
 
-  const { data: banners, loading, error } = useCollection(bannersQuery);
+  const { data: allBanners, loading } = useCollection(bannersQuery);
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, duration: 30 },
@@ -31,9 +31,13 @@ export function HeroBanner() {
   
   const [selectedIndex, setSelectedIndex] = React.useState(0);
 
-  // Fallback if no banners are configured or if there's an error
+  // Client-side filtering for status to ensure cross-environment stability
+  const activeBanners = React.useMemo(() => {
+    return allBanners?.filter(b => b.status === 'active') || [];
+  }, [allBanners]);
+
   const displayBanners = React.useMemo(() => {
-    if (!banners || banners.length === 0) {
+    if (!loading && activeBanners.length === 0) {
       return [
         {
           id: "fallback",
@@ -45,8 +49,8 @@ export function HeroBanner() {
         }
       ];
     }
-    return banners;
-  }, [banners]);
+    return activeBanners;
+  }, [activeBanners, loading]);
 
   const onSelect = React.useCallback(() => {
     if (!emblaApi) return;
@@ -60,7 +64,7 @@ export function HeroBanner() {
     emblaApi.on("reInit", onSelect);
   }, [emblaApi, onSelect]);
 
-  // Force Embla to re-initialize when the data source changes
+  // Aggressive re-initialization when the data source changes
   React.useEffect(() => {
     if (emblaApi) emblaApi.reInit();
   }, [emblaApi, displayBanners]);
@@ -69,7 +73,8 @@ export function HeroBanner() {
     emblaApi?.scrollTo(index);
   }, [emblaApi]);
 
-  if (loading && !banners) {
+  // Show skeleton if loading and we don't have any cached active banners yet
+  if (loading && activeBanners.length === 0) {
     return (
       <section className="relative w-full h-[220px] px-4 mt-4">
         <Skeleton className="w-full h-full bg-white/5 rounded-none" />
@@ -80,11 +85,11 @@ export function HeroBanner() {
   return (
     <section className="relative w-full h-[220px] overflow-hidden px-4 mt-4">
       {/* 
-         The key prop ensures that if the number of slides changes, 
-         React remounts the carousel shell so Embla can re-calculate dimensions.
+         The composite key ensures the Embla carousel instance is perfectly 
+         synchronized with both the data presence and the loading state.
       */}
       <div 
-        key={`carousel-${displayBanners.length}`}
+        key={`carousel-${displayBanners.length}-${loading}`}
         className="relative w-full h-full rounded-none overflow-hidden shadow-2xl border border-white/5 bg-neutral-900" 
         ref={emblaRef}
       >
