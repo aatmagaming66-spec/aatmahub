@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -51,6 +52,7 @@ export default function GameManagementPage() {
     sortOrder: 0,
     logo: '',
     banner: '',
+    flag: '',
     tabs: [] as string[]
   });
 
@@ -87,6 +89,7 @@ export default function GameManagementPage() {
         sortOrder: game.sortOrder || 0,
         logo: game.logo || '',
         banner: game.banner || '',
+        flag: game.flag || '',
         tabs: game.tabs || ['small', 'large', 'pass', 'promo']
       });
     } else {
@@ -94,7 +97,7 @@ export default function GameManagementPage() {
       setFormData({
         id: '', name: '', slug: '', category: 'Mobile Games', status: 'active',
         sortOrder: (games?.length || 0) + 1,
-        logo: '', banner: '', tabs: ['small', 'large', 'pass', 'promo']
+        logo: '', banner: '', flag: '', tabs: ['small', 'large', 'pass', 'promo']
       });
     }
     setFiles({ logo: null, banner: null });
@@ -102,7 +105,7 @@ export default function GameManagementPage() {
     setIsModalOpen(true);
   };
 
-  const handleFileUpload = async (file: File, type: 'logo' | 'banner') => {
+  const handleFileUpload = async (file: File) => {
     try {
       const fd = new FormData();
       fd.append("file", file);
@@ -117,36 +120,63 @@ export default function GameManagementPage() {
   const handleSave = async () => {
     const cleanName = formData.name?.trim();
     const cleanSlug = formData.slug?.trim();
+    
+    console.log('[SAVE_START]', { name: cleanName, slug: cleanSlug });
+
     if (!cleanName || !cleanSlug) {
       toast({ variant: 'destructive', title: 'Validation Error', description: 'Name and Slug are required.' });
       return;
     }
+
     setSaving(true);
     try {
       const gId = formData.id || cleanSlug;
       let logoUrl = formData.logo;
       let bannerUrl = formData.banner;
+
       if (files.logo) {
-        const data = await handleFileUpload(files.logo, 'logo');
+        console.log('[BEFORE_LOGO_UPLOAD]');
+        const data = await handleFileUpload(files.logo);
         logoUrl = data.secure_url;
+        console.log('[AFTER_LOGO_UPLOAD]', logoUrl);
       }
       if (files.banner) {
-        const data = await handleFileUpload(files.banner, 'banner');
+        console.log('[BEFORE_BANNER_UPLOAD]');
+        const data = await handleFileUpload(files.banner);
         bannerUrl = data.secure_url;
+        console.log('[AFTER_BANNER_UPLOAD]', bannerUrl);
       }
+
+      console.log('[BEFORE_FIRESTORE_WRITE]');
       const gameRef = doc(db, 'games', gId);
       const existing = games?.find(g => g.id === gId);
+      
       const payload = { 
-        id: gId, name: cleanName, slug: cleanSlug, category: formData.category, status: formData.status,
-        sortOrder: Number(formData.sortOrder), tabs: formData.tabs, logo: logoUrl, banner: bannerUrl,
-        updatedAt: new Date().toISOString(), createdAt: existing?.createdAt || new Date().toISOString()
+        id: gId, 
+        name: cleanName, 
+        slug: cleanSlug, 
+        category: formData.category, 
+        status: formData.status,
+        sortOrder: Number(formData.sortOrder), 
+        tabs: formData.tabs, 
+        logo: logoUrl, 
+        banner: bannerUrl,
+        flag: formData.flag,
+        updatedAt: new Date().toISOString(), 
+        createdAt: existing?.createdAt || new Date().toISOString()
       };
+      
       await setDoc(gameRef, payload, { merge: true });
+      console.log('[AFTER_FIRESTORE_WRITE]');
+      
       toast({ title: 'System Synchronized', description: `${cleanName} registry record secured.` });
       setIsModalOpen(false);
     } catch (e: any) {
+      console.error('[SAVE_ERROR]', e);
       toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
-    } finally { setSaving(false); }
+    } finally { 
+      setSaving(false); 
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -200,6 +230,7 @@ export default function GameManagementPage() {
                     <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
                       <div className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase border shadow-lg ${game.status === 'active' ? 'bg-green-500 border-green-400 text-white' : 'bg-primary border-primary/50 text-white'}`}>{game.status}</div>
                       <div className="bg-black/80 px-2 py-0.5 rounded-md border border-white/10 text-[7px] font-black uppercase text-white/60">{game.category}</div>
+                      {game.flag && <div className="bg-black/80 px-2 py-0.5 rounded-md border border-white/10 text-[10px]">{game.flag}</div>}
                     </div>
                   </div>
                   <CardContent className="p-6 space-y-4">
@@ -255,12 +286,26 @@ export default function GameManagementPage() {
           <div className="space-y-6 py-4">
              <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Display Name</Label>
-                <Input value={formData.name} onChange={(e) => { const name = e.target.value; const slug = editingGame ? formData.slug : generateSlug(name); setFormData({...formData, name, slug}); }} placeholder="Mobile Legends" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Display Name</Label>
+                <Input 
+                  value={formData.name} 
+                  onChange={(e) => { 
+                    const name = e.target.value; 
+                    const slug = editingGame ? formData.slug : generateSlug(name); 
+                    setFormData({...formData, name, slug}); 
+                  }} 
+                  placeholder="e.g. Mobile Legends India" 
+                  className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold focus:border-primary" 
+                />
               </div>
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Internal Slug (ID)</Label>
-                <Input value={formData.slug} onChange={(e) => setFormData({...formData, slug: e.target.value})} placeholder="mlbb-global" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Internal Slug (ID)</Label>
+                <Input 
+                  value={formData.slug} 
+                  onChange={(e) => setFormData({...formData, slug: e.target.value})} 
+                  placeholder="mlbb-india" 
+                  className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold focus:border-primary" 
+                />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-6">
@@ -278,6 +323,17 @@ export default function GameManagementPage() {
                 <Input type="number" value={formData.sortOrder} onChange={(e) => setFormData({...formData, sortOrder: Number(e.target.value)})} className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
               </div>
             </div>
+            
+            <div className="space-y-2">
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Regional Flag (Emoji)</Label>
+              <Input 
+                value={formData.flag} 
+                onChange={(e) => setFormData({...formData, flag: e.target.value})} 
+                placeholder="🇮🇳, 🇮🇩, 🇲🇾..." 
+                className="bg-black/50 border-border h-12 rounded-xl text-sm font-bold focus:border-primary" 
+              />
+            </div>
+
             <div className="space-y-3">
                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2"><Layers size={12} className="text-primary" /> Product Tab Configuration</Label>
                <div className="flex gap-2">
@@ -306,16 +362,26 @@ export default function GameManagementPage() {
                  {formData.banner && !files.banner && <p className="text-[8px] text-green-500 font-black uppercase tracking-widest flex items-center gap-1"><CheckCircle2 size={10} /> Cloudinary Persistent</p>}
               </div>
             </div>
+
+            {/* LIVE DEBUG HUB */}
             <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 space-y-2">
-               <div className="flex items-center gap-2 text-primary"><Bug size={12} /><span className="text-[9px] font-black uppercase tracking-widest">State Debug Matrix</span></div>
-               <div className="grid grid-cols-2 gap-2 text-[8px] font-mono uppercase">
-                  <p className="text-white/40">Name: <span className="text-white">{formData.name || 'NULL'}</span></p>
-                  <p className="text-white/40">Slug: <span className="text-white">{formData.slug || 'NULL'}</span></p>
-                  <p className="text-white/40">ID: <span className="text-white">{formData.id || 'AUTO'}</span></p>
+               <div className="flex items-center gap-2 text-primary">
+                 <Bug size={12} />
+                 <span className="text-[9px] font-black uppercase tracking-widest">State Debug Matrix</span>
+               </div>
+               <div className="grid grid-cols-2 gap-2 text-[8px] font-mono uppercase text-white/40">
+                  <p>Name: <span className="text-white">{formData.name || 'NULL'}</span></p>
+                  <p>Slug: <span className="text-white">{formData.slug || 'NULL'}</span></p>
+                  <p>Edit Mode: <span className="text-white">{editingGame ? 'TRUE' : 'FALSE'}</span></p>
+                  <p>ID: <span className="text-white">{formData.id || 'AUTO'}</span></p>
                </div>
             </div>
           </div>
-          <DialogFooter><Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">{saving ? <Loader2 className="animate-spin" /> : "Commit Registry Entry"}</Button></DialogFooter>
+          <DialogFooter>
+            <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
+              {saving ? <Loader2 className="animate-spin" /> : "Commit Registry Entry"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

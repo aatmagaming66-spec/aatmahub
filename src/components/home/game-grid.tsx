@@ -13,7 +13,7 @@ import { Gamepad2 } from "lucide-react";
 export function GameGrid() {
   const db = useFirestore();
   
-  // Removed orderBy from query level to prevent documents with missing sortOrder from being excluded
+  // FETCH ALL ACTIVE GAMES IN CATEGORY
   const gamesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
@@ -26,9 +26,15 @@ export function GameGrid() {
   const games = useMemo(() => {
     if (!rawGames) return [];
     
-    // Client-side sorting and filtering
+    console.log('[PERF_HUB] GameGrid: Raw Entities ->', rawGames.length);
+    
+    // Client-side filtering and sorting for maximum resilience
     return rawGames
-      .filter(g => g.status === 'active')
+      .filter(g => {
+        const isActive = g.status === 'active';
+        if (!isActive) console.log(`[DIAGNOSTIC] GameGrid: Filtering out INACTIVE entity -> ${g.name}`);
+        return isActive;
+      })
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
@@ -84,6 +90,13 @@ export function GameGrid() {
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center opacity-10">
                   <Gamepad2 size={32} className="text-white" />
+                </div>
+              )}
+
+              {/* REGIONAL FLAG OVERLAY */}
+              {game.flag && (
+                <div className="absolute top-3 right-3 z-30 h-7 w-7 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-xs shadow-lg">
+                  {game.flag}
                 </div>
               )}
 

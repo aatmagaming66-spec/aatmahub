@@ -20,7 +20,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const isOtt = category === 'OTT Services';
   const Icon = isOtt ? Tv : Share2;
 
-  // Removed orderBy to prevent document exclusion on missing fields
+  // FETCH ALL ACTIVE ITEMS IN CATEGORY
   const servicesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
@@ -33,10 +33,12 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const items = useMemo(() => {
     if (!rawItems) return [];
     
+    console.log(`[PERF_HUB] ServiceCarousel (${category}): Raw Entities ->`, rawItems.length);
+    
     return rawItems
       .filter(i => i.status === 'active')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-  }, [rawItems]);
+  }, [rawItems, category]);
 
   if (loading) {
     return (
@@ -90,6 +92,13 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center opacity-10">
                   <Icon size={24} className="text-white" />
+                </div>
+              )}
+
+              {/* REGIONAL FLAG OVERLAY */}
+              {item.flag && (
+                <div className="absolute top-2.5 right-2.5 z-30 h-6 w-6 bg-black/40 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-[10px] shadow-lg">
+                  {item.flag}
                 </div>
               )}
             </div>

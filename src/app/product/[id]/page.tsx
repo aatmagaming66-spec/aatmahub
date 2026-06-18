@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo, useEffect } from "react";
@@ -49,8 +50,7 @@ export default function ProductPage() {
   useEffect(() => {
     if (gameInfo) {
       console.log(`[PERF_HUB] Product Detail Hydrated: ${gameInfo.name}`);
-      console.log(`[PERF_HUB] Banner Source: ${gameInfo.banner}`);
-      console.log(`[PERF_HUB] Logo Source: ${gameInfo.logo}`);
+      console.log(`[PERF_HUB] Rendered Logo: ${gameInfo.logo}`);
     }
   }, [gameInfo]);
 
@@ -150,6 +150,12 @@ export default function ProductPage() {
             <ShieldCheck size={10} className="text-white fill-white" />
             <span className="text-[9px] font-black uppercase text-white tracking-widest">Official Channel</span>
           </div>
+          {gameInfo?.flag && (
+            <div className="bg-white/10 backdrop-blur-md px-3 py-1 rounded-lg flex items-center gap-2 shadow-xl border border-white/10 h-8">
+              <span className="text-xs">{gameInfo.flag}</span>
+              <span className="text-[9px] font-black uppercase text-white tracking-widest">Region</span>
+            </div>
+          )}
         </div>
 
         {/* Title Group */}

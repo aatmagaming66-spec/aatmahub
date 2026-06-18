@@ -55,6 +55,7 @@
         "category": { "type": "string", "enum": ["Mobile Games", "OTT Services", "Social Services"] },
         "logo": { "type": "string" },
         "banner": { "type": "string" },
+        "flag": { "type": "string", "description": "Regional flag emoji" },
         "tabs": { "type": "array", "items": { "type": "string" } },
         "status": { "type": "string", "enum": ["active", "inactive"] },
         "sortOrder": { "type": "number" },
