@@ -16,9 +16,11 @@
         "lifetimeSpend": { "type": "number", "default": 0 },
         "currentRank": { "type": "string", "default": "Warrior" },
         "rankId": { "type": "string", "default": "warrior" },
+        "rankExpiry": { "type": "string", "format": "date-time" },
         "banned": { "type": "boolean", "default": false },
         "is2FAEnabled": { "type": "boolean", "default": false },
         "twoFactorSecret": { "type": "string", "description": "Hashed secret for TOTP or temporary OTP storage" },
+        "twoFactorExpiry": { "type": "string", "format": "date-time" },
         "backupCodes": { "type": "array", "items": { "type": "string" } },
         "lastLoginAt": { "type": "string", "format": "date-time" },
         "createdAt": { "type": "string", "format": "date-time" },
@@ -51,6 +53,54 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["imageUrl", "status", "sortOrder"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer order for digital assets",
+      "type": "object",
+      "properties": {
+        "orderId": { "type": "string" },
+        "userId": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "processing", "completed", "failed", "cancelled"] },
+        "paymentStatus": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "items": { "type": "array" },
+        "playerInfo": { "type": "object" }
+      },
+      "required": ["orderId", "userId", "totalAmount", "status"]
+    },
+    "Game": {
+      "title": "Game",
+      "description": "Registry entry for a game or service",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "slug": { "type": "string" },
+        "category": { "type": "string" },
+        "status": { "type": "string" },
+        "logo": { "type": "string" },
+        "banner": { "type": "string" },
+        "sortOrder": { "type": "number" }
+      },
+      "required": ["id", "name", "category"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "SKU package for a specific game",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "category": { "type": "string" },
+        "tab": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "name", "price", "category"]
     }
   },
   "auth": {
@@ -64,6 +114,8 @@
     "/wallets/{userId}": { "schema": "object", "description": "User wallet ledgers" },
     "/transactions/{txId}": { "schema": "object", "description": "Financial logs" },
     "/settings/site": { "schema": "object", "description": "Site global configuration" },
-    "/banners/{bannerId}": { "schema": "Banner", "description": "Hero banners for homepage" }
+    "/banners/{bannerId}": { "schema": "Banner", "description": "Hero banners for homepage" },
+    "/ranks/{rankId}": { "schema": "object", "description": "Membership rank definitions" },
+    "/regions/{regionId}": { "schema": "object", "description": "Regional distribution grid" }
   }
 }

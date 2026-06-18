@@ -9,6 +9,8 @@ service cloud.firestore {
     match /settings/site { allow read: if true; }
     match /ranks/{rankId} { allow read: if true; }
     match /banners/{bannerId} { allow read: if true; }
+    match /regions/{regionId} { allow read: if true; }
+    match /settings/{settingId} { allow read: if true; }
 
     // AUTHENTICATED ACCESS
     match /users/{userId} {
@@ -27,7 +29,9 @@ service cloud.firestore {
     }
     
     match /orders/{orderId} {
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin']);
+      // Allow read if owner, admin, or if it's a public 'completed' order for the live feed
+      allow read: if (request.auth != null && (resource.data.userId == request.auth.uid || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin']))
+                  || (resource.data.status == 'completed');
       allow create: if request.auth != null;
       allow update: if request.auth != null && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'super_admin'];
     }
