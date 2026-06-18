@@ -15,13 +15,14 @@ import Image from "next/image";
 export function HeroBanner() {
   const db = useFirestore();
   
+  // Memoize query to prevent identity shifts
   const bannersQuery = React.useMemo(() => query(
     collection(db, 'banners'),
     where('status', '==', 'active'),
     orderBy('sortOrder', 'asc')
   ), [db]);
 
-  const { data: banners, loading } = useCollection(bannersQuery);
+  const { data: banners, loading, error } = useCollection(bannersQuery);
 
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true, duration: 30 },
@@ -29,6 +30,23 @@ export function HeroBanner() {
   );
   
   const [selectedIndex, setSelectedIndex] = React.useState(0);
+
+  // Fallback if no banners are configured or if there's an error
+  const displayBanners = React.useMemo(() => {
+    if (!banners || banners.length === 0) {
+      return [
+        {
+          id: "fallback",
+          title: "Instant Game Top-Ups",
+          subtitle: "Fast • Secure • Reliable",
+          ctaText: "Shop Now",
+          ctaLink: "/games",
+          imageUrl: "https://picsum.photos/seed/aatma/1200/600"
+        }
+      ];
+    }
+    return banners;
+  }, [banners]);
 
   const onSelect = React.useCallback(() => {
     if (!emblaApi) return;
@@ -42,43 +60,48 @@ export function HeroBanner() {
     emblaApi.on("reInit", onSelect);
   }, [emblaApi, onSelect]);
 
+  // Force Embla to re-initialize when the data source changes
+  React.useEffect(() => {
+    if (emblaApi) emblaApi.reInit();
+  }, [emblaApi, displayBanners]);
+
   const scrollTo = React.useCallback((index: number) => {
     emblaApi?.scrollTo(index);
   }, [emblaApi]);
 
-  if (loading) {
+  if (loading && !banners) {
     return (
       <section className="relative w-full h-[220px] px-4 mt-4">
-        <Skeleton className="w-full h-full bg-white/5" />
+        <Skeleton className="w-full h-full bg-white/5 rounded-none" />
       </section>
     );
   }
 
-  // Fallback if no banners are configured
-  const displayBanners = banners?.length > 0 ? banners : [
-    {
-      id: "fallback",
-      title: "Instant Game Top-Ups",
-      subtitle: "Fast • Secure • Reliable",
-      ctaText: "Top Up Now",
-      ctaLink: "/games",
-      imageUrl: "https://picsum.photos/seed/aatma/1200/600"
-    }
-  ];
-
   return (
     <section className="relative w-full h-[220px] overflow-hidden px-4 mt-4">
-      <div className="relative w-full h-full rounded-none overflow-hidden shadow-2xl border border-white/5" ref={emblaRef}>
+      {/* 
+         The key prop ensures that if the number of slides changes, 
+         React remounts the carousel shell so Embla can re-calculate dimensions.
+      */}
+      <div 
+        key={`carousel-${displayBanners.length}`}
+        className="relative w-full h-full rounded-none overflow-hidden shadow-2xl border border-white/5 bg-neutral-900" 
+        ref={emblaRef}
+      >
         <div className="flex h-full">
           {displayBanners.map((slide, index) => (
-            <div key={slide.id} className="relative flex-[0_0_100%] min-w-0 h-full">
-              <Image
-                src={slide.imageUrl}
-                alt={slide.title}
-                fill
-                priority={index === 0}
-                className="object-cover z-0"
-              />
+            <div key={slide.id || index} className="relative flex-[0_0_100%] min-w-0 h-full">
+              {slide.imageUrl && (
+                <Image
+                  src={slide.imageUrl}
+                  alt={slide.title || "Banner"}
+                  fill
+                  priority={index === 0}
+                  className="object-cover z-0"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  data-ai-hint="hero banner"
+                />
+              )}
               
               <div className="absolute inset-0 bg-black/40 z-10" />
               
@@ -93,7 +116,7 @@ export function HeroBanner() {
                 )}
                 <div>
                   <Link href={slide.ctaLink || '/'}>
-                    <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-none border-none">
+                    <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-none border-none active-press">
                       {slide.ctaText || 'Shop Now'}
                     </Button>
                   </Link>
