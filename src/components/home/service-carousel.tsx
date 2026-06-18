@@ -7,10 +7,8 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tv, Share2, MessageCircle } from "lucide-react";
+import { Tv, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useGlobalSettings } from "@/firebase/settings-context";
-import { Button } from "@/components/ui/button";
 
 interface ServiceCarouselProps {
   title: string;
@@ -19,7 +17,6 @@ interface ServiceCarouselProps {
 
 export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const db = useFirestore();
-  const { siteSettings } = useGlobalSettings();
   const isOtt = category === 'OTT Services';
   const Icon = isOtt ? Tv : Share2;
 
@@ -38,12 +35,6 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
       .filter(i => i.status === 'active')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawItems]);
-
-  const handleWhatsAppOrder = (serviceName: string) => {
-    const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
-    const message = `Hello Aatma HUB,\nI want to order ${serviceName}.\n\nPlease provide available options and pricing.`;
-    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
-  };
 
   if (loading) {
     return (
@@ -80,20 +71,22 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
 
       <div className="flex gap-4 overflow-x-auto px-4 no-scrollbar">
         {items.map((item) => (
-          <div 
+          <Link 
             key={item.id} 
-            className="flex-shrink-0 w-[140px] group transition-all flex flex-col"
+            href={`/product/${item.id}`}
+            prefetch={false}
+            className="flex-shrink-0 w-[140px] group transition-all flex flex-col active:scale-95"
           >
             <div className={cn(
-              "relative overflow-hidden mb-3 border border-white/5 bg-card shadow-xl transition-all",
-              isOtt ? "aspect-[2/3]" : "aspect-square"
+              "relative overflow-hidden mb-2 border border-white/5 bg-card shadow-xl transition-all",
+              isOtt ? "aspect-[3/4]" : "aspect-square"
             )}>
               {item.logo ? (
                 <Image 
                   src={item.logo} 
                   alt={item.name} 
                   fill 
-                  className="object-contain p-4 opacity-100 transition-transform duration-500 group-hover:scale-105 z-10"
+                  className="object-cover opacity-100 transition-transform duration-500 group-hover:scale-105 z-10"
                   sizes="140px"
                 />
               ) : (
@@ -102,22 +95,12 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                 </div>
               )}
             </div>
-            <div className="text-center px-1 mb-3">
-              <h3 className="text-[11px] font-black text-white uppercase tracking-tight line-clamp-1">
+            <div className="text-center px-1">
+              <h3 className="text-[11px] font-black text-white uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
                 {item.name}
               </h3>
             </div>
-            <Button 
-              onClick={() => handleWhatsAppOrder(item.name)}
-              className={cn(
-                "w-full h-8 rounded-none text-[8px] font-black uppercase tracking-widest gap-1.5 shadow-xl",
-                isOtt ? "bg-accent hover:bg-accent/90" : "bg-primary hover:bg-primary/90"
-              )}
-            >
-              <MessageCircle size={10} />
-              Order via WA
-            </Button>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
