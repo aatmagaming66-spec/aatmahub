@@ -29,15 +29,18 @@ export default function LoginPage() {
   const { toast } = useToast();
 
   const handleAuthSuccess = async (uid: string) => {
-    // Check for 2FA status in Firestore
-    const userDoc = await getDoc(doc(db, 'users', uid));
-    const profile = userDoc.exists() ? userDoc.data() : null;
+    // Check for 2FA status in Firestore immediately upon login
+    try {
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      const profile = userDoc.exists() ? userDoc.data() : null;
 
-    if (profile?.is2FAEnabled) {
-      // Set a temporary session flag to allow 2FA page access
-      sessionStorage.setItem('pending_2fa_uid', uid);
-      router.push('/login/verify');
-    } else {
+      if (profile?.is2FAEnabled) {
+        sessionStorage.setItem('pending_2fa_uid', uid);
+        router.push('/login/verify');
+      } else {
+        router.push('/profile');
+      }
+    } catch (e) {
       router.push('/profile');
     }
   };
@@ -45,15 +48,14 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Email and password are required.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Enter credentials.' });
       return;
     }
 
     setLoading(true);
     try {
       const result = await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Welcome back", description: "You have logged in successfully." });
-      handleAuthSuccess(result.user.uid);
+      await handleAuthSuccess(result.user.uid);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
     } finally {
@@ -64,12 +66,20 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setGoogleLoading(true);
     const provider = new GoogleAuthProvider();
+    // Force select account to ensure smooth domain auth
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
     try {
       const result = await signInWithPopup(auth, provider);
-      toast({ title: "Welcome", description: `Authenticated as ${result.user.displayName}` });
-      handleAuthSuccess(result.user.uid);
+      toast({ title: "Authorized", description: `Signed in as ${result.user.displayName}` });
+      await handleAuthSuccess(result.user.uid);
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Google Login Failed', description: error.message });
+      console.error('Google Login Error:', error);
+      let msg = "Google Login Failed.";
+      if (error.code === 'auth/unauthorized-domain') {
+        msg = "Domain not authorized in Firebase Console.";
+      }
+      toast({ variant: 'destructive', title: 'Auth Error', description: msg });
     } finally {
       setGoogleLoading(false);
     }
@@ -129,7 +139,7 @@ export default function LoginPage() {
                   {!initialized ? <Skeleton className="h-12 w-full bg-white/5" /> : (
                     <Input 
                       type="email"
-                      placeholder="Enter your email" 
+                      placeholder="Email" 
                       className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all font-bold"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -141,7 +151,7 @@ export default function LoginPage() {
                   {!initialized ? <Skeleton className="h-12 w-full bg-white/5" /> : (
                     <Input 
                       type="password"
-                      placeholder="Enter your password" 
+                      placeholder="Password" 
                       className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all font-bold"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}

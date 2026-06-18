@@ -13,8 +13,6 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { sendTelegramNotification } from '@/lib/telegram';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { Loader2, UserPlus } from 'lucide-react';
 
 const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
@@ -37,17 +35,17 @@ export default function RegisterPage() {
     e.preventDefault();
     
     if (!fullName || !email || !phoneNumber || !password || !confirmPassword) {
-      toast({ variant: 'destructive', title: 'Error', description: 'All fields are required.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Fill all fields.' });
       return;
     }
 
     if (password.length < 8) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Password must be at least 8 characters.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Min 8 chars.' });
       return;
     }
 
     if (password !== confirmPassword) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Passwords do not match.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Mismatch.' });
       return;
     }
 
@@ -67,16 +65,15 @@ export default function RegisterPage() {
         phoneNumber,
         role: role,
         authProvider: 'password',
+        is2FAEnabled: false,
         createdAt: new Date().toISOString(),
       };
 
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, profileData);
-
-      sendTelegramNotification(db, `🆕 <b>NEW USER REGISTERED</b>\n\n👤 <b>Name:</b> ${fullName}\n📧 <b>Email:</b> ${email}`);
+      await setDoc(doc(db, 'users', user.uid), profileData);
+      sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
       router.push('/');
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
+      toast({ variant: 'destructive', title: 'Failed', description: error.message });
     } finally {
       setLoading(false);
     }
@@ -85,22 +82,33 @@ export default function RegisterPage() {
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    
     try {
       const result = await signInWithPopup(auth, provider);
-      // Profile creation is handled by ProfileProvider snapshot if missing, 
-      // but we force update source to google here for registry accuracy
       const user = result.user;
-      const userDocRef = doc(db, 'users', user.uid);
       
+      // Force initial profile setup for registry accuracy if it doesn't exist
+      const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
+        uid: user.uid,
+        fullName: user.displayName || 'Google Member',
+        email: user.email!,
+        role: 'user',
         authProvider: 'google.com',
-        updatedAt: new Date().toISOString()
+        is2FAEnabled: false,
+        createdAt: new Date().toISOString()
       }, { merge: true });
 
-      toast({ title: "Account Active", description: "Google account linked successfully." });
+      toast({ title: "Authorized", description: "Google account active." });
       router.push('/');
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Google Auth Error', description: error.message });
+      console.error('Google Signup Error:', error);
+      let msg = "Google Auth Failed.";
+      if (error.code === 'auth/unauthorized-domain') {
+        msg = "Domain not authorized in Firebase.";
+      }
+      toast({ variant: 'destructive', title: 'Error', description: msg });
     } finally {
       setGoogleLoading(false);
     }
@@ -140,12 +148,12 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full Name" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Name</Label>
+                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Name" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone</Label>
-                <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Phone Number" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Phone" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
             </div>
             <div className="space-y-2">
@@ -158,8 +166,8 @@ export default function RegisterPage() {
                 <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Confirm</Label>
-                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirm Password" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Repeat</Label>
+                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
             </div>
             <Button type="submit" disabled={loading} className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-xl shadow-primary/20 mt-2">
