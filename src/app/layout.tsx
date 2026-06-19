@@ -42,12 +42,16 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+        {/* Force early hardware acceleration on the root */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          body { transform: translate3d(0,0,0); }
+        `}} />
       </head>
       <body className="font-body antialiased bg-background text-foreground min-h-screen flex flex-col">
         <FirebaseClientProvider>
           <CartProvider>
             <SidebarProvider defaultOpen={false}>
-              <div className="flex w-full min-h-screen page-shell">
+              <div className="flex w-full min-h-screen page-shell overflow-hidden">
                 <AppSidebar />
                 <div className="flex-1 flex flex-col w-full relative">
                   <MaintenanceCheck />

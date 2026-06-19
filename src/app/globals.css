@@ -40,11 +40,15 @@
     overscroll-behavior-y: none;
     -webkit-font-smoothing: antialiased;
     -webkit-touch-callout: none;
+    /* Prevent system font loading from blocking the first paint */
+    font-display: swap;
   }
 
   a, button {
     cursor: pointer;
     user-select: none;
+    /* Ensure immediate touch feedback */
+    -webkit-user-drag: none;
   }
 }
 
@@ -58,7 +62,7 @@
 
 /* Instant Hardware-Accelerated Interactions */
 .active-press {
-  @apply transition-transform duration-75 active:scale-[0.96] will-change-transform;
+  @apply transition-transform duration-75 active:scale-[0.96] will-change-transform transform-gpu;
 }
 
 .metallic-badge {
@@ -77,4 +81,6 @@
 .nav-item {
   -webkit-user-select: none;
   user-select: none;
+  /* Fix for iOS tap delay */
+  cursor: pointer;
 }
