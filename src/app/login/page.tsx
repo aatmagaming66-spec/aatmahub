@@ -41,18 +41,15 @@ export default function LoginPage() {
       const profile = userSnap.exists() ? userSnap.data() : null;
 
       if (profile?.is2FAEnabled) {
-        // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiry = new Date();
-        expiry.setMinutes(expiry.getMinutes() + 5); // 5 minute expiry
+        expiry.setMinutes(expiry.getMinutes() + 5);
 
-        // Save OTP to user profile (In production, this should be done via Server Action/Cloud Function)
         await updateDoc(userDocRef, {
           twoFactorSecret: otp,
           twoFactorExpiry: expiry.toISOString()
         });
 
-        // MOCK EMAIL LOG:
         console.log(`[SECURITY] 2FA OTP for ${profile.email}: ${otp}`);
         
         sessionStorage.setItem('pending_2fa_uid', uid);
@@ -86,19 +83,35 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
+    if (googleLoading) return;
     setGoogleLoading(true);
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
       const result = await signInWithPopup(auth, provider);
       await handleAuthSuccess(result.user.uid);
     } catch (error: any) {
-      let msg = "Google Login Failed.";
+      console.error('Google Auth Error:', error);
+      let title = "Google Login Failed";
+      let msg = error.message || "An unexpected error occurred.";
+
       if (error.code === 'auth/unauthorized-domain') {
-        msg = "Domain not authorized in Firebase Console.";
+        msg = "This domain is not authorized in the Firebase Console. Please add it to Authentication > Settings > Authorized domains.";
+      } else if (error.code === 'auth/popup-blocked') {
+        msg = "The login popup was blocked by your browser. Please allow popups for this site.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        msg = "The login process was interrupted. Please try again.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        msg = "Google sign-in is not enabled in your Firebase project. Please enable it in the console.";
       }
-      toast({ variant: 'destructive', title: 'Auth Error', description: msg });
+
+      toast({ 
+        variant: 'destructive', 
+        title: title, 
+        description: `${msg} (${error.code || 'unknown'})`
+      });
     } finally {
       setGoogleLoading(false);
     }

@@ -66,6 +66,9 @@ export default function RegisterPage() {
         role: role,
         authProvider: 'password',
         is2FAEnabled: false,
+        lifetimeSpend: 0,
+        currentRank: 'Warrior',
+        rankId: 'warrior',
         createdAt: new Date().toISOString(),
       };
 
@@ -80,15 +83,16 @@ export default function RegisterPage() {
   };
 
   const handleGoogleSignup = async () => {
+    if (googleLoading) return;
     setGoogleLoading(true);
-    const provider = new GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
     
     try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      // Force initial profile setup for registry accuracy if it doesn't exist
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
         uid: user.uid,
@@ -97,18 +101,29 @@ export default function RegisterPage() {
         role: 'user',
         authProvider: 'google.com',
         is2FAEnabled: false,
+        lifetimeSpend: 0,
+        currentRank: 'Warrior',
+        rankId: 'warrior',
         createdAt: new Date().toISOString()
       }, { merge: true });
 
       toast({ title: "Authorized", description: "Google account active." });
       router.push('/');
     } catch (error: any) {
-      console.error('Google Signup Error:', error);
-      let msg = "Google Auth Failed.";
+      console.error('Google Auth Error:', error);
+      let msg = error.message || "Google Authentication failed.";
+
       if (error.code === 'auth/unauthorized-domain') {
-        msg = "Domain not authorized in Firebase.";
+        msg = "This domain is not authorized in Firebase settings.";
+      } else if (error.code === 'auth/popup-blocked') {
+        msg = "The login popup was blocked. Please enable popups.";
       }
-      toast({ variant: 'destructive', title: 'Error', description: msg });
+
+      toast({ 
+        variant: 'destructive', 
+        title: 'Auth Error', 
+        description: `${msg} (${error.code || 'unknown'})` 
+      });
     } finally {
       setGoogleLoading(false);
     }
