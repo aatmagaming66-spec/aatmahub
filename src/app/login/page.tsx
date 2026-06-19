@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
 import { Button } from '@/components/ui/button';
@@ -74,6 +74,7 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
+      await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithEmailAndPassword(auth, email, password);
       await handleAuthSuccess(result.user.uid);
     } catch (error: any) {
@@ -91,19 +92,29 @@ export default function LoginPage() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       
+      // Force persistence to ensure session stays active in workstations environment
+      await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
       await handleAuthSuccess(result.user.uid);
     } catch (error: any) {
+      console.error('Google Auth Error:', error);
+      
+      let message = "An unexpected error occurred.";
       if (error.code === 'auth/popup-closed-by-user') {
-        toast({ title: "Login Cancelled", description: "The login window was closed." });
-      } else {
-        console.error('Google Auth Error:', error);
-        toast({ 
-          variant: 'destructive', 
-          title: "Google Login Failed", 
-          description: `${error.message || "An unexpected error occurred."} (${error.code})`
-        });
+        message = "The login window was closed before completion.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        message = "This domain is not authorized in Firebase Console.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        message = "Google login is not enabled in Firebase Authentication.";
+      } else if (error.code === 'auth/network-request-failed') {
+        message = "Network error. Please check your connection.";
       }
+
+      toast({ 
+        variant: 'destructive', 
+        title: "Google Login Failed", 
+        description: message
+      });
     } finally {
       setGoogleLoading(false);
     }

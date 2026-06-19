@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
+      await setPersistence(auth, browserLocalPersistence);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -91,6 +92,7 @@ export default function RegisterPage() {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       
+      await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
@@ -111,16 +113,20 @@ export default function RegisterPage() {
       toast({ title: "Authorized", description: "Google account active." });
       router.push('/');
     } catch (error: any) {
+      console.error('Google Auth Error:', error);
+      
+      let message = "Google Authentication failed.";
       if (error.code === 'auth/popup-closed-by-user') {
-        toast({ title: "Sign Up Cancelled", description: "The authorization window was closed." });
-      } else {
-        console.error('Google Auth Error:', error);
-        toast({ 
-          variant: 'destructive', 
-          title: 'Auth Error', 
-          description: `${error.message || "Google Authentication failed."} (${error.code})` 
-        });
+        message = "The sign-up window was closed.";
+      } else if (error.code === 'auth/unauthorized-domain') {
+        message = "Domain not authorized in Firebase Console.";
       }
+
+      toast({ 
+        variant: 'destructive', 
+        title: 'Auth Error', 
+        description: message 
+      });
     } finally {
       setGoogleLoading(false);
     }
