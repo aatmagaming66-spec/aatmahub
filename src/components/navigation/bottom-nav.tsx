@@ -40,7 +40,7 @@ export function BottomNav() {
               href={item.href}
               prefetch={false}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative active-press",
+                "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative active-press nav-item",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-white"
               )}
             >
@@ -52,7 +52,7 @@ export function BottomNav() {
                 {item.label}
               </span>
               {isActive && (
-                <div className="absolute bottom-1 w-1.5 h-1.5 bg-primary rounded-none shadow-[0_0_10px_#DC2626]" />
+                <div className="absolute bottom-1 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_#DC2626]" />
               )}
             </Link>
           );

@@ -23,7 +23,7 @@
     --border: 0 0% 15%;
     --input: 0 0% 15%;
     --ring: 0 72% 51%;
-    --radius: 0;
+    --radius: 0.5rem;
   }
 }
 
@@ -31,13 +31,20 @@
   * {
     @apply border-border outline-none;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
+  
   body {
     @apply bg-background text-foreground font-body antialiased;
-    touch-action: manipulation;
     text-rendering: optimizeLegibility;
     overscroll-behavior-y: none;
     -webkit-font-smoothing: antialiased;
+    -webkit-touch-callout: none;
+  }
+
+  a, button {
+    cursor: pointer;
+    user-select: none;
   }
 }
 
@@ -49,19 +56,25 @@
   scrollbar-width: none;
 }
 
-/* Hardware-Accelerated Interactions */
+/* Instant Hardware-Accelerated Interactions */
 .active-press {
-  @apply transition-transform duration-75 active:scale-[0.98] will-change-transform;
+  @apply transition-transform duration-75 active:scale-[0.96] will-change-transform;
 }
 
 .metallic-badge {
   background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
 }
 
-/* Production Transition Engine */
+/* GPU Accelerated Container */
 .page-shell {
-  transform: translateZ(0);
+  transform: translate3d(0,0,0);
   backface-visibility: hidden;
   perspective: 1000px;
   will-change: transform, opacity;
+}
+
+/* Selection Prevention for UI */
+.nav-item {
+  -webkit-user-select: none;
+  user-select: none;
 }

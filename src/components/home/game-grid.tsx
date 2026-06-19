@@ -75,7 +75,7 @@ function GameCard({ game }: { game: any }) {
       prefetch={false}
       className="w-full group flex flex-col active-press"
     >
-      <div className="relative aspect-square w-full rounded-none overflow-hidden bg-transparent border border-white/10 shadow-2xl transition-all duration-300">
+      <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-transparent border border-white/10 shadow-2xl transition-all duration-300">
         {game.logo ? (
           <Image 
             src={game.logo} 
