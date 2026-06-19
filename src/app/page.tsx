@@ -15,10 +15,10 @@ export default function Home() {
 
   useEffect(() => {
     const mountTime = performance.now();
-    if (window.__nav_click_time) {
-      const duration = mountTime - window.__nav_click_time;
+    if ((window as any).__nav_click_time) {
+      const duration = mountTime - (window as any).__nav_click_time;
       console.log(`[PERF] Navigation Load: ${duration.toFixed(2)}ms`);
-      window.__nav_click_time = undefined;
+      (window as any).__nav_click_time = undefined;
     }
   }, []);
 
@@ -33,7 +33,7 @@ export default function Home() {
   }, [siteSettings]);
 
   return (
-    <div className="flex flex-col w-full animate-in fade-in duration-700">
+    <div className="flex flex-col w-full animate-in fade-in duration-700 page-shell">
       <HeroBanner />
       
       {homepageConfig.showTrustBadges && (

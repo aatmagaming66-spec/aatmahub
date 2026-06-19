@@ -47,7 +47,7 @@ export default function RootLayout({
         <FirebaseClientProvider>
           <CartProvider>
             <SidebarProvider defaultOpen={false}>
-              <div className="flex w-full min-h-screen">
+              <div className="flex w-full min-h-screen page-shell">
                 <AppSidebar />
                 <div className="flex-1 flex flex-col w-full relative">
                   <MaintenanceCheck />

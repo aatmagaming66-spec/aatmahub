@@ -65,7 +65,7 @@
   background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
 }
 
-/* GPU Accelerated Container */
+/* GPU Accelerated Container to prevent First Click Freeze */
 .page-shell {
   transform: translate3d(0,0,0);
   backface-visibility: hidden;

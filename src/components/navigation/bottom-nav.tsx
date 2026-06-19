@@ -43,6 +43,10 @@ export function BottomNav() {
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative active-press nav-item",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-white"
               )}
+              onClick={() => {
+                // Tracking navigation start to measure perceived latency if needed
+                (window as any).__nav_click_time = performance.now();
+              }}
             >
               <item.icon className={cn(
                 "h-5 w-5 transition-transform", 
