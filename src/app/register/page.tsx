@@ -34,6 +34,7 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (loading) return;
     if (!fullName || !email || !phoneNumber || !password || !confirmPassword) {
       toast({ variant: 'destructive', title: 'Error', description: 'Fill all fields.' });
       return;
@@ -110,20 +111,16 @@ export default function RegisterPage() {
       toast({ title: "Authorized", description: "Google account active." });
       router.push('/');
     } catch (error: any) {
-      console.error('Google Auth Error:', error);
-      let msg = error.message || "Google Authentication failed.";
-
-      if (error.code === 'auth/unauthorized-domain') {
-        msg = "This domain is not authorized in Firebase settings.";
-      } else if (error.code === 'auth/popup-blocked') {
-        msg = "The login popup was blocked. Please enable popups.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({ title: "Sign Up Cancelled", description: "The authorization window was closed." });
+      } else {
+        console.error('Google Auth Error:', error);
+        toast({ 
+          variant: 'destructive', 
+          title: 'Auth Error', 
+          description: `${error.message || "Google Authentication failed."} (${error.code})` 
+        });
       }
-
-      toast({ 
-        variant: 'destructive', 
-        title: 'Auth Error', 
-        description: `${msg} (${error.code || 'unknown'})` 
-      });
     } finally {
       setGoogleLoading(false);
     }
@@ -141,7 +138,7 @@ export default function RegisterPage() {
             variant="outline" 
             onClick={handleGoogleSignup} 
             disabled={googleLoading}
-            className="w-full h-12 border-border bg-white/5 hover:bg-white/10 rounded-none text-[10px] font-black uppercase tracking-widest gap-3"
+            className="w-full h-12 border-border bg-white/5 hover:bg-white/10 rounded-none text-[10px] font-black uppercase tracking-widest gap-3 active-press"
           >
             {googleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
               <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -185,7 +182,7 @@ export default function RegisterPage() {
                 <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
               </div>
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-xl shadow-primary/20 mt-2">
+            <Button type="submit" disabled={loading} className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-xl shadow-primary/20 mt-2 active-press">
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign Up"}
             </Button>
           </form>

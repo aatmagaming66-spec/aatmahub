@@ -40,14 +40,12 @@
     overscroll-behavior-y: none;
     -webkit-font-smoothing: antialiased;
     -webkit-touch-callout: none;
-    /* Prevent system font loading from blocking the first paint */
     font-display: swap;
   }
 
   a, button {
     cursor: pointer;
     user-select: none;
-    /* Ensure immediate touch feedback */
     -webkit-user-drag: none;
   }
 }
@@ -60,16 +58,16 @@
   scrollbar-width: none;
 }
 
-/* Instant Hardware-Accelerated Interactions */
+/* Aggressive Hardware-Accelerated Interactions */
 .active-press {
-  @apply transition-transform duration-75 active:scale-[0.96] will-change-transform transform-gpu;
+  @apply transition-transform duration-75 active:scale-[0.94] will-change-transform transform-gpu;
 }
 
 .metallic-badge {
   background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
 }
 
-/* GPU Accelerated Container to prevent First Click Freeze */
+/* GPU Accelerated Container */
 .page-shell {
   transform: translate3d(0,0,0);
   backface-visibility: hidden;
@@ -77,10 +75,8 @@
   will-change: transform, opacity;
 }
 
-/* Selection Prevention for UI */
 .nav-item {
   -webkit-user-select: none;
   user-select: none;
-  /* Fix for iOS tap delay */
   cursor: pointer;
 }

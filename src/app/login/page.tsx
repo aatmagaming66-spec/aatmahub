@@ -66,6 +66,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || !initialized) return;
     if (!email || !password) {
       toast({ variant: 'destructive', title: 'Error', description: 'Enter credentials.' });
       return;
@@ -83,7 +84,7 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    if (googleLoading) return;
+    if (googleLoading || !initialized) return;
     setGoogleLoading(true);
     
     try {
@@ -93,25 +94,16 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider);
       await handleAuthSuccess(result.user.uid);
     } catch (error: any) {
-      console.error('Google Auth Error:', error);
-      let title = "Google Login Failed";
-      let msg = error.message || "An unexpected error occurred.";
-
-      if (error.code === 'auth/unauthorized-domain') {
-        msg = "This domain is not authorized in the Firebase Console. Please add it to Authentication > Settings > Authorized domains.";
-      } else if (error.code === 'auth/popup-blocked') {
-        msg = "The login popup was blocked by your browser. Please allow popups for this site.";
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        msg = "The login process was interrupted. Please try again.";
-      } else if (error.code === 'auth/operation-not-allowed') {
-        msg = "Google sign-in is not enabled in your Firebase project. Please enable it in the console.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({ title: "Login Cancelled", description: "The login window was closed." });
+      } else {
+        console.error('Google Auth Error:', error);
+        toast({ 
+          variant: 'destructive', 
+          title: "Google Login Failed", 
+          description: `${error.message || "An unexpected error occurred."} (${error.code})`
+        });
       }
-
-      toast({ 
-        variant: 'destructive', 
-        title: title, 
-        description: `${msg} (${error.code || 'unknown'})`
-      });
     } finally {
       setGoogleLoading(false);
     }
@@ -133,7 +125,7 @@ export default function LoginPage() {
             variant="outline" 
             onClick={handleGoogleLogin} 
             disabled={googleLoading || !initialized}
-            className="w-full h-12 border-border bg-white/5 hover:bg-white/10 rounded-none text-[10px] font-black uppercase tracking-widest gap-3"
+            className="w-full h-12 border-border bg-white/5 hover:bg-white/10 rounded-none text-[10px] font-black uppercase tracking-widest gap-3 active-press"
           >
             {googleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
               <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -179,7 +171,7 @@ export default function LoginPage() {
             </div>
             <Button 
               type="submit" 
-              className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20"
+              className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20 active-press"
               disabled={loading || !initialized}
             >
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Login"}
