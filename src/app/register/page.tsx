@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -69,7 +69,7 @@ export default function RegisterPage() {
       };
       await setDoc(doc(db, 'users', user.uid), profileData);
       sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
-      router.push('/');
+      router.push('/profile');
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
     } finally {
@@ -83,27 +83,39 @@ export default function RegisterPage() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
+      
       await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      const userDocRef = doc(db, 'users', user.uid);
-      await setDoc(userDocRef, {
-        uid: user.uid,
-        fullName: user.displayName || 'Google Member',
-        email: user.email!,
-        role: 'user',
-        authProvider: 'google.com',
-        is2FAEnabled: false,
-        lifetimeSpend: 0,
-        currentRank: 'Warrior',
-        rankId: 'warrior',
-        createdAt: new Date().toISOString()
-      }, { merge: true });
-      toast({ title: "Authorized", description: "Google account active." });
-      router.push('/');
+
+      if (user) {
+        const userDocRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userDocRef);
+
+        if (!userSnap.exists()) {
+          const profileData = {
+            uid: user.uid,
+            fullName: user.displayName || 'Google Member',
+            email: user.email!,
+            role: 'user',
+            authProvider: 'google.com',
+            is2FAEnabled: false,
+            lifetimeSpend: 0,
+            currentRank: 'Warrior',
+            rankId: 'warrior',
+            createdAt: new Date().toISOString()
+          };
+          await setDoc(userDocRef, profileData);
+          sendTelegramNotification(db, `🆕 <b>USER REG (GOOGLE)</b>\n\n👤 ${profileData.fullName}\n📧 ${profileData.email}`);
+        }
+
+        toast({ title: "Authorized", description: "Login successful." });
+        router.push('/profile');
+      }
     } catch (error: any) {
+      console.error("Google Signup Error:", error);
       if (error.code !== 'auth/popup-closed-by-user') {
-        toast({ variant: 'destructive', title: 'Auth Error', description: error.message });
+        toast({ variant: 'destructive', title: 'Auth Error', description: "Could not complete authentication. Please try again." });
       }
     } finally {
       setGoogleLoading(false);

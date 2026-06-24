@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Loader2, KeyRound, Mail, ArrowRight } from 'lucide-react';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -38,7 +38,24 @@ export default function LoginPage() {
     try {
       const userDocRef = doc(db, 'users', uid);
       const userSnap = await getDoc(userDocRef);
-      const profile = userSnap.exists() ? userSnap.data() : null;
+      
+      // Ensure profile exists for Google/New users
+      if (!userSnap.exists()) {
+        const currentUser = auth.currentUser;
+        await setDoc(userDocRef, {
+          uid,
+          fullName: currentUser?.displayName || 'Member',
+          email: currentUser?.email || '',
+          role: 'user',
+          lifetimeSpend: 0,
+          currentRank: 'Warrior',
+          rankId: 'warrior',
+          createdAt: new Date().toISOString(),
+          authProvider: currentUser?.providerData[0]?.providerId || 'password'
+        });
+      }
+
+      const profile = (await getDoc(userDocRef)).data();
 
       if (profile?.is2FAEnabled) {
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -57,6 +74,7 @@ export default function LoginPage() {
         router.push('/profile');
       }
     } catch (e) {
+      console.error("Auth success processing error:", e);
       router.push('/profile');
     }
   };
@@ -87,12 +105,21 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
+      
       await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
-      await handleAuthSuccess(result.user.uid);
+      
+      if (result.user) {
+        await handleAuthSuccess(result.user.uid);
+      }
     } catch (error: any) {
-      if (error.code !== 'auth/popup-closed-by-user') {
-        toast({ variant: 'destructive', title: "Google Login Failed", description: error.message });
+      console.error("Google Login Error:", error);
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast({ title: "Cancelled", description: "Login window was closed." });
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // Silently handle concurrent requests
+      } else {
+        toast({ variant: 'destructive', title: "Auth Error", description: "Could not complete Google login. Check pop-up settings." });
       }
     } finally {
       setGoogleLoading(false);
@@ -100,7 +127,12 @@ export default function LoginPage() {
   };
 
   if (initialized && user) {
-    return <div className="flex h-[80vh] items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
+    return (
+      <div className="flex flex-col h-[80vh] items-center justify-center gap-4">
+        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Redirecting to Dashboard...</p>
+      </div>
+    );
   }
 
   return (
