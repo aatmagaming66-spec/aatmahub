@@ -83,10 +83,10 @@ export default function Home() {
       {homepageConfig.showSocial && <ServiceCarousel title="Social Growth Services" category="Social Services" />}
       {homepageConfig.showLiveActivity && <LiveActivity />}
 
-      <footer className="bg-background border-t border-border pt-10 pb-16 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24">
+      <footer className="bg-background border-t border-border pt-8 pb-10 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-24">
           {/* Column 1: Brand & Info */}
-          <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-5">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-4">
             <Link href="/" className="inline-block group active-press">
               <span className="font-headline font-black text-2xl tracking-tighter uppercase">
                 <span className="text-primary">AATMA</span> HUB
@@ -96,7 +96,7 @@ export default function Home() {
               Aatma HUB is a trusted gaming topup and digital services platform providing fast, secure and affordable recharge solutions for gamers worldwide.
             </p>
             
-            <div className="flex items-center justify-center lg:justify-start gap-4 pt-2">
+            <div className="flex items-center justify-center lg:justify-start gap-4 pt-1">
               <a href="https://t.me/aatmaplays" target="_blank" rel="noopener noreferrer" className="h-10 w-10 bg-white/5 border border-white/5 flex items-center justify-center rounded-none hover:border-primary/50 hover:bg-primary/10 transition-all group">
                 <Send size={18} className="text-white group-hover:text-primary" />
               </a>
@@ -112,11 +112,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Column 2: Navigation Links (Merged into single Quick Links) */}
-          <div className="flex flex-col space-y-6">
+          {/* Column 2: Navigation Links */}
+          <div className="flex flex-col space-y-5">
             <div className="text-center lg:text-left">
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6">Quick Links</h3>
-              <div className="grid grid-cols-2 gap-y-3 gap-x-8">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white mb-5">Quick Links</h3>
+              <div className="grid grid-cols-2 gap-y-2.5 gap-x-8">
                 {[
                   { label: "Home", href: "/" },
                   { label: "About Us", href: "/about-us" },
@@ -143,7 +143,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+        <div className="max-w-7xl mx-auto mt-8 pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-5 text-center md:text-left">
           <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">
             © 2021 All Rights Reserved - Aatma HUB
           </p>

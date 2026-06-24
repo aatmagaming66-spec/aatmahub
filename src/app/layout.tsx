@@ -62,7 +62,7 @@ export default function RootLayout({
                     <TopHeader />
                   </div>
                   {/* Main Content Region */}
-                  <main className="flex-1 w-full pb-20">
+                  <main className="flex-1 w-full pb-16">
                     {children}
                   </main>
                   <BottomNav />
