@@ -112,11 +112,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Column 2: Navigation Links */}
-          <div className="grid grid-cols-2 gap-8">
-            <div className="space-y-4 text-center lg:text-left">
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Quick Links</h3>
-              <div className="flex flex-col space-y-2">
+          {/* Column 2: Navigation Links (Merged into single Quick Links) */}
+          <div className="flex flex-col space-y-6">
+            <div className="text-center lg:text-left">
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white mb-6">Quick Links</h3>
+              <div className="grid grid-cols-2 gap-y-3 gap-x-8">
                 {[
                   { label: "Home", href: "/" },
                   { label: "About Us", href: "/about-us" },
@@ -125,23 +125,6 @@ export default function Home() {
                   { label: "Login", href: "/login" },
                   { label: "Sign Up", href: "/register" },
                   { label: "My Orders", href: "/orders" },
-                ].map((link) => (
-                  <Link 
-                    key={link.label} 
-                    href={link.href}
-                    className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center lg:justify-start gap-2 group"
-                  >
-                    <div className="w-1 h-1 bg-white/10 rounded-full group-hover:bg-primary transition-colors shrink-0" />
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-4 text-center lg:text-left">
-              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Legal Links</h3>
-              <div className="flex flex-col space-y-2">
-                {[
                   { label: "Privacy Policy", href: "/privacy" },
                   { label: "Terms & Conditions", href: "/terms" },
                   { label: "Refund Policy", href: "/refund-policy" },
@@ -149,9 +132,9 @@ export default function Home() {
                   <Link 
                     key={link.label} 
                     href={link.href}
-                    className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-accent transition-colors flex items-center justify-center lg:justify-start gap-2 group"
+                    className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-start gap-2 group"
                   >
-                    <div className="w-1 h-1 bg-white/10 rounded-full group-hover:bg-accent transition-colors shrink-0" />
+                    <div className="w-1 h-1 bg-white/10 rounded-full group-hover:bg-primary transition-colors shrink-0" />
                     {link.label}
                   </Link>
                 ))}
@@ -160,7 +143,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">
             © 2021 All Rights Reserved - Aatma HUB
           </p>
