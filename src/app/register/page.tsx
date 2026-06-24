@@ -1,17 +1,16 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   createUserWithEmailAndPassword, 
   updateProfile as firebaseUpdateProfile, 
   GoogleAuthProvider, 
   signInWithRedirect, 
-  getRedirectResult,
   setPersistence, 
   browserLocalPersistence 
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(true); // Allow redirect check
+  const [googleInitiating, setGoogleInitiating] = useState(false);
   
   const auth = useAuth();
   const db = useFirestore();
@@ -41,69 +40,11 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleAuthSuccess = useCallback(async (uid: string) => {
-    try {
-      const userDocRef = doc(db, 'users', uid);
-      const userSnap = await getDoc(userDocRef);
-
-      if (!userSnap.exists()) {
-        const currentUser = auth.currentUser;
-        const role = currentUser?.email?.toLowerCase() === SUPER_ADMIN_EMAIL ? 'super_admin' : 'user';
-        
-        const profileData = {
-          uid,
-          fullName: currentUser?.displayName || 'Google Member',
-          email: currentUser?.email || '',
-          phoneNumber: '',
-          role: role,
-          authProvider: currentUser?.providerData[0]?.providerId || 'google.com',
-          is2FAEnabled: false,
-          lifetimeSpend: 0,
-          currentRank: 'Warrior',
-          rankId: 'warrior',
-          createdAt: new Date().toISOString(),
-        };
-        await setDoc(userDocRef, profileData);
-        sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${profileData.fullName}\n📧 ${profileData.email}`);
-      }
-
-      toast({ title: "Authorized", description: "Account session established." });
-      router.replace('/profile');
-    } catch (error: any) {
-      console.error("Auth Success Logic Error:", error);
+  useEffect(() => {
+    if (initialized && user) {
       router.replace('/profile');
     }
-  }, [auth, db, router, toast]);
-
-  // Handle Redirect Result
-  useEffect(() => {
-    if (!initialized) return;
-    
-    let isMounted = true;
-    const checkRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user && isMounted) {
-          await handleAuthSuccess(result.user.uid);
-        }
-      } catch (error: any) {
-        if (isMounted && error.code !== 'auth/no-auth-event') {
-          toast({ variant: 'destructive', title: "Auth Error", description: "Signup failed. Please try again." });
-        }
-      } finally {
-        if (isMounted) setGoogleLoading(false);
-      }
-    };
-
-    checkRedirect();
-    return () => { isMounted = false; };
-  }, [auth, initialized, handleAuthSuccess, toast]);
-
-  useEffect(() => {
-    if (initialized && user && !googleLoading) {
-      router.replace('/profile');
-    }
-  }, [user, initialized, router, googleLoading]);
+  }, [user, initialized, router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,7 +85,7 @@ export default function RegisterPage() {
       };
       await setDoc(doc(db, 'users', user.uid), profileData);
       sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
-      router.replace('/profile');
+      // Redirection handled by useEffect
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
       setLoading(false);
@@ -152,21 +93,21 @@ export default function RegisterPage() {
   };
 
   const handleGoogleSignup = async () => {
-    if (googleLoading || !initialized) return;
-    setGoogleLoading(true);
+    if (googleInitiating || !initialized) return;
+    setGoogleInitiating(true);
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("Google Signup Initiation Error:", error);
+      console.error("Google Signup Error:", error);
       toast({ variant: 'destructive', title: "Auth Error", description: "Could not start Google login." });
-      setGoogleLoading(false);
+      setGoogleInitiating(false);
     }
   };
 
-  if (!initialized || googleLoading || (user && !googleLoading)) {
+  if (!initialized || user || googleInitiating) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center gap-6">
         <div className="relative">
@@ -197,7 +138,7 @@ export default function RegisterPage() {
           <Button 
             variant="outline" 
             onClick={handleGoogleSignup} 
-            disabled={googleLoading || !initialized}
+            disabled={googleInitiating || !initialized}
             className="w-full h-12 border-border bg-white/5 hover:bg-white/10 rounded-none text-[10px] font-black uppercase tracking-widest gap-3 active-press"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">

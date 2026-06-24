@@ -1,16 +1,15 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   signInWithEmailAndPassword, 
   GoogleAuthProvider, 
   signInWithRedirect, 
-  getRedirectResult,
   setPersistence, 
   browserLocalPersistence 
 } from 'firebase/auth';
-import { useAuth, useFirestore } from '@/firebase/provider';
+import { useAuth } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,96 +20,24 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Loader2, KeyRound, Mail, ArrowRight } from 'lucide-react';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(true); // Default to true to allow redirect check
+  const [googleInitiating, setGoogleInitiating] = useState(false);
   
   const auth = useAuth();
-  const db = useFirestore();
   const { user, initialized } = useUser();
   const router = useRouter();
   const { toast } = useToast();
 
-  const handleAuthSuccess = useCallback(async (uid: string) => {
-    try {
-      const userDocRef = doc(db, 'users', uid);
-      const userSnap = await getDoc(userDocRef);
-      
-      if (!userSnap.exists()) {
-        const currentUser = auth.currentUser;
-        await setDoc(userDocRef, {
-          uid,
-          fullName: currentUser?.displayName || 'Member',
-          email: currentUser?.email || '',
-          role: 'user',
-          lifetimeSpend: 0,
-          currentRank: 'Warrior',
-          rankId: 'warrior',
-          createdAt: new Date().toISOString(),
-          authProvider: currentUser?.providerData[0]?.providerId || 'google.com'
-        });
-      }
-
-      const profileData = (await getDoc(userDocRef)).data();
-
-      if (profileData?.is2FAEnabled) {
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiry = new Date();
-        expiry.setMinutes(expiry.getMinutes() + 5);
-
-        await updateDoc(userDocRef, {
-          twoFactorSecret: otp,
-          twoFactorExpiry: expiry.toISOString()
-        });
-
-        sessionStorage.setItem('pending_2fa_uid', uid);
-        toast({ title: "Verification Required", description: "Security code sent to your email." });
-        router.push('/login/verify');
-      } else {
-        router.replace('/profile');
-      }
-    } catch (e) {
-      console.error("Auth success processing error:", e);
+  // Unified redirection logic
+  useEffect(() => {
+    if (initialized && user) {
       router.replace('/profile');
     }
-  }, [auth, db, router, toast]);
-
-  // Handle Redirect Result on Mount
-  useEffect(() => {
-    if (!initialized) return;
-
-    let isMounted = true;
-
-    const checkRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result?.user && isMounted) {
-          await handleAuthSuccess(result.user.uid);
-        }
-      } catch (error: any) {
-        if (isMounted && error.code !== 'auth/no-auth-event') {
-          console.error("Redirect Error:", error);
-          toast({ variant: 'destructive', title: "Auth Error", description: "Login failed. Please try again." });
-        }
-      } finally {
-        if (isMounted) setGoogleLoading(false);
-      }
-    };
-
-    checkRedirect();
-    return () => { isMounted = false; };
-  }, [auth, initialized, handleAuthSuccess, toast]);
-
-  // Handle auto-redirect if already logged in
-  useEffect(() => {
-    if (initialized && user && !googleLoading) {
-      router.replace('/profile');
-    }
-  }, [user, initialized, router, googleLoading]);
+  }, [user, initialized, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,8 +50,8 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await setPersistence(auth, browserLocalPersistence);
-      const result = await signInWithEmailAndPassword(auth, email, password);
-      await handleAuthSuccess(result.user.uid);
+      await signInWithEmailAndPassword(auth, email, password);
+      // Redirect handled by useEffect
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
       setLoading(false);
@@ -132,21 +59,22 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
-    if (googleLoading || !initialized) return;
-    setGoogleLoading(true);
+    if (googleInitiating || !initialized) return;
+    setGoogleInitiating(true);
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("Google Login Initiation Error:", error);
+      console.error("Google Login Error:", error);
       toast({ variant: 'destructive', title: "Auth Error", description: "Could not start Google login." });
-      setGoogleLoading(false);
+      setGoogleInitiating(false);
     }
   };
 
-  if (!initialized || googleLoading || (user && !googleLoading)) {
+  // While waiting for initialization or if already logged in (waiting for redirect)
+  if (!initialized || user || googleInitiating) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center gap-6">
         <div className="relative">
@@ -177,7 +105,7 @@ export default function LoginPage() {
           <Button 
             variant="outline" 
             onClick={handleGoogleLogin} 
-            disabled={googleLoading || !initialized}
+            disabled={googleInitiating || !initialized}
             className="w-full h-12 border-border bg-white/5 hover:bg-white/10 rounded-none text-[10px] font-black uppercase tracking-widest gap-3 active-press"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
