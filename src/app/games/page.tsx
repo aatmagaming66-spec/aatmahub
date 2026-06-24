@@ -69,7 +69,7 @@ export default function GamesPage() {
                   )}
 
                   {isMlbb && (
-                    <div className="absolute top-2 left-2 z-30 bg-primary/95 px-2 py-1 rounded-none flex items-center justify-center shadow-md border border-white/10">
+                    <div className="absolute top-1.5 left-1.5 z-30 bg-red-600/90 px-1.5 py-0.5 rounded-none flex items-center justify-center shadow-md border border-white/10">
                       <span className="text-[8px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
                     </div>
                   )}

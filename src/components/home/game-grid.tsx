@@ -75,7 +75,6 @@ function GameCard({ game }: { game: any }) {
       prefetch={false}
       className="w-full group flex flex-col active-press"
     >
-      {/* Changed rounded-2xl to rounded-none to match the requested square aesthetic */}
       <div className="relative aspect-square w-full rounded-none overflow-hidden bg-transparent border border-white/10 shadow-2xl transition-all duration-300">
         {game.logo ? (
           <Image 
@@ -92,8 +91,8 @@ function GameCard({ game }: { game: any }) {
         )}
 
         {isMlbb && (
-          <div className="absolute top-1.5 left-1.5 z-30 bg-primary px-2 py-1 rounded-none flex items-center justify-center shadow-lg border border-white/10">
-            <span className="text-[10px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
+          <div className="absolute top-1 left-1 z-30 bg-red-600/90 px-1.5 py-0.5 rounded-none flex items-center justify-center shadow-lg border border-white/10">
+            <span className="text-[8px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
           </div>
         )}
       </div>
