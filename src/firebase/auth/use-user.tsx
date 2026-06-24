@@ -20,8 +20,8 @@ const ProfileContext = createContext<ProfileContextType>({
 });
 
 /**
- * ProfileProvider - Master Identity Manager
- * Handles global auth state, persistence restoration, and Google Redirect results.
+ * ProfileProvider - Master Identity & Session Manager
+ * Optimized for Redirect Auth and Session Persistence.
  */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const auth = useAuth();
@@ -31,37 +31,26 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
-  // AUTH LIFECYCLE & REDIRECT HANDLING
+  // AUTH LIFECYCLE: REDIRECT -> SESSION RESTORE -> PROFILE SYNC
   useEffect(() => {
     let isMounted = true;
-    console.log("[Auth] 🛡️ Identity initialization sequence started...");
+    console.log("[Auth] 🛡️ Initializing Master Identity Layer...");
 
-    // 1. Listen for auth state changes (Persistence restoration)
-    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      if (!isMounted) return;
-      console.log("[Auth] 👤 State Change:", firebaseUser ? `Logged in as ${firebaseUser.email}` : "No active session");
-      setUser(firebaseUser);
-      
-      // If we are not in a redirect flow, this will be the primary source of 'user'
-      if (!firebaseUser) {
-        setProfile(null);
-      }
-    });
-
-    // 2. Process Redirect Results (The "Google Login" return)
-    const processRedirect = async () => {
+    const initAuth = async () => {
       try {
-        console.log("[Auth] 🔄 Checking for Google redirect result...");
+        // 1. Check for Google Redirect Result FIRST
+        // This is critical when returning from accounts.google.com
+        console.log("[Auth] 🔄 Checking for Google redirect outcome...");
         const result = await getRedirectResult(auth);
         
         if (result?.user && isMounted) {
-          console.log("[Auth] ✅ Redirect success for:", result.user.email);
+          console.log("[Auth] ✅ Google redirect confirmed user:", result.user.email);
           const uid = result.user.uid;
           const userDocRef = doc(db, 'users', uid);
           const userSnap = await getDoc(userDocRef);
           
           if (!userSnap.exists()) {
-            console.log("[Auth] 📝 Creating new profile for Google user...");
+            console.log("[Auth] 📝 Syncing new Google profile to Firestore...");
             await setDoc(userDocRef, {
               uid,
               fullName: result.user.displayName || 'Member',
@@ -74,20 +63,41 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
               authProvider: 'google.com'
             });
           }
-        } else {
-          console.log("[Auth] ℹ️ No pending redirect result found.");
         }
+
+        // 2. Wait for the persistent session listener to fire at least once
+        // This ensures u is accurate (either non-null from persistence or null if signed out)
+        await new Promise<void>((resolve) => {
+          const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            if (isMounted) {
+              console.log("[Auth] 👤 Session Restored:", firebaseUser ? firebaseUser.email : "No active session");
+              setUser(firebaseUser);
+            }
+            unsubscribe();
+            resolve();
+          });
+        });
+
       } catch (error: any) {
-        console.error("[Auth] ❌ Redirect error:", error.code, error.message);
+        console.error("[Auth] ❌ Initialization failure:", error.code, error.message);
       } finally {
         if (isMounted) {
-          console.log("[Auth] 🏁 Initialization complete.");
+          console.log("[Auth] 🏁 Authentication lifecycle settled.");
           setInitialized(true);
         }
       }
     };
 
-    processRedirect();
+    initAuth();
+
+    // 3. Permanent listener for state changes (logouts, etc)
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      if (isMounted) setUser(firebaseUser);
+      if (!firebaseUser && isMounted) {
+        setProfile(null);
+        setLoading(false);
+      }
+    });
 
     return () => {
       isMounted = false;
@@ -95,20 +105,21 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     };
   }, [auth, db]);
 
-  // PROFILE SNAPSHOT LISTENER
+  // PROFILE SNAPSHOT: Fires only after user is confirmed and app is initialized
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
+    if (!user || !initialized) {
+      if (initialized && !user) setLoading(false);
       return;
     }
 
+    setLoading(true);
     const userDocRef = doc(db, 'users', user.uid);
     
     const unsubscribeProfile = onSnapshot(userDocRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         
-        // Immediate local rank expiry check
+        // Immediate Rank Expiry Check
         if (data.rankExpiry && data.rankId !== 'warrior') {
           const now = new Date();
           const expiry = new Date(data.rankExpiry);
@@ -124,7 +135,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         }
         setProfile(data);
       } else {
-        // Fallback profile creation for edge cases
+        // Fallback for missing profile
         const newProfile = {
           uid: user.uid,
           fullName: user.displayName || 'Member',
@@ -139,14 +150,19 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       }
       setLoading(false);
     }, (err) => {
-      console.error("[Auth] Profile sync error:", err);
+      console.error("[Auth] Profile listener error:", err);
       setLoading(false);
     });
 
     return () => unsubscribeProfile();
-  }, [user, db]);
+  }, [user, initialized, db]);
 
-  const value = useMemo(() => ({ user, profile, loading, initialized }), [user, profile, loading, initialized]);
+  const value = useMemo(() => ({ 
+    user, 
+    profile, 
+    loading: loading || !initialized, 
+    initialized 
+  }), [user, profile, loading, initialized]);
 
   return (
     <ProfileContext.Provider value={value}>

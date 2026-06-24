@@ -41,7 +41,7 @@ const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dynduenfb/image/u
 const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
 
 export default function ProfilePage() {
-  const { user, profile, initialized, loading: authLoading } = useUser();
+  const { user, profile, initialized, loading: profileLoading } = useUser();
   const { ranks } = useGlobalSettings();
   const auth = useAuth();
   const db = useFirestore();
@@ -56,12 +56,13 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  //耐心守卫: Wait for complete initialization before redirecting
+  // REDIRECT GUARD: Strictly wait for settling before kicking out
   useEffect(() => {
-    if (initialized && !authLoading && !user) {
+    if (initialized && !user) {
+      console.log("[Profile] Identity confirmed as signed out. Routing to login...");
       router.replace('/login');
     }
-  }, [user, initialized, authLoading, router]);
+  }, [user, initialized, router]);
   
   useEffect(() => {
     if (profile && !editing) {
@@ -141,14 +142,20 @@ export default function ProfilePage() {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  if (!initialized || authLoading || !user) {
+  // HIGH PRIORITY LOADING SHELL
+  if (!initialized || (user && !profile && profileLoading)) {
     return (
-      <div className="flex flex-col h-[80vh] items-center justify-center gap-6">
+      <div className="flex flex-col h-[80vh] items-center justify-center gap-6 animate-in fade-in duration-500">
         <div className="h-12 w-12 rounded-none border-b-2 border-primary animate-spin" />
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Establishing Connection</p>
+        <div className="text-center space-y-1">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Synchronizing HUB Session</p>
+          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Verifying secure credentials...</p>
+        </div>
       </div>
     );
   }
+
+  if (!user) return null;
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-300 pb-24">

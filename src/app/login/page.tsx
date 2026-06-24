@@ -32,10 +32,10 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Redirect if user is already authenticated
+  // Guard: If initialized and user exists, redirect to profile immediately
   useEffect(() => {
     if (initialized && user) {
-      console.log("[LoginPage] Authenticated user detected, redirecting to profile...");
+      console.log("[LoginPage] Active session detected, routing to profile...");
       router.replace('/profile');
     }
   }, [user, initialized, router]);
@@ -50,12 +50,12 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      console.log("[LoginPage] Initiating email login with persistence...");
+      console.log("[LoginPage] Manual login started...");
       await setPersistence(auth, browserLocalPersistence);
       await signInWithEmailAndPassword(auth, email, password);
-      // Redirect handled by useEffect
+      // Redirection handled by useEffect guard above
     } catch (error: any) {
-      console.error("[LoginPage] Email auth failure:", error);
+      console.error("[LoginPage] Auth failure:", error);
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
       setLoading(false);
     }
@@ -65,22 +65,22 @@ export default function LoginPage() {
     if (googleInitiating || !initialized) return;
     setGoogleInitiating(true);
     try {
-      console.log("[LoginPage] Initiating Google redirect flow...");
+      console.log("[LoginPage] Starting Google redirect sequence...");
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
       console.error("[LoginPage] Google redirect initiation error:", error);
-      toast({ variant: 'destructive', title: "Auth Error", description: "Could not start Google login." });
+      toast({ variant: 'destructive', title: "Auth Error", description: "Could not initiate Google login." });
       setGoogleInitiating(false);
     }
   };
 
-  // Wait for auth system to fully initialize (including checking redirect results)
+  // While auth is settling or user is present, show a high-quality loader
   if (!initialized || user || googleInitiating) {
     return (
-      <div className="flex flex-col h-[80vh] items-center justify-center gap-6">
+      <div className="flex flex-col h-[80vh] items-center justify-center gap-6 animate-in fade-in duration-500">
         <div className="relative">
           <div className="h-16 w-16 rounded-none border-t-2 border-primary animate-spin" />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -88,8 +88,8 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="text-center space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Synchronizing Session</p>
-          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Verifying secure credentials...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Synchronizing HUB Identity</p>
+          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Securing your gaming session...</p>
         </div>
       </div>
     );
