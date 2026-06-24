@@ -85,8 +85,8 @@ export default function Home() {
 
       <footer className="bg-background border-t border-border pt-16 pb-24 px-4 md:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
-          {/* Column 1: Brand & Info */}
-          <div className="space-y-6">
+          {/* Column 1: Brand & Info - Centered on mobile, Left-aligned on large screens */}
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-6">
             <Link href="/" className="inline-block group active-press">
               <span className="font-headline font-black text-2xl tracking-tighter uppercase">
                 <span className="text-primary">AATMA</span> HUB
@@ -96,7 +96,7 @@ export default function Home() {
               Premium digital solutions for gaming and social needs. Fast, secure and trusted topup platform.
             </p>
             
-            <div className="flex items-center gap-4 pt-4">
+            <div className="flex items-center justify-center lg:justify-start gap-4 pt-4">
               <a href="#" className="h-10 w-10 bg-white/5 border border-white/5 flex items-center justify-center rounded-none hover:border-primary/50 hover:bg-primary/10 transition-all group">
                 <Send size={18} className="text-white group-hover:text-primary" />
               </a>
@@ -113,7 +113,7 @@ export default function Home() {
           </div>
 
           {/* Column 2: Quick Links */}
-          <div className="space-y-8">
+          <div className="space-y-8 text-center lg:text-left">
             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Quick Links</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-8">
               {[
@@ -131,7 +131,7 @@ export default function Home() {
                 <Link 
                   key={link.label} 
                   href={link.href}
-                  className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center gap-2 group"
+                  className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center lg:justify-start gap-2 group"
                 >
                   <div className="w-1 h-1 bg-white/10 rounded-full group-hover:bg-primary transition-colors" />
                   {link.label}
