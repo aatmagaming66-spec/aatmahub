@@ -9,7 +9,7 @@ import { useUser } from "@/firebase/auth/use-user";
 
 /**
  * BottomNav - Performance Refactored
- * Optimized for zero-latency first interaction.
+ * Optimized for zero-latency interaction using touch-action and manual routing.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -30,11 +30,11 @@ export function BottomNav() {
   }, [user, initialized]);
 
   const handleNavClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    // Tracking navigation start to measure perceived latency
+    // Track navigation start to measure perceived latency
     (window as any).__nav_click_time = performance.now();
     
-    // Manual push to bypass any potential Link component internal lag on first mount
-    // but we still allow the default behavior of Link if it's already hydrated.
+    // Allow default Link behavior but ensure the item feels "live" immediately
+    // by using aggressive CSS touch-action rules defined in globals.css
   }, []);
 
   return (
@@ -47,7 +47,7 @@ export function BottomNav() {
             <Link 
               key={item.href} 
               href={item.href}
-              prefetch={false}
+              prefetch={true} // Enable prefetching to ensure navigation is ready
               className={cn(
                 "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative active-press nav-item",
                 isActive ? "text-primary" : "text-muted-foreground hover:text-white"

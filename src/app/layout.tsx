@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { TopHeader } from '@/components/navigation/top-header';
 import { BottomNav } from '@/components/navigation/bottom-nav';
@@ -31,6 +31,15 @@ export const metadata: Metadata = {
   },
 };
 
+// Explicit viewport optimization for zero-delay taps
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  interactiveWidget: 'resizes-content',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,10 +51,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+        {/* Force early hardware acceleration */}
         <style dangerouslySetInnerHTML={{ __html: `
-          * { touch-action: manipulation; }
-          body { -webkit-tap-highlight-color: transparent; }
-          .page-shell { transform: translate3d(0,0,0); backface-visibility: hidden; perspective: 1000px; }
+          * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+          .page-shell { transform: translate3d(0,0,0); backface-visibility: hidden; }
         `}} />
       </head>
       <body className="font-body antialiased bg-background text-foreground min-h-screen overflow-x-hidden">

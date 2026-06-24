@@ -30,6 +30,7 @@
 @layer base {
   * {
     @apply border-border outline-none;
+    /* Force fast tap handling globally */
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
@@ -38,14 +39,18 @@
     @apply bg-background text-foreground font-body antialiased;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    /* Prevent system gestures from interfering with taps */
     -webkit-touch-callout: none;
     font-display: swap;
+    overflow-x: hidden;
   }
 
-  a, button {
+  /* Aggressive click delay fix for all interactive elements */
+  a, button, [role="button"], input, select, textarea {
     cursor: pointer;
+    touch-action: manipulation;
     user-select: none;
-    -webkit-user-drag: none;
+    -webkit-user-select: none;
   }
 }
 
@@ -57,9 +62,10 @@
   scrollbar-width: none;
 }
 
-/* Interaction Feedback */
+/* Zero-Latency Interaction Feedback */
 .active-press {
-  @apply transition-transform duration-75 active:scale-[0.96];
+  @apply transition-transform duration-75 active:scale-[0.97];
+  will-change: transform;
 }
 
 .metallic-badge {
@@ -70,4 +76,5 @@
   -webkit-user-select: none;
   user-select: none;
   cursor: pointer;
+  touch-action: manipulation;
 }
