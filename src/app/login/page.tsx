@@ -50,10 +50,8 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      console.log("[LoginPage] Manual login started...");
       await setPersistence(auth, browserLocalPersistence);
       await signInWithEmailAndPassword(auth, email, password);
-      // Redirection handled by useEffect guard above
     } catch (error: any) {
       console.error("[LoginPage] Auth failure:", error);
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
@@ -65,7 +63,6 @@ export default function LoginPage() {
     if (googleInitiating || !initialized) return;
     setGoogleInitiating(true);
     try {
-      console.log("[LoginPage] Starting Google redirect sequence...");
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);

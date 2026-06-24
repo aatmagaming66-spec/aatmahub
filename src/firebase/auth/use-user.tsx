@@ -41,7 +41,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         // 1. Check for Google Redirect Result FIRST
         // This is critical when returning from accounts.google.com
         console.log("[Auth] 🔄 Checking for Google redirect outcome...");
-        const result = await getRedirectResult(auth);
+        const result = await getRedirectResult(auth).catch(err => {
+          console.error("[Auth] Redirect Result Error:", err.code, err.message);
+          return null;
+        });
         
         if (result?.user && isMounted) {
           console.log("[Auth] ✅ Google redirect confirmed user:", result.user.email);
@@ -66,42 +69,26 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         }
 
         // 2. Wait for the persistent session listener to fire at least once
-        // This ensures u is accurate (either non-null from persistence or null if signed out)
-        await new Promise<void>((resolve) => {
-          const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-            if (isMounted) {
-              console.log("[Auth] 👤 Session Restored:", firebaseUser ? firebaseUser.email : "No active session");
-              setUser(firebaseUser);
-            }
-            unsubscribe();
-            resolve();
-          });
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+          if (isMounted) {
+            console.log("[Auth] 👤 Session State:", firebaseUser ? firebaseUser.email : "No active session");
+            setUser(firebaseUser);
+            setInitialized(true);
+          }
         });
+
+        return () => unsubscribe();
 
       } catch (error: any) {
         console.error("[Auth] ❌ Initialization failure:", error.code, error.message);
-      } finally {
-        if (isMounted) {
-          console.log("[Auth] 🏁 Authentication lifecycle settled.");
-          setInitialized(true);
-        }
+        if (isMounted) setInitialized(true);
       }
     };
 
     initAuth();
 
-    // 3. Permanent listener for state changes (logouts, etc)
-    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
-      if (isMounted) setUser(firebaseUser);
-      if (!firebaseUser && isMounted) {
-        setProfile(null);
-        setLoading(false);
-      }
-    });
-
     return () => {
       isMounted = false;
-      unsubscribeAuth();
     };
   }, [auth, db]);
 

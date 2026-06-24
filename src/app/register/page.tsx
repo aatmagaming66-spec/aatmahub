@@ -66,7 +66,6 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      console.log("[RegisterPage] Initiating account creation with persistence...");
       await setPersistence(auth, browserLocalPersistence);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -88,7 +87,6 @@ export default function RegisterPage() {
       };
       await setDoc(doc(db, 'users', user.uid), profileData);
       sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
-      // Redirection handled by useEffect
     } catch (error: any) {
       console.error("[RegisterPage] Registration failure:", error);
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
@@ -100,7 +98,6 @@ export default function RegisterPage() {
     if (googleInitiating || !initialized) return;
     setGoogleInitiating(true);
     try {
-      console.log("[RegisterPage] Initiating Google redirect flow...");
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);
