@@ -10,10 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, KeyRound, Mail, ArrowRight } from 'lucide-react';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 export default function LoginPage() {
@@ -50,8 +50,6 @@ export default function LoginPage() {
           twoFactorExpiry: expiry.toISOString()
         });
 
-        console.log(`[SECURITY] 2FA OTP for ${profile.email}: ${otp}`);
-        
         sessionStorage.setItem('pending_2fa_uid', uid);
         toast({ title: "Verification Required", description: "A security code has been sent to your email." });
         router.push('/login/verify');
@@ -59,7 +57,6 @@ export default function LoginPage() {
         router.push('/profile');
       }
     } catch (e) {
-      console.error("Auth success processing error:", e);
       router.push('/profile');
     }
   };
@@ -87,34 +84,16 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     if (googleLoading || !initialized) return;
     setGoogleLoading(true);
-    
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      
-      // Force persistence to ensure session stays active in workstations environment
       await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
       await handleAuthSuccess(result.user.uid);
     } catch (error: any) {
-      console.error('Google Auth Error:', error);
-      
-      let message = "An unexpected error occurred.";
-      if (error.code === 'auth/popup-closed-by-user') {
-        message = "The login window was closed before completion.";
-      } else if (error.code === 'auth/unauthorized-domain') {
-        message = "This domain is not authorized in Firebase Console.";
-      } else if (error.code === 'auth/operation-not-allowed') {
-        message = "Google login is not enabled in Firebase Authentication.";
-      } else if (error.code === 'auth/network-request-failed') {
-        message = "Network error. Please check your connection.";
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({ variant: 'destructive', title: "Google Login Failed", description: error.message });
       }
-
-      toast({ 
-        variant: 'destructive', 
-        title: "Google Login Failed", 
-        description: message
-      });
     } finally {
       setGoogleLoading(false);
     }
@@ -125,13 +104,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 animate-in fade-in duration-500">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4 animate-in fade-in duration-500 pb-20">
       <Card className="w-full max-w-md bg-card border-border rounded-none shadow-2xl overflow-hidden">
-        <CardHeader className="p-8 text-center space-y-2">
-          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Login</CardTitle>
-          <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Sign in to your account</CardDescription>
+        <CardHeader className="p-8 text-center space-y-2 border-b border-white/5">
+          <div className="h-12 w-12 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-2 border border-primary/20">
+             <KeyRound className="h-6 w-6 text-primary" />
+          </div>
+          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Login HUB</CardTitle>
+          <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Authorize your gaming session</CardDescription>
         </CardHeader>
-        <CardContent className="p-8 pt-0 space-y-6">
+        <CardContent className="p-8 space-y-6">
           <Button 
             variant="outline" 
             onClick={handleGoogleLogin} 
@@ -155,42 +137,53 @@ export default function LoginPage() {
             <Separator className="flex-1 bg-border" />
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email</Label>
-              {!initialized ? <Skeleton className="h-12 w-full bg-white/5" /> : (
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Account Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
                 <Input 
                   type="email"
-                  placeholder="Email" 
-                  className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all font-bold"
+                  placeholder="name@email.com" 
+                  className="bg-background border-border h-14 rounded-none pl-12 focus:border-primary font-bold text-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
-              )}
+              </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</Label>
-              {!initialized ? <Skeleton className="h-12 w-full bg-white/5" /> : (
+              <div className="flex justify-between items-center">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</Label>
+                <Link href="#" className="text-[9px] font-black uppercase text-primary hover:underline">Forgot?</Link>
+              </div>
+              <div className="relative">
+                <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
                 <Input 
                   type="password"
-                  placeholder="Password" 
-                  className="bg-background/50 border-border h-12 rounded-none focus:border-primary transition-all font-bold"
+                  placeholder="••••••••" 
+                  className="bg-background border-border h-14 rounded-none pl-12 focus:border-primary font-bold text-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
-              )}
+              </div>
             </div>
+
+            <div className="flex items-center space-x-2 pt-1">
+              <Checkbox id="remember" className="border-border data-[state=checked]:bg-primary rounded-none" />
+              <label htmlFor="remember" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground cursor-pointer">Remember my session</label>
+            </div>
+
             <Button 
               type="submit" 
-              className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20 active-press"
+              className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none transition-all shadow-xl shadow-primary/20 group"
               disabled={loading || !initialized}
             >
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Login"}
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <>Login to HUB <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" /></>}
             </Button>
           </form>
           <div className="text-center pt-2">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Don't have an account? <Link href="/register" className="text-primary hover:underline">Sign Up</Link>
+              New to Aatma HUB? <Link href="/register" className="text-primary hover:underline ml-1">Create Account</Link>
             </p>
           </div>
         </CardContent>

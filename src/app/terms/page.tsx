@@ -1,41 +1,86 @@
+'use client';
+
+import { FileText, UserCheck, ShieldAlert, Ban } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function TermsPage() {
   return (
-    <div className="flex flex-col w-full p-4 space-y-10 animate-in fade-in duration-700">
-      <header className="py-6">
-        <h1 className="text-4xl font-headline font-black tracking-tighter uppercase mb-1">Terms of Protocol</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Last Updated: February 2025</p>
+    <div className="flex flex-col w-full p-4 space-y-10 animate-in fade-in duration-700 pb-20">
+      <header className="py-8">
+        <h1 className="text-4xl font-headline font-black tracking-tighter uppercase mb-2">Terms & Conditions</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Legal Framework v2.1</p>
       </header>
 
-      <div className="space-y-8 bg-card border border-border rounded-[2.5rem] p-8">
-        <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-primary">1. Agreement to Terms</h2>
-          <p className="text-[11px] text-muted-foreground leading-relaxed uppercase tracking-wider">
-            By accessing the AATMA HUB platform, you agree to be bound by these Terms. If you disagree with any part of these terms, you may not access our services.
-          </p>
-        </section>
+      <div className="max-w-4xl space-y-8">
+        <p className="text-sm text-white/70 uppercase tracking-widest font-medium leading-relaxed">
+          By using the Aatma HUB platform, you agree to abide by the following terms and guidelines. These terms ensure a safe and reliable marketplace for all users.
+        </p>
 
-        <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-primary">2. Digital Fulfillment</h2>
-          <p className="text-[11px] text-muted-foreground leading-relaxed uppercase tracking-wider">
-            Our services provide digital assets. All transactions are final once fulfillment is triggered. Users are responsible for providing correct Player IDs and Server IDs.
-          </p>
-        </section>
+        <div className="grid gap-8">
+          <TermItem 
+            icon={UserCheck} 
+            title="User Responsibility"
+            points={[
+              "Provide accurate and up-to-date account information.",
+              "Users are responsible for maintaining the confidentiality of their credentials.",
+              "Use only supported and legitimate payment methods."
+            ]}
+          />
 
-        <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-primary">3. Wallet Usage</h2>
-          <p className="text-[11px] text-muted-foreground leading-relaxed uppercase tracking-wider">
-            Funds deposited into the AATMA HUB Wallet are non-transferable and can only be used for purchases within the platform.
-          </p>
-        </section>
+          <TermItem 
+            icon={FileText} 
+            title="Platform Rules"
+            points={[
+              "Follow all platform rules and digital fulfillment policies.",
+              "Abide by regional restrictions for specific game top-ups.",
+              "Communication with support must remain professional and respectful."
+            ]}
+          />
 
-        <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-primary">4. Governing Law</h2>
-          <p className="text-[11px] text-muted-foreground leading-relaxed uppercase tracking-wider">
-            These terms shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law provisions.
-          </p>
-        </section>
+          <TermItem 
+            icon={ShieldAlert} 
+            title="Anti-Fraud Policy"
+            points={[
+              "Avoid any fraudulent activities or unauthorized chargebacks.",
+              "Exploiting site vulnerabilities will lead to permanent restriction.",
+              "Accounts involved in suspicious activity will be flagged for review."
+            ]}
+          />
+
+          <TermItem 
+            icon={Ban} 
+            title="Right to Terminate"
+            points={[
+              "Aatma HUB reserves the right to cancel suspicious orders.",
+              "We may restrict or terminate accounts involved in abuse or fraud.",
+              "Decisions made by our security team are final."
+            ]}
+          />
+        </div>
+
+        <div className="p-6 border border-white/5 bg-black/20 text-center space-y-2">
+           <p className="text-[10px] font-black uppercase text-muted-foreground tracking-[0.4em]">AATMA HUB DIGITAL PROTOCOL</p>
+        </div>
       </div>
     </div>
+  );
+}
+
+function TermItem({ icon: Icon, title, points }: any) {
+  return (
+    <section className="space-y-4">
+      <div className="flex items-center gap-3 border-l-2 border-primary pl-4">
+        <Icon size={20} className="text-primary" />
+        <h2 className="text-lg font-black uppercase tracking-tighter text-white">{title}</h2>
+      </div>
+      <ul className="space-y-3 pl-12">
+        {points.map((point: string, i: number) => (
+          <li key={i} className="text-[11px] text-muted-foreground uppercase tracking-widest flex items-start gap-2">
+            <div className="h-1 w-1 rounded-full bg-primary mt-1.5 shrink-0" />
+            {point}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

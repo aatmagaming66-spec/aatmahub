@@ -13,7 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { sendTelegramNotification } from '@/lib/telegram';
-import { Loader2, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus, User, Mail, Smartphone, KeyRound, ArrowRight } from 'lucide-react';
 
 const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
 
@@ -33,20 +33,17 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (loading) return;
     if (!fullName || !email || !phoneNumber || !password || !confirmPassword) {
       toast({ variant: 'destructive', title: 'Error', description: 'Fill all fields.' });
       return;
     }
-
     if (password.length < 8) {
       toast({ variant: 'destructive', title: 'Error', description: 'Min 8 chars.' });
       return;
     }
-
     if (password !== confirmPassword) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Mismatch.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Passwords mismatch.' });
       return;
     }
 
@@ -55,11 +52,8 @@ export default function RegisterPage() {
       await setPersistence(auth, browserLocalPersistence);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
       await firebaseUpdateProfile(user, { displayName: fullName });
-
       const role = email.toLowerCase() === SUPER_ADMIN_EMAIL ? 'super_admin' : 'user';
-
       const profileData = {
         uid: user.uid,
         fullName,
@@ -73,12 +67,11 @@ export default function RegisterPage() {
         rankId: 'warrior',
         createdAt: new Date().toISOString(),
       };
-
       await setDoc(doc(db, 'users', user.uid), profileData);
       sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
       router.push('/');
     } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Failed', description: error.message });
+      toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
     } finally {
       setLoading(false);
     }
@@ -87,15 +80,12 @@ export default function RegisterPage() {
   const handleGoogleSignup = async () => {
     if (googleLoading) return;
     setGoogleLoading(true);
-    
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      
       await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      
       const userDocRef = doc(db, 'users', user.uid);
       await setDoc(userDocRef, {
         uid: user.uid,
@@ -109,37 +99,28 @@ export default function RegisterPage() {
         rankId: 'warrior',
         createdAt: new Date().toISOString()
       }, { merge: true });
-
       toast({ title: "Authorized", description: "Google account active." });
       router.push('/');
     } catch (error: any) {
-      console.error('Google Auth Error:', error);
-      
-      let message = "Google Authentication failed.";
-      if (error.code === 'auth/popup-closed-by-user') {
-        message = "The sign-up window was closed.";
-      } else if (error.code === 'auth/unauthorized-domain') {
-        message = "Domain not authorized in Firebase Console.";
+      if (error.code !== 'auth/popup-closed-by-user') {
+        toast({ variant: 'destructive', title: 'Auth Error', description: error.message });
       }
-
-      toast({ 
-        variant: 'destructive', 
-        title: 'Auth Error', 
-        description: message 
-      });
     } finally {
       setGoogleLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center p-4 animate-in fade-in duration-700">
-      <Card className="w-full max-w-md bg-card border-border rounded-none shadow-2xl overflow-hidden">
-        <CardHeader className="p-8 text-center space-y-2">
+    <div className="min-h-[80vh] flex items-center justify-center p-4 animate-in fade-in duration-700 pb-24">
+      <Card className="w-full max-w-lg bg-card border-border rounded-none shadow-2xl overflow-hidden">
+        <CardHeader className="p-8 text-center space-y-2 border-b border-white/5">
+          <div className="h-12 w-12 bg-accent/10 rounded-none flex items-center justify-center mx-auto mb-2 border border-accent/20">
+             <UserPlus className="h-6 w-6 text-accent" />
+          </div>
           <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Sign Up</CardTitle>
-          <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Create your account</CardDescription>
+          <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Join the elite gaming community</CardDescription>
         </CardHeader>
-        <CardContent className="p-8 pt-0 space-y-6">
+        <CardContent className="p-8 space-y-6">
           <Button 
             variant="outline" 
             onClick={handleGoogleSignup} 
@@ -163,38 +144,57 @@ export default function RegisterPage() {
             <Separator className="flex-1 bg-border" />
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleRegister} className="space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Name</Label>
-                <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Name" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
+                  <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full Name" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone</Label>
-                <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="Phone" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone Number</Label>
+                <div className="relative">
+                  <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
+                  <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+91..." className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                </div>
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</Label>
-                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Repeat</Label>
-                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat" className="bg-background/50 border-border h-12 rounded-none font-bold text-xs" />
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@email.com" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
               </div>
             </div>
-            <Button type="submit" disabled={loading} className="w-full h-14 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-xl shadow-primary/20 mt-2 active-press">
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign Up"}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Create Password</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
+                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 8 characters" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Repeat Password</Label>
+                <div className="relative">
+                  <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
+                  <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                </div>
+              </div>
+            </div>
+            <Button 
+              type="submit" 
+              disabled={loading} 
+              className="w-full h-16 bg-primary hover:bg-secondary text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-xl shadow-primary/20 mt-2 active-press group transition-all"
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Create Account <ArrowRight size={14} className="ml-2 group-hover:translate-x-1 transition-transform" /></>}
             </Button>
           </form>
           <div className="text-center pt-2">
             <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-              Already have an account? <Link href="/login" className="text-primary hover:underline">Login</Link>
+              Already a member? <Link href="/login" className="text-primary hover:underline ml-1">Sign In</Link>
             </p>
           </div>
         </CardContent>

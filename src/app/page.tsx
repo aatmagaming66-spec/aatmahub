@@ -85,7 +85,7 @@ export default function Home() {
 
       <footer className="bg-background border-t border-border pt-10 pb-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24">
-          {/* Column 1: Brand & Info - Centered on mobile, Left-aligned on large screens */}
+          {/* Column 1: Brand & Info */}
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-5">
             <Link href="/" className="inline-block group active-press">
               <span className="font-headline font-black text-2xl tracking-tighter uppercase">
@@ -93,7 +93,7 @@ export default function Home() {
               </span>
             </Link>
             <p className="text-[11px] font-medium text-muted-foreground leading-relaxed uppercase tracking-wider max-w-sm">
-              Premium digital solutions for gaming and social needs. Fast, secure and trusted topup platform.
+              Aatma HUB is a trusted gaming topup and digital services platform providing fast, secure and affordable recharge solutions for gamers worldwide.
             </p>
             
             <div className="flex items-center justify-center lg:justify-start gap-4 pt-2">
@@ -112,31 +112,50 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Column 2: Quick Links */}
-          <div className="space-y-6 text-center lg:text-left">
-            <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Quick Links</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-8">
-              {[
-                { label: "Home", href: "/" },
-                { label: "About Us", href: "#" },
-                { label: "Contact Us", href: "/contact" },
-                { label: "Support", href: "/contact" },
-                { label: "Login", href: "/login" },
-                { label: "Sign Up", href: "/register" },
-                { label: "My Orders", href: "/orders" },
-                { label: "Privacy Policy", href: "/privacy" },
-                { label: "Terms & Conditions", href: "/terms" },
-                { label: "Refund Policy", href: "/refund-policy" },
-              ].map((link) => (
-                <Link 
-                  key={link.label} 
-                  href={link.href}
-                  className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center lg:justify-start gap-2 group"
-                >
-                  <div className="w-1 h-1 bg-white/10 rounded-full group-hover:bg-primary transition-colors" />
-                  {link.label}
-                </Link>
-              ))}
+          {/* Column 2: Navigation Links */}
+          <div className="grid grid-cols-2 gap-8">
+            <div className="space-y-4 text-center lg:text-left">
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Quick Links</h3>
+              <div className="flex flex-col space-y-2">
+                {[
+                  { label: "Home", href: "/" },
+                  { label: "About Us", href: "/about-us" },
+                  { label: "Contact Us", href: "/contact" },
+                  { label: "Support", href: "/support" },
+                  { label: "Login", href: "/login" },
+                  { label: "Sign Up", href: "/register" },
+                  { label: "My Orders", href: "/orders" },
+                ].map((link) => (
+                  <Link 
+                    key={link.label} 
+                    href={link.href}
+                    className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center lg:justify-start gap-2 group"
+                  >
+                    <div className="w-1 h-1 bg-white/10 rounded-full group-hover:bg-primary transition-colors shrink-0" />
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4 text-center lg:text-left">
+              <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Legal Links</h3>
+              <div className="flex flex-col space-y-2">
+                {[
+                  { label: "Privacy Policy", href: "/privacy" },
+                  { label: "Terms & Conditions", href: "/terms" },
+                  { label: "Refund Policy", href: "/refund-policy" },
+                ].map((link) => (
+                  <Link 
+                    key={link.label} 
+                    href={link.href}
+                    className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest hover:text-accent transition-colors flex items-center justify-center lg:justify-start gap-2 group"
+                  >
+                    <div className="w-1 h-1 bg-white/10 rounded-full group-hover:bg-accent transition-colors shrink-0" />
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </div>
