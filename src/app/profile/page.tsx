@@ -41,7 +41,7 @@ const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dynduenfb/image/u
 const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
 
 export default function ProfilePage() {
-  const { user, profile, initialized } = useUser();
+  const { user, profile, initialized, loading: authLoading } = useUser();
   const { ranks } = useGlobalSettings();
   const auth = useAuth();
   const db = useFirestore();
@@ -56,11 +56,12 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  //耐心守卫: Wait for complete initialization before redirecting
   useEffect(() => {
-    if (initialized && !user) {
+    if (initialized && !authLoading && !user) {
       router.replace('/login');
     }
-  }, [user, initialized, router]);
+  }, [user, initialized, authLoading, router]);
   
   useEffect(() => {
     if (profile && !editing) {
@@ -140,10 +141,11 @@ export default function ProfilePage() {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  if (!initialized || !user) {
+  if (!initialized || authLoading || !user) {
     return (
-      <div className="flex flex-col w-full min-h-screen items-center justify-center">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
+      <div className="flex flex-col h-[80vh] items-center justify-center gap-6">
+        <div className="h-12 w-12 rounded-none border-b-2 border-primary animate-spin" />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Establishing Connection</p>
       </div>
     );
   }
