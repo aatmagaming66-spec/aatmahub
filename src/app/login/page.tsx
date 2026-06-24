@@ -1,8 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { 
+  signInWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithRedirect, 
+  getRedirectResult,
+  setPersistence, 
+  browserLocalPersistence 
+} from 'firebase/auth';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
 import { Button } from '@/components/ui/button';
@@ -28,13 +35,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  useEffect(() => {
-    if (initialized && user) {
-      router.replace('/profile');
-    }
-  }, [user, initialized, router]);
-
-  const handleAuthSuccess = async (uid: string) => {
+  const handleAuthSuccess = useCallback(async (uid: string) => {
     try {
       const userDocRef = doc(db, 'users', uid);
       const userSnap = await getDoc(userDocRef);
@@ -51,7 +52,7 @@ export default function LoginPage() {
           currentRank: 'Warrior',
           rankId: 'warrior',
           createdAt: new Date().toISOString(),
-          authProvider: currentUser?.providerData[0]?.providerId || 'password'
+          authProvider: currentUser?.providerData[0]?.providerId || 'google.com'
         });
       }
 
@@ -77,7 +78,37 @@ export default function LoginPage() {
       console.error("Auth success processing error:", e);
       router.push('/profile');
     }
-  };
+  }, [auth, db, router, toast]);
+
+  // Handle Redirection Result
+  useEffect(() => {
+    if (!initialized) return;
+
+    const checkRedirect = async () => {
+      try {
+        setGoogleLoading(true);
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          await handleAuthSuccess(result.user.uid);
+        }
+      } catch (error: any) {
+        console.error("Redirect Result Error:", error);
+        if (error.code !== 'auth/no-auth-event') {
+          toast({ variant: 'destructive', title: "Auth Error", description: "Authentication failed. Please try again." });
+        }
+      } finally {
+        setGoogleLoading(false);
+      }
+    };
+
+    checkRedirect();
+  }, [auth, initialized, handleAuthSuccess, toast]);
+
+  useEffect(() => {
+    if (initialized && user && !googleLoading) {
+      router.replace('/profile');
+    }
+  }, [user, initialized, router, googleLoading]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,32 +136,20 @@ export default function LoginPage() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
-      
       await setPersistence(auth, browserLocalPersistence);
-      const result = await signInWithPopup(auth, provider);
-      
-      if (result.user) {
-        await handleAuthSuccess(result.user.uid);
-      }
+      await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("Google Login Error:", error);
-      if (error.code === 'auth/popup-closed-by-user') {
-        toast({ title: "Cancelled", description: "Login window was closed." });
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // Silently handle concurrent requests
-      } else {
-        toast({ variant: 'destructive', title: "Auth Error", description: "Could not complete Google login. Check pop-up settings." });
-      }
-    } finally {
+      console.error("Google Login Initiation Error:", error);
+      toast({ variant: 'destructive', title: "Auth Error", description: "Could not start Google login." });
       setGoogleLoading(false);
     }
   };
 
-  if (initialized && user) {
+  if (initialized && user && !googleLoading) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center gap-4">
         <Loader2 className="h-10 w-10 text-primary animate-spin" />
-        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Redirecting to Dashboard...</p>
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Syncing Session...</p>
       </div>
     );
   }
