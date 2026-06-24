@@ -83,20 +83,20 @@ export default function Home() {
       {homepageConfig.showSocial && <ServiceCarousel title="Social Growth Services" category="Social Services" />}
       {homepageConfig.showLiveActivity && <LiveActivity />}
 
-      <footer className="bg-background border-t border-border pt-16 pb-24 px-4 md:px-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
+      <footer className="bg-background border-t border-border pt-10 pb-16 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-24">
           {/* Column 1: Brand & Info - Centered on mobile, Left-aligned on large screens */}
-          <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-6">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-5">
             <Link href="/" className="inline-block group active-press">
               <span className="font-headline font-black text-2xl tracking-tighter uppercase">
                 <span className="text-primary">AATMA</span> HUB
               </span>
             </Link>
-            <p className="text-xs font-medium text-muted-foreground leading-relaxed uppercase tracking-wider max-w-md">
+            <p className="text-[11px] font-medium text-muted-foreground leading-relaxed uppercase tracking-wider max-w-sm">
               Premium digital solutions for gaming and social needs. Fast, secure and trusted topup platform.
             </p>
             
-            <div className="flex items-center justify-center lg:justify-start gap-4 pt-4">
+            <div className="flex items-center justify-center lg:justify-start gap-4 pt-2">
               <a href="#" className="h-10 w-10 bg-white/5 border border-white/5 flex items-center justify-center rounded-none hover:border-primary/50 hover:bg-primary/10 transition-all group">
                 <Send size={18} className="text-white group-hover:text-primary" />
               </a>
@@ -113,9 +113,9 @@ export default function Home() {
           </div>
 
           {/* Column 2: Quick Links */}
-          <div className="space-y-8 text-center lg:text-left">
+          <div className="space-y-6 text-center lg:text-left">
             <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Quick Links</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-4 gap-x-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-8">
               {[
                 { label: "Home", href: "/" },
                 { label: "About Us", href: "#" },
@@ -141,7 +141,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto mt-16 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+        <div className="max-w-7xl mx-auto mt-8 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em]">
             © 2021 All Rights Reserved - Aatma HUB
           </p>
