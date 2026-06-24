@@ -37,11 +37,9 @@
   body {
     @apply bg-background text-foreground font-body antialiased;
     text-rendering: optimizeLegibility;
-    overscroll-behavior-y: none;
     -webkit-font-smoothing: antialiased;
     -webkit-touch-callout: none;
     font-display: swap;
-    overflow: hidden;
   }
 
   a, button {
@@ -59,20 +57,13 @@
   scrollbar-width: none;
 }
 
-/* Aggressive Hardware-Accelerated Interactions */
+/* Interaction Feedback */
 .active-press {
-  @apply transition-transform duration-75 active:scale-[0.94] will-change-transform transform-gpu;
+  @apply transition-transform duration-75 active:scale-[0.96];
 }
 
 .metallic-badge {
   background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
-}
-
-/* GPU Accelerated Container - Transform removed to fix position:fixed issues */
-.page-shell {
-  backface-visibility: hidden;
-  perspective: 1000px;
-  will-change: transform, opacity;
 }
 
 .nav-item {
