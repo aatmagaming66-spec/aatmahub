@@ -6,7 +6,7 @@ import { QuickActions } from "@/components/home/quick-actions";
 import { GameGrid } from "@/components/home/game-grid";
 import { ServiceCarousel } from "@/components/home/service-carousel";
 import { LiveActivity } from "@/components/home/live-activity";
-import { ShieldCheck, Zap, Lock, Headphones, Send, Facebook, Instagram } from "lucide-react";
+import { Send, Facebook, Instagram } from "lucide-react";
 import Link from 'next/link';
 import { useGlobalSettings } from "@/firebase/settings-context";
 
@@ -42,41 +42,9 @@ export default function Home() {
     <div className="flex flex-col w-full animate-in fade-in duration-700 page-shell">
       <HeroBanner />
       
-      {homepageConfig.showTrustBadges && (
-        <section className="px-4 py-0.5 mt-4">
-          <div className="grid grid-cols-4 gap-1.5">
-            <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-none h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
-              <div className="p-0.5 bg-primary/10 rounded-none">
-                <Lock className="h-2.5 w-2.5 text-primary" />
-              </div>
-              <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Secure</span>
-            </div>
-            
-            <div className="bg-card/40 backdrop-blur-md border border-accent/20 rounded-none h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
-              <div className="p-0.5 bg-accent/10 rounded-none">
-                <Zap className="h-2.5 w-2.5 text-accent" />
-              </div>
-              <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Instant</span>
-            </div>
-
-            <div className="bg-card/40 backdrop-blur-md border border-white/5 rounded-none h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
-              <div className="p-0.5 bg-white/5 rounded-none">
-                <ShieldCheck className="h-2.5 w-2.5 text-white" />
-              </div>
-              <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Trusted</span>
-            </div>
-
-            <div className="bg-card/40 backdrop-blur-md border border-primary/20 rounded-none h-[38px] flex flex-col items-center justify-center gap-0.5 shadow-sm">
-              <div className="p-0.5 bg-primary/10 rounded-none">
-                <Headphones className="h-2.5 w-2.5 text-primary" />
-              </div>
-              <span className="text-[6px] font-black uppercase tracking-widest text-foreground/80">Support</span>
-            </div>
-          </div>
-        </section>
-      )}
-      
-      <QuickActions />
+      <div className="mt-4">
+        <QuickActions />
+      </div>
       
       {homepageConfig.showGames && <GameGrid />}
       {homepageConfig.showOtt && <ServiceCarousel title="Premium OTT Plans" category="OTT Services" />}
