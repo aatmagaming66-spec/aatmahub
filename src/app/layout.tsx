@@ -47,18 +47,18 @@ export default function RootLayout({
           body { transform: translate3d(0,0,0); }
         `}} />
       </head>
-      <body className="font-body antialiased bg-background text-foreground min-h-screen flex flex-col">
+      <body className="font-body antialiased bg-background text-foreground h-screen overflow-hidden">
         <FirebaseClientProvider>
           <CartProvider>
             <SidebarProvider defaultOpen={false}>
-              <div className="flex w-full min-h-screen page-shell overflow-hidden">
+              <div className="flex w-full h-full page-shell overflow-hidden">
                 <AppSidebar />
-                <div className="flex-1 flex flex-col w-full relative">
+                <div className="flex-1 flex flex-col w-full h-full relative overflow-hidden">
                   <MaintenanceCheck />
                   <AnnouncementBar />
                   <TopHeader />
-                  {/* hardware-accelerated wrapper to prevent browser paint-stalls */}
-                  <main className="flex-1 pb-20 w-full overflow-x-hidden transform-gpu backface-hidden">
+                  {/* Scrollable Content Region */}
+                  <main className="flex-1 w-full overflow-y-auto overflow-x-hidden no-scrollbar transform-gpu backface-hidden pb-24">
                     {children}
                   </main>
                   <BottomNav />
