@@ -40,8 +40,10 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
 
+  // Redirect if user is already authenticated
   useEffect(() => {
     if (initialized && user) {
+      console.log("[RegisterPage] Authenticated user detected, redirecting to profile...");
       router.replace('/profile');
     }
   }, [user, initialized, router]);
@@ -64,6 +66,7 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
+      console.log("[RegisterPage] Initiating account creation with persistence...");
       await setPersistence(auth, browserLocalPersistence);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -87,6 +90,7 @@ export default function RegisterPage() {
       sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
       // Redirection handled by useEffect
     } catch (error: any) {
+      console.error("[RegisterPage] Registration failure:", error);
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
       setLoading(false);
     }
@@ -96,12 +100,13 @@ export default function RegisterPage() {
     if (googleInitiating || !initialized) return;
     setGoogleInitiating(true);
     try {
+      console.log("[RegisterPage] Initiating Google redirect flow...");
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("Google Signup Error:", error);
+      console.error("[RegisterPage] Google redirect initiation error:", error);
       toast({ variant: 'destructive', title: "Auth Error", description: "Could not start Google login." });
       setGoogleInitiating(false);
     }

@@ -32,9 +32,10 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Unified redirection logic
+  // Redirect if user is already authenticated
   useEffect(() => {
     if (initialized && user) {
+      console.log("[LoginPage] Authenticated user detected, redirecting to profile...");
       router.replace('/profile');
     }
   }, [user, initialized, router]);
@@ -49,10 +50,12 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
+      console.log("[LoginPage] Initiating email login with persistence...");
       await setPersistence(auth, browserLocalPersistence);
       await signInWithEmailAndPassword(auth, email, password);
       // Redirect handled by useEffect
     } catch (error: any) {
+      console.error("[LoginPage] Email auth failure:", error);
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
       setLoading(false);
     }
@@ -62,18 +65,19 @@ export default function LoginPage() {
     if (googleInitiating || !initialized) return;
     setGoogleInitiating(true);
     try {
+      console.log("[LoginPage] Initiating Google redirect flow...");
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("Google Login Error:", error);
+      console.error("[LoginPage] Google redirect initiation error:", error);
       toast({ variant: 'destructive', title: "Auth Error", description: "Could not start Google login." });
       setGoogleInitiating(false);
     }
   };
 
-  // While waiting for initialization or if already logged in (waiting for redirect)
+  // Wait for auth system to fully initialize (including checking redirect results)
   if (!initialized || user || googleInitiating) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center gap-6">
