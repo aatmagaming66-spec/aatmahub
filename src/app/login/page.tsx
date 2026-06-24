@@ -32,10 +32,10 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Guard: If initialized and user exists, redirect to profile immediately
+  // Guard: If already logged in, redirect to profile immediately
   useEffect(() => {
     if (initialized && user) {
-      console.log("[LoginPage] Active session detected, routing to profile...");
+      console.log("[Login] User already authenticated. Redirecting to profile...");
       router.replace('/profile');
     }
   }, [user, initialized, router]);
@@ -43,17 +43,20 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading || !initialized) return;
+    
     if (!email || !password) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Enter credentials.' });
+      toast({ variant: 'destructive', title: 'Missing Info', description: 'Please enter your email and password.' });
       return;
     }
 
     setLoading(true);
+    console.log("[Login] Attempting email/password authentication...");
     try {
       await setPersistence(auth, browserLocalPersistence);
-      await signInWithEmailAndPassword(auth, email, password);
+      const result = await signInWithEmailAndPassword(auth, email, password);
+      console.log("[Login] Auth successful for:", result.user.email);
     } catch (error: any) {
-      console.error("[LoginPage] Auth failure:", error);
+      console.error("[Login] Auth error:", error.code, error.message);
       toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
       setLoading(false);
     }
@@ -62,19 +65,21 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     if (googleInitiating || !initialized) return;
     setGoogleInitiating(true);
+    console.log("[Login] Initiating Google Redirect...");
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);
       await signInWithRedirect(auth, provider);
+      // The page will redirect here, getRedirectResult in use-user.tsx will handle the return
     } catch (error: any) {
-      console.error("[LoginPage] Google redirect initiation error:", error);
+      console.error("[Login] Google Redirect initiation failed:", error);
       toast({ variant: 'destructive', title: "Auth Error", description: "Could not initiate Google login." });
       setGoogleInitiating(false);
     }
   };
 
-  // While auth is settling or user is present, show a high-quality loader
+  // Show persistent loader while checking session or processing redirect
   if (!initialized || user || googleInitiating) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center gap-6 animate-in fade-in duration-500">
@@ -85,8 +90,8 @@ export default function LoginPage() {
           </div>
         </div>
         <div className="text-center space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Synchronizing HUB Identity</p>
-          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Securing your gaming session...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Syncing Identity</p>
+          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Verifying secure browser session...</p>
         </div>
       </div>
     );
@@ -141,7 +146,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</Label>
-                <Link href="#" className="text-[9px] font-black uppercase text-primary hover:underline">Forgot?</Link>
+                <button type="button" className="text-[9px] font-black uppercase text-primary hover:underline">Forgot?</button>
               </div>
               <div className="relative">
                 <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />

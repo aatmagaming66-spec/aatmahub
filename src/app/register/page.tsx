@@ -40,10 +40,10 @@ export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
 
-  // Redirect if user is already authenticated
+  // Redirect if already authenticated
   useEffect(() => {
     if (initialized && user) {
-      console.log("[RegisterPage] Authenticated user detected, redirecting to profile...");
+      console.log("[Register] User already authenticated. Redirecting to profile...");
       router.replace('/profile');
     }
   }, [user, initialized, router]);
@@ -56,7 +56,7 @@ export default function RegisterPage() {
       return;
     }
     if (password.length < 8) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Min 8 chars.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Min 8 characters.' });
       return;
     }
     if (password !== confirmPassword) {
@@ -65,15 +65,16 @@ export default function RegisterPage() {
     }
 
     setLoading(true);
+    console.log("[Register] Attempting new account creation...");
     try {
       await setPersistence(auth, browserLocalPersistence);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      await firebaseUpdateProfile(user, { displayName: fullName });
+      const newUser = userCredential.user;
+      await firebaseUpdateProfile(newUser, { displayName: fullName });
       
       const role = email.toLowerCase() === SUPER_ADMIN_EMAIL ? 'super_admin' : 'user';
       const profileData = {
-        uid: user.uid,
+        uid: newUser.uid,
         fullName,
         email,
         phoneNumber,
@@ -85,10 +86,11 @@ export default function RegisterPage() {
         rankId: 'warrior',
         createdAt: new Date().toISOString(),
       };
-      await setDoc(doc(db, 'users', user.uid), profileData);
+      await setDoc(doc(db, 'users', newUser.uid), profileData);
+      console.log("[Register] Account and profile created successfully.");
       sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
     } catch (error: any) {
-      console.error("[RegisterPage] Registration failure:", error);
+      console.error("[Register] Error:", error.code, error.message);
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
       setLoading(false);
     }
@@ -97,13 +99,14 @@ export default function RegisterPage() {
   const handleGoogleSignup = async () => {
     if (googleInitiating || !initialized) return;
     setGoogleInitiating(true);
+    console.log("[Register] Initiating Google Signup Redirect...");
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({ prompt: 'select_account' });
       await setPersistence(auth, browserLocalPersistence);
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
-      console.error("[RegisterPage] Google redirect initiation error:", error);
+      console.error("[Register] Google Signup initiation failed:", error);
       toast({ variant: 'destructive', title: "Auth Error", description: "Could not start Google login." });
       setGoogleInitiating(false);
     }
@@ -111,7 +114,7 @@ export default function RegisterPage() {
 
   if (!initialized || user || googleInitiating) {
     return (
-      <div className="flex flex-col h-[80vh] items-center justify-center gap-6">
+      <div className="flex flex-col h-[80vh] items-center justify-center gap-6 animate-in fade-in duration-500">
         <div className="relative">
           <div className="h-16 w-16 rounded-none border-t-2 border-accent animate-spin" />
           <div className="absolute inset-0 flex items-center justify-center">
@@ -120,7 +123,7 @@ export default function RegisterPage() {
         </div>
         <div className="text-center space-y-1">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-accent">Establishing Identity</p>
-          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Syncing with secure vault...</p>
+          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Synchronizing with secure cloud vault...</p>
         </div>
       </div>
     );
@@ -187,7 +190,7 @@ export default function RegisterPage() {
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Create Password</Label>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
-                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 8 characters" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 8 chars" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
                 </div>
               </div>
               <div className="space-y-2">
