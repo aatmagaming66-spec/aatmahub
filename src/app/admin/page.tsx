@@ -24,7 +24,8 @@ import {
   Image as ImageIcon,
   Zap,
   CreditCard,
-  Ticket
+  Ticket,
+  Gamepad2
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
@@ -235,7 +236,7 @@ const PipelineItem = memo(function PipelineItem({ label, count, icon: Icon, colo
         <div className={`h-7 w-7 rounded-none flex items-center justify-center bg-black/40 ${color}`}>
           <Icon size={14} />
         </div>
-        <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+        <span className="text-9px] font-black uppercase tracking-widest">{label}</span>
       </div>
       <span className="text-lg font-black leading-none">{count}</span>
     </div>
