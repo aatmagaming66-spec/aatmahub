@@ -1,101 +1,55 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
-import { useFirestore } from '@/firebase/provider';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Loader2, ShieldCheck, CreditCard, Smartphone, CheckCircle2 } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { ArrowLeft, MessageCircle, ShieldCheck, Info } from 'lucide-react';
+import { useGlobalSettings } from '@/firebase/settings-context';
 
 export default function DepositPage() {
   const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('upi');
-  const [loading, setLoading] = useState(false);
   const { user, profile } = useUser();
-  const db = useFirestore();
+  const { siteSettings } = useGlobalSettings();
   const { toast } = useToast();
   const router = useRouter();
 
-  const handleDeposit = async () => {
+  const handleManualRequest = () => {
     const numAmount = Number(amount);
     if (!numAmount || numAmount < 10) {
-      toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Minimum deposit is ₹10.' });
+      toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Minimum recharge request is ₹10.' });
       return;
     }
 
-    if (!user) return;
-
-    setLoading(true);
-    const transactionId = `TXN-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-    try {
-      if (paymentMethod === 'upi') {
-        const txData = {
-          transactionId,
-          userId: user.uid,
-          amount: numAmount,
-          type: 'deposit',
-          status: 'pending_payment',
-          paymentMethod: 'upi',
-          createdAt: new Date().toISOString(),
-          serverTimestamp: serverTimestamp(),
-        };
-
-        setDoc(doc(db, 'transactions', transactionId), txData).catch(async (err) => {
-          errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: `/transactions/${transactionId}`, operation: 'create', requestResourceData: txData
-          }));
-        });
-
-        const res = await fetch('/api/payments/upi/initiate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: numAmount,
-            transactionId,
-            userId: user.uid,
-            type: 'deposit',
-            name: profile?.fullName || user.email,
-            email: user.email
-          }),
-        });
-
-        const data = await res.json();
-        if (data.success && data.paymentUrl) {
-          window.location.href = data.paymentUrl;
-        } else {
-          throw new Error(data.error || 'Gateway initiation failure.');
-        }
-      } else {
-        toast({ title: "Method Restricted", description: "This payment method is currently disabled for security." });
-      }
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Request Failed', description: error.message });
-    } finally {
-      setLoading(false);
+    if (!user) {
+      router.push('/login');
+      return;
     }
+
+    const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
+    const message = `*MANUAL RECHARGE REQUEST*\n\n*Amount:* ₹${numAmount}\n*User Email:* ${user.email}\n*User UID:* ${user.uid}\n\nPlease provide payment details to complete this top-up.`;
+    
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    toast({ title: "Request Initialized", description: "Redirecting to Support for manual fulfillment." });
   };
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
+    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700 pb-20">
       <header className="flex items-center gap-4 py-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-none hover:bg-white/5"><ArrowLeft className="h-5 w-5" /></Button>
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Add Funds</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">HUB CREDIT RECHARGE</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Recharge Hub</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manual Credit Request</p>
         </div>
       </header>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Enter Amount (₹)</Label>
+          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Enter Requested Amount (₹)</Label>
           <Input type="number" placeholder="Min ₹10" value={amount} onChange={(e) => setAmount(e.target.value)} className="bg-card border-border h-16 rounded-none text-3xl font-black text-primary focus:border-primary px-6" />
         </div>
 
@@ -105,28 +59,30 @@ export default function DepositPage() {
           ))}
         </div>
 
-        <div className="space-y-6 pt-4">
-          <div className="flex items-center gap-3 px-1">
-            <div className="h-6 w-1 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
-            <h3 className="text-xs font-black uppercase tracking-widest text-white/80">Select Gateway</h3>
+        <div className="bg-primary/5 p-6 rounded-none border border-primary/10 space-y-4">
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4 text-primary" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-primary">Manual Fulfillment Protocol</span>
           </div>
-
-          <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid gap-3">
-            <Label htmlFor="upi" className={`flex items-center justify-between p-5 rounded-none border transition-all cursor-pointer bg-card shadow-xl ${paymentMethod === 'upi' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-              <div className="flex items-center gap-4">
-                <div className={`h-10 w-10 flex items-center justify-center ${paymentMethod === 'upi' ? 'bg-primary/20' : 'bg-white/5'}`}><Smartphone className={paymentMethod === 'upi' ? 'text-primary' : 'text-muted-foreground'} /></div>
-                <div className="flex flex-col"><span className="text-sm font-black uppercase tracking-tight text-white">UPI Gateway</span><span className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Instant Credits</span></div>
-              </div>
-              <RadioGroupItem value="upi" id="upi" className="sr-only" />
-              {paymentMethod === 'upi' && <CheckCircle2 className="h-5 w-5 text-primary" />}
-            </Label>
-          </RadioGroup>
+          <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
+            Automated gateways are currently offline for maintenance. To add funds:
+            <br/><br/>
+            1. Enter amount and click "Request Manual Top-up"
+            <br/>
+            2. You will be redirected to Support WhatsApp
+            <br/>
+            3. Share payment proof via screenshot
+            <br/>
+            4. Balance will be added to your wallet within 2-5 minutes
+          </p>
         </div>
 
-        <Button className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-none transition-all group" onClick={handleDeposit} disabled={loading}>
-          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Initialize Deposit <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" /></>}
+        <Button className="w-full h-16 bg-primary hover:bg-secondary text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-none transition-all group gap-3" onClick={handleManualRequest}>
+          <MessageCircle className="h-5 w-5" /> 
+          Request Manual Top-up
         </Button>
-        <div className="flex items-center justify-center gap-3 py-6 opacity-40"><ShieldCheck className="h-4 w-4" /><span className="text-[8px] font-black uppercase tracking-[0.4em]">End-to-End Encrypted Secure Gateway</span></div>
+
+        <div className="flex items-center justify-center gap-3 py-6 opacity-40"><ShieldCheck className="h-4 w-4" /><span className="text-[8px] font-black uppercase tracking-[0.4em]">Verified Aatma Hub Support Channel</span></div>
       </div>
     </div>
   );

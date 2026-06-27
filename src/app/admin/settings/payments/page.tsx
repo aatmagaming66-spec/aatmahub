@@ -1,152 +1,59 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useFirestore } from '@/firebase/provider';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { ShieldAlert, Info, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/hooks/use-toast';
-import { CreditCard, ShieldCheck, Zap, Loader2, Smartphone, Key } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function PaymentSettingsPage() {
-  const db = useFirestore();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState({
-    upiKey: '',
-    upiToken: '',
-    isUpiEnabled: false,
-  });
-
-  useEffect(() => {
-    async function fetchSettings() {
-      try {
-        const snap = await getDoc(doc(db, 'settings', 'payments'));
-        if (snap.exists()) {
-          setSettings(snap.data() as any);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSettings();
-  }, [db]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await setDoc(doc(db, 'settings', 'payments'), {
-        ...settings,
-        updatedAt: new Date().toISOString(),
-      }, { merge: true });
-      toast({ title: "UPI Protocol Secured", description: "Gateway configuration updated successfully." });
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: "Save Failed", description: error.message });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-10 w-10 text-primary animate-spin" />
-      </div>
-    );
-  }
+  const router = useRouter();
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
-      <header>
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Payment Gateway</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">UPI Financial Protocol Hub</p>
+      <header className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-none hover:bg-white/5"><ArrowLeft className="h-5 w-5" /></Button>
+        <div>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Gateway Protocol</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Automated Payment Management</p>
+        </div>
       </header>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 border-b border-border">
-            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-white">
-              <Smartphone className="h-4 w-4 text-primary" /> UPI Gateway Integration
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8 space-y-6">
-            <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-              <div className="space-y-0.5">
-                <Label className="text-sm font-black uppercase tracking-tight">Enable UPI Gateway</Label>
-                <p className="text-[9px] text-muted-foreground uppercase font-black">Toggle live gateway status</p>
-              </div>
-              <Switch 
-                checked={settings.isUpiEnabled} 
-                onCheckedChange={(val) => setSettings({...settings, isUpiEnabled: val})}
-                className="data-[state=checked]:bg-primary"
-              />
+      <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl border-primary/20">
+        <CardHeader className="p-8 border-b border-border bg-primary/5">
+          <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-primary">
+            <ShieldAlert className="h-4 w-4" /> System Suspension
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-12 text-center space-y-6">
+          <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border-2 border-primary/20">
+            <ShieldAlert size={40} className="text-primary animate-pulse" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black uppercase tracking-tighter">Automated Gateways Decommissioned</h2>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-widest max-w-md mx-auto leading-relaxed">
+              By administrative request, all automated payment gateway integrations (UPI/PhonePe) have been removed from the platform logic.
+            </p>
+          </div>
+          
+          <div className="bg-black/40 border border-white/5 p-6 rounded-none text-left space-y-4 max-w-lg mx-auto">
+            <div className="flex items-center gap-2 text-white/40">
+              <Info size={14} />
+              <span className="text-[9px] font-black uppercase tracking-widest">Instructional Note</span>
             </div>
+            <p className="text-[10px] text-muted-foreground uppercase font-bold leading-relaxed">
+              To recharge users manually, navigate to the <span className="text-primary">Wallet Management</span> sector and use the "Adjust Balance" tool. Users will now be redirected to support for payment confirmation.
+            </p>
+          </div>
 
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">Gateway API Key</Label>
-              <div className="relative">
-                <Key className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
-                <Input 
-                  placeholder="Enter API Key" 
-                  value={settings.upiKey}
-                  onChange={(e) => setSettings({...settings, upiKey: e.target.value})}
-                  className="bg-black/50 border-border h-14 rounded-xl pl-12 focus:border-primary font-bold"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">API Token</Label>
-              <Input 
-                type="password"
-                placeholder="Enter Gateway Token" 
-                value={settings.upiToken}
-                onChange={(e) => setSettings({...settings, upiToken: e.target.value})}
-                className="bg-black/50 border-border h-14 rounded-xl focus:border-primary font-bold"
-              />
-            </div>
-
-            <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-xl font-black uppercase text-[11px] tracking-widest mt-4 shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save UPI Configuration"}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
-          <CardHeader className="p-8 border-b border-border">
-            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-white">
-              <ShieldCheck className="h-4 w-4 text-accent" /> Security Protocol
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8 space-y-6">
-            <div className="bg-primary/5 p-6 rounded-3xl border border-primary/10 space-y-4">
-              <div className="flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Integration Note</span>
-              </div>
-              <p className="text-[11px] text-muted-foreground font-medium uppercase leading-relaxed">
-                1. Ensure your API Key and Token are from a verified UPI aggregator.<br/>
-                2. Callbacks are received via HTTPS POST signals.<br/>
-                3. Orders transition to <code className="text-white">processing</code> automatically upon verified payment.
-              </p>
-            </div>
-            
-            <div className="p-4 border border-border rounded-2xl space-y-2">
-              <span className="text-[9px] font-black uppercase text-muted-foreground">Global Callback Endpoint</span>
-              <p className="text-[10px] font-bold text-white break-all bg-black/40 p-3 rounded-lg border border-white/5">
-                /api/payments/upi/callback
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          <Button 
+            onClick={() => router.push('/admin/wallet')}
+            className="bg-primary h-14 px-10 rounded-none font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20"
+          >
+            Go to Wallet Management
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -10,8 +10,6 @@ import { doc, setDoc, updateDoc, increment, serverTimestamp } from 'firebase/fir
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   Accordion, 
   AccordionContent, 
@@ -24,15 +22,16 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { 
   ShieldCheck, 
   Wallet, 
-  Smartphone, 
   ArrowRight, 
   ArrowLeft,
   Loader2,
   User,
-  Receipt
+  Receipt,
+  MessageCircle
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
 export default function CheckoutPage() {
   const { items, totalAmount } = useCart();
@@ -41,7 +40,6 @@ export default function CheckoutPage() {
   const { toast } = useToast();
   const db = useFirestore();
 
-  const [paymentMethod, setPaymentMethod] = useState('wallet');
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -92,18 +90,13 @@ export default function CheckoutPage() {
     return Object.values(groups);
   }, [items]);
 
-  const payableAmount = useMemo(() => {
-    if (paymentMethod === 'wallet') {
-      return Math.max(0, grandTotal - walletBalance);
-    }
-    return grandTotal;
-  }, [paymentMethod, grandTotal, walletBalance]);
+  const hasInsufficientBalance = walletBalance < grandTotal;
 
   const handlePlaceOrder = async () => {
     if (groupedIdentities.length === 0 || !user || !items || items.length === 0) return;
     
-    if (paymentMethod === 'wallet' && walletBalance < grandTotal) {
-      toast({ variant: 'destructive', title: 'Insufficient Balance', description: 'Please add funds to your wallet to continue.' });
+    if (hasInsufficientBalance) {
+      toast({ variant: 'destructive', title: 'Insufficient Balance', description: 'Please recharge your wallet to continue.' });
       return;
     }
 
@@ -123,77 +116,53 @@ export default function CheckoutPage() {
         grandTotal,
         totalAccounts: groupedIdentities.length,
         totalProducts: items.length,
-        walletUsed: paymentMethod === 'wallet' ? Math.min(grandTotal, walletBalance) : 0,
-        payableAmount,
+        walletUsed: grandTotal,
+        payableAmount: 0,
         playerInfo: { 
           playerId: primaryIdentity.playerId, 
           serverId: primaryIdentity.serverId,
           verifiedName: primaryIdentity.verifiedName,
         },
-        paymentMethod,
+        paymentMethod: 'wallet',
+        status: 'pending',
         createdAt: new Date().toISOString(),
         serverTimestamp: serverTimestamp(),
         updatedAt: new Date().toISOString()
       };
 
-      if (paymentMethod === 'wallet') {
-        const txId = `PUR-${Date.now()}`;
-        const txRef = doc(db, 'transactions', txId);
-        const walletDocRef = doc(db, 'wallets', user.uid);
-        const userDocRef = doc(db, 'users', user.uid);
+      const txId = `PUR-${Date.now()}`;
+      const txRef = doc(db, 'transactions', txId);
+      const walletDocRef = doc(db, 'wallets', user.uid);
+      const userDocRef = doc(db, 'users', user.uid);
 
-        const txData = {
-          transactionId: txId,
-          userId: user.uid,
-          amount: grandTotal,
-          type: 'purchase',
-          status: 'success',
-          createdAt: new Date().toISOString(),
-          serverTimestamp: serverTimestamp(),
-        };
+      const txData = {
+        transactionId: txId,
+        userId: user.uid,
+        amount: grandTotal,
+        type: 'purchase',
+        status: 'success',
+        createdAt: new Date().toISOString(),
+        serverTimestamp: serverTimestamp(),
+      };
 
-        updateDoc(walletDocRef, { balance: increment(-grandTotal), updatedAt: new Date().toISOString() })
-          .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `decrement(${grandTotal})` } })));
+      await updateDoc(walletDocRef, { 
+        balance: increment(-grandTotal), 
+        updatedAt: new Date().toISOString() 
+      }).catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: walletDocRef.path, operation: 'update', requestResourceData: { balance: `decrement(${grandTotal})` } })));
 
-        setDoc(txRef, txData)
-          .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: txRef.path, operation: 'create', requestResourceData: txData })));
+      await setDoc(txRef, txData)
+        .catch(async (e) => errorEmitter.emit('permission-error', new FirestorePermissionError({ path: txRef.path, operation: 'create', requestResourceData: txData })));
 
-        await setDoc(orderRef, { ...baseOrderData, status: 'pending' });
-        
-        const currentSpend = profile?.lifetimeSpend || 0;
-        const newSpend = currentSpend + grandTotal;
-        
-        updateDoc(userDocRef, {
-          lifetimeSpend: newSpend,
-          updatedAt: new Date().toISOString()
-        }).catch(err => console.error("Update fail", err));
+      await setDoc(orderRef, baseOrderData);
+      
+      const currentSpend = profile?.lifetimeSpend || 0;
+      await updateDoc(userDocRef, {
+        lifetimeSpend: currentSpend + grandTotal,
+        updatedAt: new Date().toISOString()
+      }).catch(err => console.error("Update fail", err));
 
-        sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nAmount: ₹${grandTotal}`);
-        router.push(`/checkout/success/${orderId}`);
-      } else if (paymentMethod === 'upi') {
-        await setDoc(orderRef, { ...baseOrderData, status: 'pending_payment' });
-
-        const res = await fetch('/api/payments/upi/initiate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            amount: grandTotal, 
-            transactionId: orderId, 
-            userId: user.uid, 
-            type: 'order', 
-            orderId,
-            name: profile?.fullName || user.email,
-            email: user.email
-          }),
-        });
-
-        const data = await res.json();
-        if (data.success && data.paymentUrl) {
-          window.location.href = data.paymentUrl;
-        } else {
-          throw new Error(data.error || 'UPI initiation error.');
-        }
-      }
+      sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nAmount: ₹${grandTotal}`);
+      router.push(`/checkout/success/${orderId}`);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Order Error', description: error.message });
     } finally {
@@ -262,15 +231,15 @@ export default function CheckoutPage() {
 
             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
               <span>Wallet Balance</span>
-              <span className={walletBalance < grandTotal && paymentMethod === 'wallet' ? 'text-primary' : 'text-white'}>
+              <span className={hasInsufficientBalance ? 'text-primary' : 'text-white'}>
                 ₹{walletBalance.toLocaleString()}
               </span>
             </div>
             
             <div className="pt-3 border-t border-border flex justify-between items-end">
               <div className="space-y-0.5">
-                <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Total Payable</span>
-                <p className="text-3xl font-black text-white tracking-tighter leading-none">₹{payableAmount}</p>
+                <span className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Payable via Wallet</span>
+                <p className="text-3xl font-black text-white tracking-tighter leading-none">₹{grandTotal}</p>
               </div>
               <div className="bg-primary/10 border border-primary/20 px-2.5 py-1.5">
                  <Receipt size={14} className="text-primary" />
@@ -280,42 +249,30 @@ export default function CheckoutPage() {
         </CardContent>
       </Card>
 
-      <section className="space-y-3">
-        <div className="flex items-center gap-2 px-1">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-white/80">Select Payment Method</h3>
+      {hasInsufficientBalance && (
+        <div className="bg-primary/5 border border-primary/20 p-4 rounded-none space-y-3 animate-in slide-in-from-bottom-2">
+          <div className="flex items-center gap-2 text-primary">
+            <Wallet size={14} />
+            <span className="text-[10px] font-black uppercase tracking-widest">Balance Required</span>
+          </div>
+          <p className="text-[10px] text-white/70 font-bold uppercase leading-relaxed">
+            You need <span className="text-primary">₹{(grandTotal - walletBalance).toLocaleString()}</span> more to complete this purchase.
+          </p>
+          <Link href="/wallet/deposit">
+            <Button className="w-full bg-primary h-10 text-[9px] font-black uppercase tracking-widest rounded-none mt-2">
+              Request Manual Recharge
+            </Button>
+          </Link>
         </div>
-        <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-2.5">
-          <Label htmlFor="wallet" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-none border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'wallet' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className={`h-8 w-8 flex items-center justify-center ${paymentMethod === 'wallet' ? 'bg-primary/20' : 'bg-white/5'}`}>
-              <Wallet size={14} className={paymentMethod === 'wallet' ? 'text-primary' : 'text-muted-foreground'} />
-            </div>
-            <div className="text-center">
-              <span className="text-[10px] font-black uppercase block leading-none mb-1">Hub Wallet</span>
-              <span className={`text-[7px] font-bold uppercase ${walletBalance < grandTotal ? 'text-primary' : 'text-green-500'}`}>Balance: ₹{walletBalance.toLocaleString()}</span>
-            </div>
-            <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
-          </Label>
-          
-          <Label htmlFor="upi" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-none border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'upi' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className={`h-8 w-8 flex items-center justify-center ${paymentMethod === 'upi' ? 'bg-primary/20' : 'bg-white/5'}`}>
-              <Smartphone size={14} className={paymentMethod === 'upi' ? 'text-primary' : 'text-muted-foreground'} />
-            </div>
-            <div className="text-center">
-              <span className="text-[10px] font-black uppercase block leading-none mb-1">UPI Gateway</span>
-              <span className="text-[7px] font-bold text-muted-foreground uppercase">Instant Payment</span>
-            </div>
-            <RadioGroupItem value="upi" id="upi" className="sr-only" />
-          </Label>
-        </RadioGroup>
-      </section>
+      )}
 
       <div className="flex flex-col gap-3 pt-1">
         <Button 
           className="w-full h-14 bg-primary hover:bg-secondary text-xs font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 rounded-none group transition-all"
           onClick={handlePlaceOrder} 
-          disabled={submitting || groupedIdentities.length === 0}
+          disabled={submitting || hasInsufficientBalance || groupedIdentities.length === 0}
         >
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Complete Purchase <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /></>}
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Complete with Wallet <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" /></>}
         </Button>
         <Button variant="ghost" onClick={() => router.push('/cart')} className="w-full h-10 text-[8px] font-black uppercase tracking-widest text-muted-foreground hover:text-white rounded-none"><ArrowLeft className="mr-2 h-2.5 w-2.5" /> Back to Cart</Button>
       </div>
