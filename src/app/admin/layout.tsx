@@ -1,10 +1,11 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 import { AdminNav } from '@/components/admin/admin-nav';
-import { Loader2, Menu, X, ShieldCheck } from 'lucide-react';
+import { Loader2, Menu, X, ShieldCheck, Lock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -24,7 +26,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (initialized && isMounted) {
       if (!user || !hasAdminAccess) {
-        router.push('/');
+        setAccessDenied(true);
+        const timer = setTimeout(() => router.replace('/'), 2000);
+        return () => clearTimeout(timer);
       }
     }
   }, [user, profile, initialized, hasAdminAccess, router, isMounted]);
@@ -32,13 +36,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!isMounted || !initialized) {
     return (
       <div className="flex h-screen bg-background">
-        <aside className="hidden lg:flex w-64 border-r border-border flex-col bg-background/50">
-          <div className="h-16 flex items-center px-6 border-b border-border"><Skeleton className="h-6 w-32 bg-white/5" /></div>
-          <div className="p-4 space-y-4">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-none bg-white/5" />)}</div>
-        </aside>
-        <div className="flex-1 flex flex-col">
-          <header className="h-16 border-b border-border bg-background/50" />
-          <main className="flex-1 p-8"><div className="flex flex-col items-center justify-center h-full gap-4"><Loader2 className="h-8 w-8 text-primary animate-spin" /><p className="text-[10px] font-black uppercase tracking-widest text-primary">Syncing Admin Session...</p></div></main>
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <Loader2 className="h-8 w-8 text-primary animate-spin" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Syncing Admin Session...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="flex h-screen items-center justify-center p-6 text-center">
+        <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+          <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+            <Lock className="h-10 w-10 text-primary" />
+          </div>
+          <h1 className="text-2xl font-black uppercase tracking-tighter">Access Restricted</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Insufficient permissions for core operations</p>
+          <p className="text-[8px] text-primary/50 font-black uppercase">Redirecting to base...</p>
         </div>
       </div>
     );
