@@ -62,7 +62,7 @@ export default function Home() {
       
       {homepageConfig.showLiveActivity && <LiveActivity />}
 
-      <footer className="bg-[#0f111a] border-t border-white/5 pt-8 pb-16 px-6 mt-6">
+      <footer className="bg-[#0f111a] border-t border-white/5 pt-8 pb-12 px-6 mt-6">
         <div className="max-w-xl mx-auto flex flex-col items-center">
           
           <div className="mb-6 flex flex-col items-center">
@@ -116,7 +116,7 @@ export default function Home() {
 
           <div className="text-center">
             <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-loose">
-              All Rights Reserved © 2025 | AATMA HUB
+              All Rights Reserved © 2026 | AATMA HUB
             </p>
           </div>
         </div>
