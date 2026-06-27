@@ -6,9 +6,10 @@ import { useFirestore } from '@/firebase/provider';
 import { collection, query, orderBy, where } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Share2, MessageCircle } from 'lucide-react';
+import { Share2, MessageCircle, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useGlobalSettings } from '@/firebase/settings-context';
+import { cn } from '@/lib/utils';
 
 export default function SocialServicesPage() {
   const db = useFirestore();
@@ -16,8 +17,7 @@ export default function SocialServicesPage() {
   
   const socialQuery = useMemo(() => query(
     collection(db, 'games'),
-    where('category', '==', 'Social Services'),
-    where('status', '==', 'active')
+    where('category', '==', 'Social Services')
   ), [db]);
 
   const { data: rawItems, loading } = useCollection(socialQuery);
@@ -53,36 +53,62 @@ export default function SocialServicesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {items.map((item) => (
-            <div key={item.id} className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col p-4 shadow-xl">
-              <div className="relative aspect-square w-full mb-4 bg-white/5 rounded-xl overflow-hidden">
-                {item.logo ? (
-                  <Image 
-                    src={item.logo} 
-                    alt={item.name} 
-                    fill 
-                    className="object-contain p-4" 
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                    <Share2 size={40} className="text-white" />
-                  </div>
-                )}
+          {items.map((item) => {
+            const isActive = item.status === 'active';
+            return (
+              <div key={item.id} className={cn(
+                "bg-card border border-border rounded-2xl overflow-hidden flex flex-col p-4 shadow-xl relative",
+                !isActive && "opacity-70"
+              )}>
+                <div className="relative aspect-square w-full mb-4 bg-white/5 rounded-xl overflow-hidden">
+                  {item.logo ? (
+                    <Image 
+                      src={item.logo} 
+                      alt={item.name} 
+                      fill 
+                      className={cn(
+                        "object-contain p-4 transition-all",
+                        isActive ? "opacity-100" : "opacity-30 grayscale"
+                      )} 
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                      <Share2 size={40} className="text-white" />
+                    </div>
+                  )}
+
+                  {!isActive && (
+                    <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-2">
+                      <div className="bg-primary/20 border border-primary/40 px-2 py-1 rounded shadow-[0_0_12px_rgba(220,38,38,0.5)] transform -rotate-12 animate-pulse">
+                        <span className="text-[8px] font-black text-white uppercase tracking-tighter flex items-center gap-1">
+                          OUT OF STOCK <Zap size={8} className="fill-current" />
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="text-center space-y-4 mt-auto">
+                  <h3 className={cn(
+                    "text-xs font-black uppercase tracking-tight",
+                    isActive ? "text-white" : "text-white/20"
+                  )}>
+                    {item.name}
+                  </h3>
+                  <Button 
+                    onClick={() => isActive && handleWhatsAppOrder(item.name)}
+                    disabled={!isActive}
+                    className={cn(
+                      "w-full h-10 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 shadow-xl",
+                      isActive ? "bg-primary hover:bg-primary/90" : "bg-white/5 text-white/20"
+                    )}
+                  >
+                    <MessageCircle size={14} />
+                    Order via WhatsApp
+                  </Button>
+                </div>
               </div>
-              <div className="text-center space-y-4 mt-auto">
-                <h3 className="text-xs font-black text-white uppercase tracking-tight">
-                  {item.name}
-                </h3>
-                <Button 
-                  onClick={() => handleWhatsAppOrder(item.name)}
-                  className="w-full h-10 bg-primary hover:bg-primary/90 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 shadow-xl"
-                >
-                  <MessageCircle size={14} />
-                  Order via WhatsApp
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

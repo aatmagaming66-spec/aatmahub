@@ -7,7 +7,7 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tv, Share2 } from "lucide-react";
+import { Tv, Share2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ServiceCarouselProps {
@@ -31,9 +31,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
 
   const items = useMemo(() => {
     if (!rawItems) return [];
-    return rawItems
-      .filter(i => i.status === 'active')
-      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    return [...rawItems].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawItems]);
 
   if (loading) {
@@ -70,38 +68,60 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
       </div>
 
       <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
-        {items.map((item) => (
-          <Link 
-            key={item.id} 
-            href={`/product/${item.id}`}
-            prefetch={false}
-            className="flex-shrink-0 w-[calc((100vw-56px)/3)] group transition-all flex flex-col active:scale-95"
-          >
-            <div className={cn(
-              "relative overflow-hidden mb-2 border border-white/5 bg-card shadow-xl transition-all rounded-2xl",
-              isOtt ? "aspect-[3/4]" : "aspect-square"
-            )}>
-              {item.logo ? (
-                <Image 
-                  src={item.logo} 
-                  alt={item.name} 
-                  fill 
-                  className="object-cover opacity-100 transition-transform duration-500 group-hover:scale-105 z-10"
-                  sizes="(max-width: 768px) 33vw, 200px"
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                  <Icon size={24} className="text-white" />
-                </div>
+        {items.map((item) => {
+          const isActive = item.status === 'active';
+          return (
+            <Link 
+              key={item.id} 
+              href={isActive ? `/product/${item.id}` : "#"}
+              prefetch={false}
+              className={cn(
+                "flex-shrink-0 w-[calc((100vw-56px)/3)] group transition-all flex flex-col active:scale-95",
+                !isActive && "cursor-default"
               )}
-            </div>
-            <div className="text-center px-1">
-              <h3 className="text-[10px] font-black text-white uppercase tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
-                {item.name}
-              </h3>
-            </div>
-          </Link>
-        ))}
+            >
+              <div className={cn(
+                "relative overflow-hidden mb-2 border border-white/5 bg-card shadow-xl transition-all rounded-2xl",
+                isOtt ? "aspect-[3/4]" : "aspect-square"
+              )}>
+                {item.logo ? (
+                  <Image 
+                    src={item.logo} 
+                    alt={item.name} 
+                    fill 
+                    className={cn(
+                      "object-cover transition-transform duration-500 z-10",
+                      isActive ? "opacity-100 group-hover:scale-105" : "opacity-30 grayscale"
+                    )}
+                    sizes="(max-width: 768px) 33vw, 200px"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                    <Icon size={24} className="text-white" />
+                  </div>
+                )}
+
+                {!isActive && (
+                  <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-1">
+                    <div className="bg-primary/20 border border-primary/40 px-1 py-0.5 rounded shadow-[0_0_10px_rgba(220,38,38,0.5)] transform -rotate-12 animate-pulse">
+                      <span className="text-[7px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
+                        OUT OF STOCK <Zap size={6} className="fill-current" />
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="text-center px-1">
+                <h3 className={cn(
+                  "text-[10px] font-black uppercase tracking-tight line-clamp-1 transition-colors",
+                  isActive ? "text-white group-hover:text-primary" : "text-white/20"
+                )}>
+                  {item.name}
+                </h3>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

@@ -7,7 +7,8 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Gamepad2 } from "lucide-react";
+import { Gamepad2, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function GameGrid() {
   const db = useFirestore();
@@ -23,9 +24,7 @@ export function GameGrid() {
 
   const games = useMemo(() => {
     if (!rawGames) return [];
-    return rawGames
-      .filter(g => g.status === 'active')
-      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    return [...rawGames].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
   if (loading) {
@@ -67,11 +66,16 @@ export function GameGrid() {
 }
 
 function GameCard({ game }: { game: any }) {
+  const isActive = game.status === 'active';
+
   return (
     <Link 
-      href={`/product/${game.id}`} 
+      href={isActive ? `/product/${game.id}` : "#"} 
       prefetch={false}
-      className="w-full group flex flex-col active-press"
+      className={cn(
+        "w-full group flex flex-col active-press transition-opacity duration-300",
+        !isActive && "cursor-default"
+      )}
     >
       <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-transparent border border-white/10 shadow-2xl transition-all duration-300">
         {game.logo ? (
@@ -79,7 +83,10 @@ function GameCard({ game }: { game: any }) {
             src={game.logo} 
             alt={game.name} 
             fill 
-            className="object-contain opacity-100 transition-transform duration-700 group-hover:scale-105 z-10"
+            className={cn(
+              "object-contain transition-transform duration-700 z-10",
+              isActive ? "opacity-100 group-hover:scale-105" : "opacity-40 grayscale-[0.5]"
+            )}
             sizes="(max-width: 768px) 33vw, 120px"
           />
         ) : (
@@ -87,10 +94,23 @@ function GameCard({ game }: { game: any }) {
             <Gamepad2 size={32} className="text-white" />
           </div>
         )}
+
+        {!isActive && (
+          <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-1.5">
+            <div className="bg-primary/20 border border-primary/40 px-1.5 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.6)] transform -rotate-12 animate-pulse">
+              <span className="text-[8px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
+                OUT OF STOCK <Zap size={8} className="fill-current" />
+              </span>
+            </div>
+          </div>
+        )}
       </div>
       
       <div className="text-center mt-2.5 px-1">
-        <span className="text-[9px] font-black text-muted-foreground uppercase tracking-tight group-hover:text-primary transition-colors line-clamp-1">
+        <span className={cn(
+          "text-[9px] font-black uppercase tracking-tight transition-colors line-clamp-1",
+          isActive ? "text-muted-foreground group-hover:text-primary" : "text-white/20"
+        )}>
           {game.name} {game.flag}
         </span>
       </div>
