@@ -55,7 +55,7 @@ export default function Home() {
       
       {homepageConfig.showSocial && (
         <div className="bg-gradient-to-b from-transparent via-primary/5 to-transparent">
-          <ServiceCarousel title="MLBB Specialized Services" category="Social Services" />
+          <ServiceCarousel title="Direct Hub Services" category="Direct Services" />
         </div>
       )}
       
@@ -91,7 +91,7 @@ export default function Home() {
 
           <div className="flex flex-col space-y-6">
             <div className="text-center lg:text-left">
-              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/40 mb-6">Diamond Directory</h3>
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/40 mb-6">HUB Directory</h3>
               <div className="grid grid-cols-2 gap-y-4 gap-x-8">
                 {[
                   { label: "MLBB India", href: "/product/mlbb-india" },
@@ -119,7 +119,7 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">
-            © 2026 AATMA HUB - MLBB DIAMOND PROTOCOL V2
+            © 2026 AATMA HUB - DIGITAL PROTOCOL V2
           </p>
           <p className="text-[14px] font-black uppercase tracking-[0.4em] bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent drop-shadow-md">
             AATMA OFFICIAL

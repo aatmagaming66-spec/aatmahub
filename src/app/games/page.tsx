@@ -15,7 +15,7 @@ export default function GamesPage() {
   
   const gamesQuery = useMemo(() => query(
     collection(db, 'games'),
-    where('category', '==', 'Mobile Games')
+    where('category', '==', 'Direct Topup')
   ), [db]);
 
   const { data: rawGames, loading } = useCollection(gamesQuery);
@@ -29,7 +29,7 @@ export default function GamesPage() {
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Gaming Hub</h1>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Direct Topup Hub</h1>
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Instant Digital Distribution Center</p>
       </header>
 

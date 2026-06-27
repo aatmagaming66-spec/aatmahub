@@ -17,7 +17,7 @@ export default function SocialServicesPage() {
   
   const socialQuery = useMemo(() => query(
     collection(db, 'games'),
-    where('category', '==', 'Social Services')
+    where('category', '==', 'Direct Services')
   ), [db]);
 
   const { data: rawItems, loading } = useCollection(socialQuery);
@@ -36,7 +36,7 @@ export default function SocialServicesPage() {
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Social Hub</h1>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Direct Hub</h1>
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Growth Solutions</p>
       </header>
 

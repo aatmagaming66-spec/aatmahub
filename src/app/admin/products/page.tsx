@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, setDoc, deleteDoc, doc, query, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -116,7 +116,7 @@ export default function AdminProductManagementPage() {
         id: gameId,
         name: "MLBB India",
         slug: gameId,
-        category: "Mobile Games",
+        category: "Direct Topup",
         status: "active",
         sortOrder: 1,
         flag: "🇮🇳",

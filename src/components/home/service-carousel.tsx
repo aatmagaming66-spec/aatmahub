@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 interface ServiceCarouselProps {
   title: string;
-  category: "Social Services";
+  category: "Direct Services";
 }
 
 export function ServiceCarousel({ title, category }: ServiceCarouselProps) {

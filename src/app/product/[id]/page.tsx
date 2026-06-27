@@ -32,7 +32,7 @@ export default function ProductPage() {
   const { data: gameInfo, loading: gameLoading } = useDoc(gameDocRef);
 
   const isManualCategory = useMemo(() => {
-    return gameInfo?.category === "Social Services";
+    return gameInfo?.category === "Direct Services";
   }, [gameInfo]);
 
   const productsQuery = useMemo(() => query(

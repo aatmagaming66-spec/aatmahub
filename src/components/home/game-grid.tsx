@@ -16,7 +16,7 @@ export function GameGrid() {
   const gamesQuery = useMemo(() => 
     query(
       collection(db, 'games'), 
-      where('category', '==', 'Mobile Games')
+      where('category', '==', 'Direct Topup')
     ), 
   [db]);
 
@@ -24,7 +24,6 @@ export function GameGrid() {
 
   const mobileGames = useMemo(() => {
     if (!rawGames) return [];
-    // Sort all games in the Mobile Games category by sortOrder
     return [...rawGames]
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
@@ -34,7 +33,7 @@ export function GameGrid() {
       <section className="py-6 px-2">
         <div className="flex items-center gap-2 mb-6 px-2">
           <div className="w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
-          <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">Mobile Games</h2>
+          <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">Direct Topup</h2>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -53,7 +52,7 @@ export function GameGrid() {
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">
-            Top-Up Center
+            Direct Topup
           </h2>
         </div>
       </div>

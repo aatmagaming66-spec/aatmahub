@@ -54,13 +54,13 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton className="active-press" onClick={() => navigateTo('/games')}>
                   <Gamepad2 className="h-4 w-4" />
-                  <span className="font-bold text-sm text-white">Games</span>
+                  <span className="font-bold text-sm text-white">Direct Topup</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton className="active-press" onClick={() => navigateTo('/social-services')}>
                   <Share2 className="h-4 w-4" />
-                  <span className="font-bold text-sm text-white">Social Services</span>
+                  <span className="font-bold text-sm text-white">Direct Hub</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
