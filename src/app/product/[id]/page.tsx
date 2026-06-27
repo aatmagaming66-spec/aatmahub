@@ -149,19 +149,19 @@ export default function ProductPage() {
           </h1>
         </div>
 
-        <section className="bg-card border border-border p-6 rounded-2xl space-y-4 shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="space-y-1.5">
+        <section className="bg-card border border-border p-4 rounded-2xl space-y-3 shadow-2xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+             <div className="space-y-1">
                <Label className="text-[9px] font-black uppercase text-muted-foreground">User ID</Label>
-               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter ID" className="bg-black/50 border-border h-14 rounded-xl text-sm font-bold" />
+               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter ID" className="bg-black/50 border-border h-11 rounded-xl text-sm font-bold" />
              </div>
-             <div className="space-y-1.5">
+             <div className="space-y-1">
                <Label className="text-[9px] font-black uppercase text-muted-foreground">Server</Label>
-               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 1234" className="bg-black/50 border-border h-14 rounded-xl text-sm font-bold" />
+               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 1234" className="bg-black/50 border-border h-11 rounded-xl text-sm font-bold" />
              </div>
           </div>
-          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all", isVerified ? "bg-green-600 hover:bg-green-600" : "bg-primary")}>
-            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Verified" : "Verify Account")}
+          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-11 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all", isVerified ? "bg-green-600 hover:bg-green-600" : "bg-primary")}>
+            {verifying ? <Loader2 className="animate-spin h-4 w-4" /> : (isVerified ? "Verified" : "Verify Account")}
           </Button>
         </section>
 
