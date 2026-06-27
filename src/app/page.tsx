@@ -93,16 +93,19 @@ export default function Home() {
             {/* Quick Links Column */}
             <div className="flex flex-col items-center space-y-6">
               <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary">Quick Links</h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-left">
                 {[
                   { label: "Home", href: "/" },
-                  { label: "Games", href: "/games" },
-                  { label: "Social", href: "/social-services" },
-                  { label: "Profile", href: "/profile" },
-                  { label: "Orders", href: "/orders" },
+                  { label: "Mobile Games", href: "/games" },
+                  { label: "Social Hub", href: "/social-services" },
+                  { label: "My Orders", href: "/orders" },
+                  { label: "Account", href: "/profile" },
                   { label: "Support", href: "/support" },
-                  { label: "Terms", href: "/terms" },
-                  { label: "Privacy", href: "/privacy" },
+                  { label: "About Us", href: "/about-us" },
+                  { label: "Contact", href: "/contact" },
+                  { label: "Terms & Conditions", href: "/terms" },
+                  { label: "Refund Policy", href: "/refund-policy" },
+                  { label: "Privacy Policy", href: "/privacy" },
                 ].map((link) => (
                   <Link 
                     key={link.label} 
