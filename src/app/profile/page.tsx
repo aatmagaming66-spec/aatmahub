@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { 
   LogOut, 
@@ -27,7 +28,10 @@ import {
   Link as LinkIcon,
   Fingerprint,
   Zap,
-  Camera
+  Camera,
+  Trophy,
+  Info,
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
@@ -66,10 +70,23 @@ export default function ProfilePage() {
     }
   }, [profile, editing]);
 
+  const spendPerLevel = 2500;
+  const lifetimeSpend = profile?.lifetimeSpend || 0;
+  
   const userLevel = useMemo(() => {
-    if (!profile) return 1;
-    return Math.floor((profile.lifetimeSpend || 0) / 2500) + 1;
-  }, [profile?.lifetimeSpend]);
+    return Math.floor(lifetimeSpend / spendPerLevel) + 1;
+  }, [lifetimeSpend]);
+
+  const progressToNextLevel = useMemo(() => {
+    const currentLevelBase = (userLevel - 1) * spendPerLevel;
+    const progressInCurrentLevel = lifetimeSpend - currentLevelBase;
+    return Math.min(100, Math.floor((progressInCurrentLevel / spendPerLevel) * 100));
+  }, [lifetimeSpend, userLevel]);
+
+  const remainingToNext = useMemo(() => {
+    const nextLevelTarget = userLevel * spendPerLevel;
+    return Math.max(0, nextLevelTarget - lifetimeSpend);
+  }, [lifetimeSpend, userLevel]);
 
   const handleLogout = async () => {
     try { 
@@ -184,7 +201,7 @@ export default function ProfilePage() {
                       <ShieldCheck size={8} className="text-white/40" />
                       <span className="text-[7px] font-black uppercase text-white/70 tracking-widest">{profile.role.replace('_', ' ')}</span>
                     </div>
-                    <div className="px-2 py-0.5 bg-accent/20 border border-accent/30 rounded-none flex items-center gap-1">
+                    <div className="px-2 py-0.5 bg-accent/20 border border-accent/30 rounded-none flex items-center gap-1 shadow-[0_0_8px_rgba(236,72,153,0.3)]">
                       <Zap size={8} className="text-accent" />
                       <span className="text-[7px] font-black uppercase text-accent tracking-widest">Level {userLevel} Member</span>
                     </div>
@@ -204,7 +221,50 @@ export default function ProfilePage() {
       </div>
 
       <div className="p-6 space-y-8">
-        <div className="space-y-8 animate-in fade-in duration-500">
+        {/* Membership Progression Section */}
+        <section className="space-y-4 animate-in slide-in-from-bottom-4 duration-500 delay-200">
+           <div className="flex items-center gap-2 px-1">
+              <Trophy size={14} className="text-accent" />
+              <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-white/80">Loyalty Progression</h3>
+           </div>
+           <Card className="bg-card border-border rounded-2xl overflow-hidden shadow-3d relative">
+              <div className="absolute top-0 right-0 p-4 opacity-10"><Zap size={60} className="text-accent" /></div>
+              <CardContent className="p-6 space-y-5 relative z-10">
+                 <div className="flex justify-between items-end">
+                    <div className="space-y-1">
+                       <p className="text-[9px] font-black text-white/40 uppercase tracking-widest">Current Status</p>
+                       <h4 className="text-2xl font-black uppercase tracking-tighter text-white">Tier Level {userLevel}</h4>
+                    </div>
+                    <div className="text-right">
+                       <span className="text-3xl font-black text-accent tracking-tighter">{progressToNextLevel}%</span>
+                    </div>
+                 </div>
+                 
+                 <div className="space-y-2">
+                    <Progress value={progressToNextLevel} className="h-2.5 bg-white/5 rounded-full border border-white/5" />
+                    <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-white/30">
+                       <span>Level {userLevel}</span>
+                       <span>Level {userLevel + 1}</span>
+                    </div>
+                 </div>
+
+                 <div className="bg-accent/10 border border-accent/20 p-3 rounded-xl flex items-center gap-3">
+                    <Star size={14} className="text-accent" />
+                    <p className="text-[10px] font-bold text-white/90 uppercase leading-none">
+                       Spend <span className="text-accent">₹{remainingToNext.toLocaleString()}</span> more to unlock Level {userLevel + 1}
+                    </p>
+                 </div>
+              </CardContent>
+           </Card>
+           <div className="px-2 flex items-start gap-2">
+              <Info size={10} className="text-white/20 mt-0.5" />
+              <p className="text-[8px] font-black uppercase tracking-widest text-white/20 leading-relaxed">
+                Levels are earned based on your total lifetime spend. Every ₹2,500 contributes to your next tier upgrade.
+              </p>
+           </div>
+        </section>
+
+        <div className="space-y-8">
           {isAdmin && (
             <Link href="/admin" prefetch={false}>
               <Button className="w-full h-16 bg-primary font-black text-[11px] uppercase tracking-[0.2em] gap-3 rounded-none shadow-2xl group border-none">
