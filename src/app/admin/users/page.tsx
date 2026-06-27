@@ -217,7 +217,7 @@ const UserRow = memo(function UserRow({ user, updateRole, toggleBan, setAdjustin
       <TableCell className="py-6 px-6">
         <div className="flex items-center gap-4">
           <RankAvatar 
-            rank={user.currentRank || 'Warrior'}
+            rank={user.currentRank || 'Member'}
             size="md"
             fallback={user.fullName?.charAt(0)}
           />

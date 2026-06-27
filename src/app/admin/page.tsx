@@ -20,7 +20,6 @@ import {
   Database,
   ChevronRight,
   Home as HomeIcon,
-  Gamepad2,
   Settings,
   Image as ImageIcon,
   Zap,
