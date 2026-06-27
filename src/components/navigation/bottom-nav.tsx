@@ -10,6 +10,7 @@ import { useUser } from "@/firebase/auth/use-user";
 /**
  * BottomNav - Performance Refactored with Red/Pink Theme
  * Optimized for zero-latency interaction with the brand-specific red design.
+ * Height reduced for a sleeker profile.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -33,7 +34,7 @@ export function BottomNav() {
   }, []);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#dc2626] h-[72px] safe-area-bottom shadow-[0_-4px_20px_rgba(220,38,38,0.3)] border-t border-white/10">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#dc2626] h-[60px] safe-area-bottom shadow-[0_-4px_20px_rgba(220,38,38,0.3)] border-t border-white/10">
       <div className="flex h-full items-center justify-around">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || (item.label === "Account" && pathname.startsWith("/profile"));
@@ -44,20 +45,20 @@ export function BottomNav() {
               href={item.href}
               prefetch={true}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all duration-300 relative",
+                "flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all duration-300 relative",
                 isActive ? "text-white" : "text-white/60 hover:text-white"
               )}
               onClick={handleNavClick}
             >
               <item.icon className={cn(
-                "h-6 w-6 transition-transform", 
+                "h-5 w-5 transition-transform", 
                 isActive && "scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
               )} />
-              <span className="text-[10px] font-bold uppercase tracking-tight">
+              <span className="text-[9px] font-bold uppercase tracking-tight">
                 {item.label}
               </span>
               {isActive && (
-                <div className="absolute -bottom-1 w-8 h-1 bg-white rounded-t-full shadow-[0_-2px_12px_rgba(255,255,255,0.8)]" />
+                <div className="absolute -bottom-0.5 w-6 h-0.5 bg-white rounded-t-full shadow-[0_-2px_12px_rgba(255,255,255,0.8)]" />
               )}
             </Link>
           );
