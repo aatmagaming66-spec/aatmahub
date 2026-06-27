@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -169,20 +170,28 @@ export default function CheckoutPage() {
 
         sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nAmount: ₹${grandTotal}`);
         router.push(`/checkout/success/${orderId}`);
-      } else if (paymentMethod === 'phonepe') {
+      } else if (paymentMethod === 'upi') {
         await setDoc(orderRef, { ...baseOrderData, status: 'pending_payment' });
 
-        const res = await fetch('/api/payments/phonepe/initiate', {
+        const res = await fetch('/api/payments/upi/initiate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: grandTotal, transactionId: orderId, userId: user.uid, type: 'order', orderId }),
+          body: JSON.stringify({ 
+            amount: grandTotal, 
+            transactionId: orderId, 
+            userId: user.uid, 
+            type: 'order', 
+            orderId,
+            name: profile?.fullName || user.email,
+            email: user.email
+          }),
         });
 
         const data = await res.json();
         if (data.success && data.paymentUrl) {
           window.location.href = data.paymentUrl;
         } else {
-          throw new Error(data.error || 'Payment gateway error.');
+          throw new Error(data.error || 'UPI initiation error.');
         }
       }
     } catch (error: any) {
@@ -287,15 +296,15 @@ export default function CheckoutPage() {
             <RadioGroupItem value="wallet" id="wallet" className="sr-only" />
           </Label>
           
-          <Label htmlFor="phonepe" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-none border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'phonepe' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
-            <div className={`h-8 w-8 flex items-center justify-center ${paymentMethod === 'phonepe' ? 'bg-primary/20' : 'bg-white/5'}`}>
-              <Smartphone size={14} className={paymentMethod === 'phonepe' ? 'text-primary' : 'text-muted-foreground'} />
+          <Label htmlFor="upi" className={`flex flex-col items-center justify-center gap-2 p-3 rounded-none border transition-all cursor-pointer bg-card min-h-[85px] ${paymentMethod === 'upi' ? 'border-primary ring-1 ring-primary/20' : 'border-border'}`}>
+            <div className={`h-8 w-8 flex items-center justify-center ${paymentMethod === 'upi' ? 'bg-primary/20' : 'bg-white/5'}`}>
+              <Smartphone size={14} className={paymentMethod === 'upi' ? 'text-primary' : 'text-muted-foreground'} />
             </div>
             <div className="text-center">
-              <span className="text-[10px] font-black uppercase block leading-none mb-1">PhonePe UPI</span>
+              <span className="text-[10px] font-black uppercase block leading-none mb-1">UPI Gateway</span>
               <span className="text-[7px] font-bold text-muted-foreground uppercase">Instant Payment</span>
             </div>
-            <RadioGroupItem value="phonepe" id="phonepe" className="sr-only" />
+            <RadioGroupItem value="upi" id="upi" className="sr-only" />
           </Label>
         </RadioGroup>
       </section>
