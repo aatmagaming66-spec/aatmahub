@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useMemo } from "react";
@@ -221,8 +222,8 @@ export default function ProductPage() {
                   className={cn(
                     "p-3 sm:p-5 rounded-2xl border transition-all relative flex flex-col items-start justify-between min-h-[110px] sm:min-h-[120px] overflow-hidden active-press", 
                     selectedPack?.id === pack.id 
-                      ? "bg-[#2d001a] border-accent ring-2 ring-accent/30 shadow-[0_0_25px_-5px_rgba(236,72,153,0.5)] scale-[1.03] z-10" 
-                      : "bg-[#1a0000] border-primary/20 hover:border-primary/40 shadow-3d"
+                      ? "bg-gradient-to-br from-primary/10 to-accent/20 border-accent ring-2 ring-accent/30 shadow-[0_8px_20px_rgba(236,72,153,0.4),inset_0_1px_1px_rgba(255,255,255,0.1)] scale-[1.03] z-10" 
+                      : "bg-gradient-to-br from-primary/[0.04] to-accent/[0.04] border-white/5 shadow-[0_6px_12px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.05)] hover:border-white/10 hover:from-primary/[0.06] hover:to-accent/[0.06]"
                   )}
                 >
                   {selectedPack?.id === pack.id && (
@@ -234,22 +235,27 @@ export default function ProductPage() {
                   <div className="text-left relative z-10 w-full">
                     {isNumeric ? (
                       <>
-                        <span className="text-2xl sm:text-4xl font-black block leading-none text-white tracking-tighter">{quantity}</span>
-                        <span className="text-[7px] sm:text-[9px] font-black uppercase opacity-50 text-white tracking-widest mt-1 block truncate">{label}</span>
+                        <span className="text-2xl sm:text-4xl font-black block leading-none text-white tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{quantity}</span>
+                        <span className="text-[7px] sm:text-[9px] font-black uppercase opacity-60 text-white tracking-widest mt-1 block truncate">{label}</span>
                       </>
                     ) : (
-                      <span className="text-[10px] sm:text-sm font-black uppercase leading-tight text-white tracking-tight line-clamp-2">{pack.name}</span>
+                      <span className="text-[10px] sm:text-sm font-black uppercase leading-tight text-white tracking-tight line-clamp-2 drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)]">{pack.name}</span>
                     )}
                   </div>
                   
                   <div className="w-full flex justify-end mt-2 sm:mt-4">
                     <span className={cn(
-                      "text-[10px] sm:text-sm font-black tracking-tighter px-2 py-0.5 sm:py-1 rounded-lg border border-white/5",
-                      selectedPack?.id === pack.id ? "bg-accent text-white" : "bg-primary/20 text-white/80"
+                      "text-[10px] sm:text-sm font-black tracking-tighter px-2 py-0.5 sm:py-1 rounded-lg border",
+                      selectedPack?.id === pack.id 
+                        ? "bg-accent text-white border-white/20 shadow-[0_2px_5px_rgba(0,0,0,0.3)]" 
+                        : "bg-primary/20 text-white/80 border-white/5"
                     )}>
                       ₹{pack.price}
                     </span>
                   </div>
+
+                  {/* 3D highlight top border */}
+                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-white/[0.05]" />
                 </button>
               );
             })}
