@@ -67,6 +67,7 @@ export function GameGrid() {
 
 function GameCard({ game }: { game: any }) {
   const isActive = game.status === 'active';
+  const isMlbb = game.name?.toLowerCase().includes('mlbb');
 
   return (
     <Link 
@@ -78,6 +79,15 @@ function GameCard({ game }: { game: any }) {
       )}
     >
       <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-transparent border border-white/10 shadow-2xl transition-all duration-300">
+        {/* Instant Badge for MLBB */}
+        {isMlbb && (
+          <div className="absolute top-2 left-2 z-30 bg-primary/90 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(220,38,38,0.4)] animate-in fade-in duration-500">
+            <span className="text-[7px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
+              INSTANT <Zap size={6} className="fill-current" />
+            </span>
+          </div>
+        )}
+
         {game.logo ? (
           <Image 
             src={game.logo} 
