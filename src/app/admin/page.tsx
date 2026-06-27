@@ -1,9 +1,10 @@
+
 'use client';
 
 import { useMemo, useState, useEffect, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { useFirestore } from '@/firebase/provider';
-import { collection, doc, getDoc, query, where, limit } from 'firebase/firestore';
+import { collection, query, where, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,7 +16,6 @@ import {
   Clock, 
   CheckCircle2,
   Package,
-  Bot,
   BarChart3,
   ShieldCheck,
   Database,
@@ -61,7 +61,6 @@ const BarChartComponent = dynamic(() => import('recharts').then(mod => {
 export default function AdminDashboard() {
   const db = useFirestore();
   const { profile } = useUser();
-  const [tgStatus, setTgStatus] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
 
   const isSuper = profile?.role === 'admin' || profile?.role === 'super_admin';
@@ -86,10 +85,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     setIsMounted(true);
-    getDoc(doc(db, 'settings', 'telegram')).then(snap => {
-      if (snap.exists()) setTgStatus(snap.data());
-    });
-  }, [db]);
+  }, []);
 
   const stats = useMemo(() => {
     if (!isMounted) return [];
@@ -145,11 +141,6 @@ export default function AdminDashboard() {
              <div className="p-2 border border-border rounded-none flex items-center bg-white/5 hover:border-primary transition-all">
                 <BarChart3 className="h-4 w-4 text-primary" />
              </div>
-          </Link>
-          <Link href="/admin/settings/telegram" prefetch={false}>
-            <div className={`p-2 border border-border rounded-none flex items-center transition-colors cursor-pointer ${tgStatus?.notificationsEnabled ? 'bg-primary/5 border-primary/30' : 'bg-black/20 opacity-50'}`}>
-              <Bot className={`h-4 w-4 ${tgStatus?.notificationsEnabled ? 'text-primary' : 'text-muted-foreground'}`} />
-            </div>
           </Link>
         </div>
       </header>

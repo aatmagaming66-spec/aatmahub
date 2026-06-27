@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -5,7 +6,7 @@ import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, collection, query, limit, orderBy, setDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Database, Bot, Terminal, Loader2, History, Settings, ShieldCheck, Zap, Globe, MessageCircle } from 'lucide-react';
+import { Database, Loader2, History, ShieldCheck, Zap, Globe, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +18,7 @@ export default function SystemSettingsPage() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [health, setHealth] = useState<any>({ firestore: 'checking', telegram: 'checking' });
+  const [health, setHealth] = useState<any>({ firestore: 'checking' });
   const [settings, setSettings] = useState({
     maintenanceMode: false,
     maintenanceMessage: 'System is under maintenance.',
@@ -36,12 +37,10 @@ export default function SystemSettingsPage() {
         const snap = await getDoc(doc(db, 'settings', 'site'));
         if (snap.exists()) setSettings(snap.data() as any);
         
-        const tg = await getDoc(doc(db, 'settings', 'telegram'));
         setHealth({
-          firestore: 'operational',
-          telegram: tg.exists() && tg.data().notificationsEnabled ? 'operational' : 'inactive'
+          firestore: 'operational'
         });
-      } catch (e) { console.error(e); setHealth({ firestore: 'degraded', telegram: 'unknown' }); }
+      } catch (e) { console.error(e); setHealth({ firestore: 'degraded' }); }
       finally { setLoading(false); }
     }
     init();
@@ -70,9 +69,8 @@ export default function SystemSettingsPage() {
         </Button>
       </header>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-6">
         <HealthCard icon={Database} label="Core Firestore" status={health.firestore} color="text-blue-400" />
-        <HealthCard icon={Bot} label="Telegram Gateway" status={health.telegram} color="text-primary" />
         <HealthCard icon={ShieldCheck} label="Identity Registry" status="operational" color="text-green-400" />
       </div>
 
