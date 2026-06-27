@@ -55,7 +55,7 @@ export default function Home() {
       
       {homepageConfig.showSocial && (
         <div className="bg-gradient-to-b from-transparent via-primary/5 to-transparent">
-          <ServiceCarousel title="Direct Hub Services" category="Direct Services" />
+          <ServiceCarousel title="Social Services Hub" category="Social Services" />
         </div>
       )}
       

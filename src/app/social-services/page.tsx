@@ -21,7 +21,7 @@ export default function SocialServicesPage() {
   const items = useMemo(() => {
     if (!rawItems) return [];
     return [...rawItems]
-      .filter(i => i.category === 'Direct Services' || i.category === 'Social Services')
+      .filter(i => i.category === 'Social Services' || i.category === 'Direct Services')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawItems]);
 
@@ -34,7 +34,7 @@ export default function SocialServicesPage() {
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Direct Hub</h1>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Social Services Hub</h1>
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Digital Growth Solutions</p>
       </header>
 

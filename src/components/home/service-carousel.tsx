@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 
 interface ServiceCarouselProps {
   title: string;
-  category: "Direct Services";
+  category: "Social Services";
 }
 
 export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
@@ -24,9 +24,8 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
 
   const items = useMemo(() => {
     if (!rawItems) return [];
-    // Resilient filtering for Social Services transition
     return [...rawItems]
-      .filter(i => i.category === category || i.category === 'Social Services')
+      .filter(i => i.category === category || i.category === 'Direct Services')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawItems, category]);
 

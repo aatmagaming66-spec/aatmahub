@@ -80,7 +80,7 @@ export default function HomepageManagementPage() {
           <CardContent className="p-8 space-y-6">
             {[
               { key: 'showGames', label: 'Mobile Games Grid', desc: 'Display regional game top-ups' },
-              { key: 'showSocial', label: 'Social Growth Hub', desc: 'MLBB Specialized services' },
+              { key: 'showSocial', label: 'Social Services Hub', desc: 'Managed specialized services' },
               { key: 'showLiveActivity', label: 'Live Activity Feed', desc: 'Real-time distribution logs' },
               { key: 'showTrustBadges', label: 'Security Trust Bar', desc: 'Top platform safety badges' },
             ].map((section) => (

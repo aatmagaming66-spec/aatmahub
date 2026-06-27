@@ -28,7 +28,7 @@ import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, Glo
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
-const CATEGORIES = ["Direct Topup", "Direct Services"];
+const CATEGORIES = ["Mobile Games", "Social Services"];
 const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dynduenfb/image/upload";
 const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
 
@@ -46,7 +46,7 @@ export default function GameManagementPage() {
     id: '',
     name: '',
     slug: '',
-    category: 'Direct Topup',
+    category: 'Mobile Games',
     status: 'active',
     sortOrder: 0,
     logo: '',
@@ -81,7 +81,7 @@ export default function GameManagementPage() {
         id: game.id || '',
         name: game.name || '',
         slug: game.slug || game.id || '',
-        category: game.category || 'Direct Topup',
+        category: game.category || 'Mobile Games',
         status: game.status || 'active',
         sortOrder: game.sortOrder || 0,
         logo: game.logo || '',
@@ -91,7 +91,7 @@ export default function GameManagementPage() {
     } else {
       setEditingGame(null);
       setFormData({
-        id: '', name: '', slug: '', category: 'Direct Topup', status: 'active',
+        id: '', name: '', slug: '', category: 'Mobile Games', status: 'active',
         sortOrder: (games?.length || 0) + 1,
         logo: '', banner: '', flag: ''
       });

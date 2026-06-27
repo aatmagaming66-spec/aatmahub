@@ -19,14 +19,14 @@ export default function GamesPage() {
   const mobileGames = useMemo(() => {
     if (!rawGames) return [];
     return [...rawGames]
-      .filter(g => g.category === 'Direct Topup' || g.category === 'Mobile Games')
+      .filter(g => g.category === 'Mobile Games' || g.category === 'Direct Topup')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Direct Topup Hub</h1>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Mobile Games Hub</h1>
         <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Instant Digital Distribution Center</p>
       </header>
 
