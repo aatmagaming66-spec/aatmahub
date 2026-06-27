@@ -48,15 +48,15 @@ export default function Home() {
       
       {homepageConfig.showGames && <GameGrid />}
       
-      {homepageConfig.showOtt && (
-        <div className="bg-gradient-to-b from-transparent via-accent/5 to-transparent">
-          <ServiceCarousel title="Premium OTT Plans" category="OTT Services" />
-        </div>
-      )}
-      
       {homepageConfig.showSocial && (
         <div className="bg-gradient-to-b from-transparent via-primary/5 to-transparent">
           <ServiceCarousel title="Social Growth Services" category="Social Services" />
+        </div>
+      )}
+
+      {homepageConfig.showOtt && (
+        <div className="bg-gradient-to-b from-transparent via-accent/5 to-transparent">
+          <ServiceCarousel title="Premium OTT Plans" category="OTT Services" />
         </div>
       )}
       

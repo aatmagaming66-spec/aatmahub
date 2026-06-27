@@ -41,10 +41,10 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
           <div className={isOtt ? "w-1 h-5 bg-accent rounded-full shadow-[0_0_8px_#EC4899]" : "w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]"} />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter">{title}</h2>
         </div>
-        <div className="flex gap-3 overflow-x-auto no-scrollbar">
+        <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className={cn(
-              "flex-shrink-0 w-[calc((100vw-56px)/3)] bg-white/5 rounded-2xl",
+              "w-full bg-white/5 rounded-2xl",
               isOtt ? "aspect-[3/4]" : "aspect-square"
             )} />
           ))}
@@ -56,18 +56,17 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   if (items.length === 0) return null;
 
   return (
-    <section className="py-6 overflow-hidden">
-      <div className="flex items-center justify-between mb-6 px-4">
+    <section className="py-6 px-2">
+      <div className="flex items-center justify-between mb-6 px-2">
         <div className="flex items-center gap-2">
           <div className={isOtt ? "w-1.5 h-5 bg-accent rounded-full shadow-[0_0_12px_rgba(236,72,153,0.5)]" : "w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]"} />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">
             {title}
           </h2>
         </div>
-        <Link href={isOtt ? "/ott-services" : "/social-services"} prefetch={false} className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] hover:text-white transition-colors">Explorer</Link>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto px-4 no-scrollbar">
+      <div className="grid grid-cols-3 gap-2 px-2">
         {items.map((item) => {
           const isActive = item.status === 'active';
           return (
@@ -76,12 +75,12 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
               href={isActive ? `/product/${item.id}` : "#"}
               prefetch={false}
               className={cn(
-                "flex-shrink-0 w-[calc((100vw-56px)/3)] group transition-all flex flex-col active:scale-95",
+                "w-full group transition-all flex flex-col active-press duration-300",
                 !isActive && "cursor-default"
               )}
             >
               <div className={cn(
-                "relative overflow-hidden mb-2 border border-white/5 bg-card shadow-xl transition-all rounded-2xl",
+                "relative overflow-hidden mb-2 border border-white/10 bg-transparent shadow-2xl transition-all rounded-2xl",
                 isOtt ? "aspect-[3/4]" : "aspect-square"
               )}>
                 {item.logo ? (
@@ -90,7 +89,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                     alt={item.name} 
                     fill 
                     className={cn(
-                      "object-cover transition-transform duration-500 z-10",
+                      "object-contain transition-transform duration-700 z-10",
                       isActive ? "opacity-100 group-hover:scale-105" : "opacity-60 grayscale-[0.3]"
                     )}
                     sizes="(max-width: 768px) 33vw, 200px"
@@ -114,7 +113,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
               <div className="text-center px-1">
                 <h3 className={cn(
                   "text-[10px] font-black uppercase tracking-tight line-clamp-1 transition-colors",
-                  isActive ? "text-white group-hover:text-primary" : "text-white/40"
+                  isActive ? "text-muted-foreground group-hover:text-primary" : "text-white/40"
                 )}>
                   {item.name}
                 </h3>
