@@ -53,7 +53,7 @@ export default function GamesPage() {
                 href={isActive ? `/product/${game.id}` : "#"} 
                 className={cn(
                   "group transition-all duration-300 active:scale-95",
-                  !isActive && "cursor-default opacity-80"
+                  !isActive && "cursor-default opacity-90"
                 )}
               >
                 <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-3 border border-border shadow-2xl bg-transparent group-hover:border-primary/50 transition-all duration-500">
@@ -64,7 +64,7 @@ export default function GamesPage() {
                       fill 
                       className={cn(
                         "object-contain z-10 transition-all duration-700",
-                        isActive ? "opacity-100 group-hover:scale-110" : "opacity-40 grayscale"
+                        isActive ? "opacity-100 group-hover:scale-110" : "opacity-60 grayscale-[0.2]"
                       )} 
                     />
                   ) : (
@@ -74,10 +74,10 @@ export default function GamesPage() {
                   )}
 
                   {!isActive && (
-                    <div className="absolute inset-0 z-20 bg-black/70 backdrop-blur-[2px] flex items-center justify-center p-4">
-                      <div className="bg-primary/20 border border-primary/40 px-2 py-1 rounded-md shadow-[0_0_15px_rgba(220,38,38,0.5)] transform -rotate-12 animate-pulse">
+                    <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-[0.5px] flex items-center justify-center p-4">
+                      <div className="bg-primary/40 border border-primary px-3 py-1.5 rounded-md shadow-[0_0_20px_rgba(220,38,38,0.8)] transform -rotate-12 animate-pulse">
                         <span className="text-[9px] font-black text-white uppercase tracking-tighter flex items-center gap-1">
-                          OUT OF STOCK <Zap size={10} className="fill-current text-primary" />
+                          OUT OF STOCK <Zap size={10} className="fill-current" />
                         </span>
                       </div>
                     </div>
@@ -86,7 +86,7 @@ export default function GamesPage() {
                 <div className="text-center px-1">
                   <h3 className={cn(
                     "text-[10px] font-black uppercase tracking-tight transition-colors",
-                    isActive ? "text-white group-hover:text-primary" : "text-white/20"
+                    isActive ? "text-white group-hover:text-primary" : "text-white/40"
                   )}>
                     {game.name} {game.flag}
                   </h3>

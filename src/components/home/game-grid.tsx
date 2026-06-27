@@ -85,7 +85,7 @@ function GameCard({ game }: { game: any }) {
             fill 
             className={cn(
               "object-contain transition-transform duration-700 z-10",
-              isActive ? "opacity-100 group-hover:scale-105" : "opacity-40 grayscale-[0.5]"
+              isActive ? "opacity-100 group-hover:scale-105" : "opacity-60 grayscale-[0.3]"
             )}
             sizes="(max-width: 768px) 33vw, 120px"
           />
@@ -96,8 +96,8 @@ function GameCard({ game }: { game: any }) {
         )}
 
         {!isActive && (
-          <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-1.5">
-            <div className="bg-primary/20 border border-primary/40 px-1.5 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.6)] transform -rotate-12 animate-pulse">
+          <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-[0.5px] flex items-center justify-center p-1.5">
+            <div className="bg-primary/40 border border-primary px-1.5 py-0.5 rounded shadow-[0_0_20px_rgba(220,38,38,0.8)] transform -rotate-12 animate-pulse">
               <span className="text-[8px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
                 OUT OF STOCK <Zap size={8} className="fill-current" />
               </span>
@@ -109,7 +109,7 @@ function GameCard({ game }: { game: any }) {
       <div className="text-center mt-2.5 px-1">
         <span className={cn(
           "text-[9px] font-black uppercase tracking-tight transition-colors line-clamp-1",
-          isActive ? "text-muted-foreground group-hover:text-primary" : "text-white/20"
+          isActive ? "text-muted-foreground group-hover:text-primary" : "text-white/40"
         )}>
           {game.name} {game.flag}
         </span>

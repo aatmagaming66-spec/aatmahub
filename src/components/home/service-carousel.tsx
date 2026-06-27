@@ -91,7 +91,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                     fill 
                     className={cn(
                       "object-cover transition-transform duration-500 z-10",
-                      isActive ? "opacity-100 group-hover:scale-105" : "opacity-30 grayscale"
+                      isActive ? "opacity-100 group-hover:scale-105" : "opacity-60 grayscale-[0.3]"
                     )}
                     sizes="(max-width: 768px) 33vw, 200px"
                   />
@@ -102,8 +102,8 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                 )}
 
                 {!isActive && (
-                  <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-1">
-                    <div className="bg-primary/20 border border-primary/40 px-1 py-0.5 rounded shadow-[0_0_10px_rgba(220,38,38,0.5)] transform -rotate-12 animate-pulse">
+                  <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-[0.5px] flex items-center justify-center p-1">
+                    <div className="bg-primary/40 border border-primary px-1 py-0.5 rounded shadow-[0_0_15px_rgba(220,38,38,0.8)] transform -rotate-12 animate-pulse">
                       <span className="text-[7px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
                         OUT OF STOCK <Zap size={6} className="fill-current" />
                       </span>
@@ -114,7 +114,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
               <div className="text-center px-1">
                 <h3 className={cn(
                   "text-[10px] font-black uppercase tracking-tight line-clamp-1 transition-colors",
-                  isActive ? "text-white group-hover:text-primary" : "text-white/20"
+                  isActive ? "text-white group-hover:text-primary" : "text-white/40"
                 )}>
                   {item.name}
                 </h3>

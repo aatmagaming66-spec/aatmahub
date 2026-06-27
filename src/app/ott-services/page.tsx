@@ -54,7 +54,7 @@ export default function OttServicesPage() {
             return (
               <div key={item.id} className={cn(
                 "bg-card border border-border rounded-2xl overflow-hidden flex flex-col p-4 shadow-xl relative",
-                !isActive && "opacity-70"
+                !isActive && "opacity-90"
               )}>
                 <div className="relative aspect-square w-full mb-4 bg-white/5 rounded-xl overflow-hidden">
                   {item.logo ? (
@@ -64,7 +64,7 @@ export default function OttServicesPage() {
                       fill 
                       className={cn(
                         "object-contain p-4 transition-all",
-                        isActive ? "opacity-100" : "opacity-30 grayscale"
+                        isActive ? "opacity-100" : "opacity-60 grayscale-[0.2]"
                       )} 
                     />
                   ) : (
@@ -74,8 +74,8 @@ export default function OttServicesPage() {
                   )}
 
                   {!isActive && (
-                    <div className="absolute inset-0 z-20 bg-black/60 backdrop-blur-[1px] flex items-center justify-center p-2">
-                      <div className="bg-primary/20 border border-primary/40 px-2 py-1 rounded shadow-[0_0_12px_rgba(220,38,38,0.5)] transform -rotate-12 animate-pulse">
+                    <div className="absolute inset-0 z-20 bg-black/30 backdrop-blur-[0.5px] flex items-center justify-center p-2">
+                      <div className="bg-primary/40 border border-primary px-2 py-1 rounded shadow-[0_0_15px_rgba(220,38,38,0.8)] transform -rotate-12 animate-pulse">
                         <span className="text-[8px] font-black text-white uppercase tracking-tighter flex items-center gap-1">
                           OUT OF STOCK <Zap size={8} className="fill-current" />
                         </span>
@@ -86,7 +86,7 @@ export default function OttServicesPage() {
                 <div className="text-center space-y-4 mt-auto">
                   <h3 className={cn(
                     "text-xs font-black uppercase tracking-tight",
-                    isActive ? "text-white" : "text-white/20"
+                    isActive ? "text-white" : "text-white/40"
                   )}>
                     {item.name}
                   </h3>
