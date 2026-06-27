@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Zap, ArrowRight, Loader2, ImageIcon, MessageCircle } from "lucide-react";
+import { Zap, ArrowRight, Loader2, ImageIcon, MessageCircle, ShieldCheck } from "lucide-react";
 import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
 import { doc } from "firebase/firestore";
@@ -35,7 +35,6 @@ export default function ProductPage() {
     return gameInfo?.category === "OTT Services" || gameInfo?.category === "Social Services";
   }, [gameInfo]);
 
-  // PRODUCT LOGIC FOR GAMES
   const productsQuery = useMemo(() => query(
     collection(db, 'products'),
     where('category', '==', id),
@@ -96,29 +95,30 @@ export default function ProductPage() {
   if (isManualCategory) {
     return (
       <div className="flex flex-col w-full animate-in fade-in duration-700">
-        <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl md:rounded-b-3xl">
+        <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/10 shadow-3d md:rounded-b-[2rem]">
           {gameInfo?.banner && <Image src={gameInfo.banner} alt={gameInfo.name} fill className="object-cover" priority />}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-20" />
+          <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/60 to-transparent z-20" />
         </div>
-        <div className="p-6 max-w-4xl mx-auto w-full -mt-20 relative z-30 space-y-8 text-center">
-          <div className="inline-flex bg-accent/20 border border-accent/30 px-4 py-2 rounded-xl items-center gap-2 shadow-2xl">
+        <div className="p-6 max-w-4xl mx-auto w-full -mt-24 relative z-30 space-y-8 text-center">
+          <div className="inline-flex bg-accent/20 border border-accent/40 px-5 py-2.5 rounded-full items-center gap-2 shadow-2xl backdrop-blur-md">
             <MessageCircle size={16} className="text-accent" />
-            <span className="text-[10px] font-black uppercase text-accent tracking-[0.2em]">Manual Order Required</span>
+            <span className="text-[9px] font-black uppercase text-accent tracking-[0.2em]">Concierge Fulfillment</span>
           </div>
-          <h1 className="text-4xl md:text-6xl font-headline font-black text-white uppercase tracking-tighter drop-shadow-2xl">
+          <h1 className="text-5xl md:text-7xl font-headline font-black text-white uppercase tracking-tighter drop-shadow-2xl">
             {gameInfo?.name}
           </h1>
-          <p className="text-xs text-muted-foreground uppercase tracking-widest font-medium max-w-md mx-auto leading-relaxed">
-            Pricing and plans for {gameInfo?.name} are managed manually to ensure instant delivery. Please contact our support hub for current availability.
+          <p className="text-sm text-muted-foreground uppercase tracking-widest font-medium max-w-md mx-auto leading-relaxed opacity-80">
+            Exclusive pricing and manual distribution protocols apply to {gameInfo?.name}. Connect with our verified distribution hub via WhatsApp.
           </p>
           <div className="pt-8">
             <Button 
               onClick={handleWhatsAppOrder} 
-              className="w-full max-w-md h-14 bg-green-600 hover:bg-green-700 text-[11px] font-black uppercase tracking-[0.2em] rounded-xl shadow-2xl shadow-green-500/20 group transition-all gap-3"
+              variant="accent"
+              className="w-full max-w-md h-16 text-[11px] font-black uppercase tracking-[0.3em] rounded-2xl shadow-3xl group transition-all gap-4"
             >
-              <MessageCircle size={18} /> 
-              Order via WhatsApp 
-              <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              <MessageCircle size={20} /> 
+              Secure WhatsApp Order
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
         </div>
@@ -128,44 +128,48 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl md:rounded-b-3xl">
+      <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/10 shadow-3d md:rounded-b-[2rem]">
         {gameInfo?.banner ? (
           <Image src={gameInfo.banner} alt={gameInfo.name} fill className="object-cover" priority />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center z-0 opacity-10"><ImageIcon size={80} /></div>
         )}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-20" />
+        <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-background via-background/60 to-transparent z-20" />
       </div>
 
-      <div className="p-4 pt-0 space-y-6 max-w-4xl mx-auto w-full relative z-30 -mt-12">
+      <div className="p-4 pt-0 space-y-8 max-w-4xl mx-auto w-full relative z-30 -mt-16">
         <div className="text-center space-y-1">
-          <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter drop-shadow-2xl">
+          <h1 className="text-4xl md:text-6xl font-headline font-black text-white uppercase tracking-tighter drop-shadow-2xl">
             {gameInfo?.name}
           </h1>
         </div>
 
-        <section className="bg-card border border-border p-4 rounded-2xl space-y-3 shadow-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-             <div className="space-y-1">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground">User ID</Label>
-               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter ID" className="bg-black/50 border-border h-11 rounded-xl text-sm font-bold" />
+        <section className="bg-card/50 backdrop-blur-xl border border-white/10 p-5 rounded-[2rem] space-y-4 shadow-3d">
+          <div className="flex items-center gap-2 mb-2 px-1">
+             <ShieldCheck size={12} className="text-primary" />
+             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Identity Verification</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+             <div className="space-y-2">
+               <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Player Identity</Label>
+               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 5629472" className="bg-black/50 border-border h-14 rounded-2xl text-base font-bold shadow-inner" />
              </div>
-             <div className="space-y-1">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground">Server</Label>
-               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 1234" className="bg-black/50 border-border h-11 rounded-xl text-sm font-bold" />
+             <div className="space-y-2">
+               <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Distribution Server</Label>
+               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 1002" className="bg-black/50 border-border h-14 rounded-2xl text-base font-bold shadow-inner" />
              </div>
           </div>
-          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-11 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all", isVerified ? "bg-green-600 hover:bg-green-600" : "bg-primary")}>
-            {verifying ? <Loader2 className="animate-spin h-4 w-4" /> : (isVerified ? "Verified" : "Verify Account")}
+          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] transition-all", isVerified ? "bg-green-600 hover:bg-green-600 border-green-500 shadow-green-500/20" : "bg-primary")}>
+            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Target Locked & Verified" : "Engage Verification")}
           </Button>
         </section>
 
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1 mb-4">
-            <div className="h-4 w-1 bg-primary rounded-none shadow-[0_0_8px_#DC2626]" />
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Available Packages</h3>
+        <section className="space-y-5">
+          <div className="flex items-center gap-2 px-2">
+            <div className="h-5 w-1.5 bg-primary rounded-full shadow-[0_0_12px_hsl(var(--primary))]" />
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white">Select Denomination</h3>
           </div>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {packs?.map((pack) => {
               const nameParts = pack.name.split(' ');
               const quantity = nameParts[0];
@@ -177,42 +181,54 @@ export default function ProductPage() {
                   key={pack.id} 
                   onClick={() => setSelectedPack(pack)} 
                   className={cn(
-                    "p-4 rounded-xl border transition-all group relative shadow-2xl flex flex-col items-start justify-start min-h-[100px] overflow-hidden", 
+                    "p-5 rounded-[1.5rem] border transition-all relative flex flex-col items-start justify-between min-h-[120px] overflow-hidden active-press", 
                     selectedPack?.id === pack.id 
-                      ? "bg-gradient-to-br from-[#ec4899] via-[#be185d] to-[#9d174d] border-white shadow-[0_0_25px_rgba(236,72,153,0.5)] scale-[1.05] z-10" 
-                      : "bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#7f1d1d] border-white/10 hover:border-primary/40"
+                      ? "bg-gradient-to-br from-primary/30 via-primary/10 to-transparent border-primary ring-2 ring-primary/20 shadow-3d bezel-glow scale-[1.03] z-10" 
+                      : "bg-card border-white/5 hover:border-white/20 shadow-3d"
                   )}
                 >
-                  <div className="text-left">
+                  {selectedPack?.id === pack.id && (
+                    <div className="absolute top-0 right-0 p-3">
+                       <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                    </div>
+                  )}
+                  
+                  <div className="text-left relative z-10">
                     {isNumeric ? (
                       <>
-                        <span className="text-3xl font-black block leading-none text-white">{quantity}</span>
-                        <span className="text-[8px] font-black uppercase opacity-60 text-white tracking-widest">{label}</span>
+                        <span className="text-4xl font-black block leading-none text-white tracking-tighter">{quantity}</span>
+                        <span className="text-[9px] font-black uppercase opacity-50 text-white tracking-widest mt-1 block">{label}</span>
                       </>
                     ) : (
-                      <span className="text-sm font-black uppercase leading-tight text-white">{pack.name}</span>
+                      <span className="text-sm font-black uppercase leading-tight text-white tracking-tight">{pack.name}</span>
                     )}
                   </div>
                   
-                  <span className={cn(
-                    "absolute bottom-2 right-3 text-[10px] font-black tracking-tighter",
-                    selectedPack?.id === pack.id ? "text-white" : "text-white/60"
-                  )}>
-                    ₹{pack.price}
-                  </span>
+                  <div className="w-full flex justify-end mt-4">
+                    <span className={cn(
+                      "text-sm font-black tracking-tighter px-2.5 py-1 rounded-lg border border-white/5",
+                      selectedPack?.id === pack.id ? "bg-primary text-white" : "bg-black/40 text-white/60"
+                    )}>
+                      ₹{pack.price}
+                    </span>
+                  </div>
                 </button>
               );
             })}
             {productsLoading && Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-24 bg-white/5 animate-pulse rounded-xl border border-white/5" />
+              <div key={i} className="h-32 bg-white/5 animate-pulse rounded-[1.5rem] border border-white/5 shadow-3d" />
             ))}
           </div>
         </section>
 
-        <div className="flex flex-col gap-4 pb-24 pt-4">
-          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl h-20">
-            Buy Now <ArrowRight size={20} className="ml-2" />
+        <div className="flex flex-col gap-4 pb-28 pt-4">
+          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.3em] rounded-[2rem] shadow-3xl h-20 active-press">
+            Proceed to Checkout <ArrowRight size={22} className="ml-3" />
           </Button>
+          <div className="flex items-center justify-center gap-3 opacity-30">
+            <Zap size={10} className="text-primary" />
+            <span className="text-[8px] font-black uppercase tracking-[0.5em]">Instant Distribution Protocol Active</span>
+          </div>
         </div>
       </div>
     </div>
