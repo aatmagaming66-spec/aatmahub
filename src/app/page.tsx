@@ -62,26 +62,26 @@ export default function Home() {
       
       {homepageConfig.showLiveActivity && <LiveActivity />}
 
-      <footer className="bg-[#0f111a] border-t border-white/5 pt-6 pb-10 px-6 mt-4">
+      <footer className="bg-[#0f111a] border-t border-white/5 pt-10 pb-12 px-6 mt-4">
         <div className="max-w-xl mx-auto flex flex-col items-center">
           
-          <div className="mb-4 flex flex-col items-center">
+          <div className="mb-6 flex flex-col items-center">
             <Link href="/" className="inline-block">
                <div className="relative group text-center">
-                  <span className="font-headline font-black text-xl tracking-tighter uppercase text-white flex items-center gap-1">
+                  <span className="font-headline font-black text-4xl tracking-tighter uppercase text-white flex items-center gap-1.5">
                     <span className="text-[#dc2626]">aatma</span>
                     <span className="text-white">hub</span>
                   </span>
-                  <div className="absolute -top-3 -right-3">
-                    <div className="h-6 w-6 flex items-center justify-center opacity-20">
-                       <ShieldCheck className="text-[#dc2626]" size={24} />
+                  <div className="absolute -top-4 -right-4">
+                    <div className="h-8 w-8 flex items-center justify-center opacity-10">
+                       <ShieldCheck className="text-[#dc2626]" size={32} />
                     </div>
                   </div>
                </div>
             </Link>
           </div>
 
-          <div className="flex items-center gap-4 mb-6">
+          <div className="flex items-center gap-4 mb-8">
             <a href={socialLinks.whatsapp} target="_blank" className="text-white/80 hover:text-[#dc2626] transition-colors">
               <WhatsAppIcon className="h-5 w-5" />
             </a>
@@ -96,23 +96,23 @@ export default function Home() {
             </a>
           </div>
 
-          <div className="w-full h-px bg-white/5 mb-6" />
+          <div className="w-full h-px bg-white/5 mb-8" />
 
-          <div className="w-full grid grid-cols-2 gap-x-6 gap-y-2 mb-8">
-            <div className="flex flex-col space-y-2.5 text-left">
+          <div className="w-full grid grid-cols-2 gap-x-6 gap-y-2 mb-10">
+            <div className="flex flex-col space-y-3 text-left">
               <Link href="/" className="text-[11px] font-bold text-white/90 hover:text-[#dc2626] transition-colors uppercase tracking-tight">Home</Link>
               <Link href="/login" className="text-[11px] font-bold text-white/90 hover:text-[#dc2626] transition-colors uppercase tracking-tight">Login</Link>
               <Link href="/register" className="text-[11px] font-bold text-white/90 hover:text-[#dc2626] transition-colors uppercase tracking-tight">Register</Link>
               <Link href="/support" className="text-[11px] font-bold text-white/90 hover:text-[#dc2626] transition-colors uppercase tracking-tight">Customer Support</Link>
             </div>
-            <div className="flex flex-col space-y-2.5 text-left">
+            <div className="flex flex-col space-y-3 text-left">
               <Link href="/privacy" className="text-[11px] font-bold text-white/90 hover:text-[#dc2626] transition-colors uppercase tracking-tight">Privacy Policy</Link>
               <Link href="/terms" className="text-[11px] font-bold text-white/90 hover:text-[#dc2626] transition-colors uppercase tracking-tight">Terms & Conditions</Link>
               <Link href="/refund-policy" className="text-[11px] font-bold text-white/90 hover:text-[#dc2626] transition-colors uppercase tracking-tight">Refund Policy</Link>
             </div>
           </div>
 
-          <div className="w-full h-px bg-white/5 mb-4" />
+          <div className="w-full h-px bg-white/5 mb-6" />
 
           <div className="text-center space-y-1">
             <p className="text-[8px] font-bold text-white/30 uppercase tracking-widest leading-none">
