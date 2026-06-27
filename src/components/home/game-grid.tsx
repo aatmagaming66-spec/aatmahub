@@ -22,11 +22,10 @@ export function GameGrid() {
 
   const { data: rawGames, loading } = useCollection(gamesQuery);
 
-  const mlbbGames = useMemo(() => {
+  const mobileGames = useMemo(() => {
     if (!rawGames) return [];
-    // Strictly filter for MLBB games
+    // Sort all games in the Mobile Games category by sortOrder
     return [...rawGames]
-      .filter(g => g.name?.toLowerCase().includes('mlbb'))
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
@@ -35,7 +34,7 @@ export function GameGrid() {
       <section className="py-6 px-2">
         <div className="flex items-center gap-2 mb-6 px-2">
           <div className="w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
-          <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">MLBB Hub</h2>
+          <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">Mobile Games</h2>
         </div>
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -46,7 +45,7 @@ export function GameGrid() {
     );
   }
 
-  if (mlbbGames.length === 0) return null;
+  if (mobileGames.length === 0) return null;
 
   return (
     <section className="py-6 px-2">
@@ -54,13 +53,13 @@ export function GameGrid() {
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">
-            MLBB Diamonds
+            Top-Up Center
           </h2>
         </div>
       </div>
       
       <div className="grid grid-cols-3 gap-2">
-        {mlbbGames.map((game) => (
+        {mobileGames.map((game) => (
           <GameCard key={game.id} game={game} />
         ))}
       </div>

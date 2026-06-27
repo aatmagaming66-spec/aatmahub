@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import Link from 'next/link';
+import Link from 'link';
 import Image from 'next/image';
 import { useFirestore } from '@/firebase/provider';
 import { collection, query, orderBy, where } from 'firebase/firestore';
@@ -20,19 +20,17 @@ export default function GamesPage() {
 
   const { data: rawGames, loading } = useCollection(gamesQuery);
 
-  const mlbbGames = useMemo(() => {
+  const mobileGames = useMemo(() => {
     if (!rawGames) return [];
-    // Exclusively MLBB
     return [...rawGames]
-      .filter(g => g.name?.toLowerCase().includes('mlbb'))
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">MLBB Diamond Hub</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Mobile Legends Regional Top-Ups</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Gaming Hub</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Instant Digital Distribution Center</p>
       </header>
 
       {loading ? (
@@ -41,14 +39,14 @@ export default function GamesPage() {
             <Skeleton key={i} className="aspect-square w-full rounded-2xl bg-white/5" />
           ))}
         </div>
-      ) : mlbbGames.length === 0 ? (
+      ) : mobileGames.length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-2xl p-20 text-center space-y-4">
            <Gamepad2 className="h-10 w-10 text-muted-foreground mx-auto opacity-20" />
-           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">MLBB Registry Empty</p>
+           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Registry Empty</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {mlbbGames.map((game) => {
+          {mobileGames.map((game) => {
             const isActive = game.status === 'active';
 
             return (
