@@ -59,7 +59,7 @@ export default function DashboardPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">User Dashboard</h1>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Dashboard</h1>
           <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Your Account and Wallet</p>
         </div>
       </header>
@@ -69,13 +69,14 @@ export default function DashboardPage() {
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <div className={cn(
-          "relative w-full min-h-[250px] transition-all duration-700 [transform-style:preserve-3d] active:scale-[0.97]",
+          "relative w-full min-h-[250px] transition-all duration-700 [transform-style:preserve-3d]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
           {/* FRONT OF CARD */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[2rem] overflow-hidden shadow-3d border border-white/20 p-8 flex flex-col justify-between bg-gradient-to-br from-[#110000] via-primary to-accent active-press"
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[2rem] overflow-hidden shadow-3d border border-white/20 p-8 flex flex-col justify-between bg-gradient-to-br from-[#110000] via-primary to-accent transition-all"
           )}>
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-white/30 z-20" />
             <div className="absolute top-0 right-0 p-8 opacity-20 -rotate-12 translate-x-4 -translate-y-4">
               <div className="h-40 w-40 border-[12px] border-white/10 rounded-full" />
             </div>
@@ -102,8 +103,9 @@ export default function DashboardPage() {
 
           {/* BACK OF CARD */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[2rem] overflow-hidden shadow-3d border border-white/20 flex flex-col bg-gradient-to-br from-accent via-primary to-[#110000]"
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[2rem] overflow-hidden shadow-3d border border-white/20 flex flex-col bg-gradient-to-br from-accent via-primary to-[#110000] transition-all"
           )}>
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-white/30 z-20" />
             <div className="w-full h-12 bg-black/60 mt-8 shadow-inner shrink-0" />
             <div className="flex-1 px-8 flex flex-col justify-center text-center space-y-2">
               <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em]">Available Balance</span>
@@ -123,7 +125,7 @@ export default function DashboardPage() {
 
       <div className="flex gap-4">
         <Link href="/wallet/deposit" className="flex-1" prefetch={false}>
-          <Button className="w-full h-16 bg-primary hover:bg-secondary text-white font-black text-xs uppercase tracking-[0.3em] rounded-2xl shadow-3d gap-4 group">
+          <Button className="w-full h-16 bg-primary hover:bg-secondary text-white font-black text-xs uppercase tracking-[0.3em] rounded-2xl shadow-3d gap-4 group border-t border-white/20">
             <PlusCircle className="h-6 w-6 group-hover:rotate-90 transition-transform" /> Add Money
           </Button>
         </Link>
@@ -138,7 +140,7 @@ export default function DashboardPage() {
         <div className="flex justify-between items-end px-2">
           <div className="flex items-center gap-2">
             <div className="h-4 w-1 bg-primary rounded-full" />
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50">Recent Transactions</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50">Recent Activity</h3>
           </div>
           <Link href="/wallet/history" prefetch={false}>
             <span className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/40 hover:text-white hover:border-white transition-colors">View All</span>
@@ -154,7 +156,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             recentTransactions.map((tx) => (
-              <div key={tx.transactionId} className="bg-card border border-border p-6 rounded-2xl flex items-center justify-between shadow-3d hover:border-primary/40 hover:scale-[1.01] transition-all group">
+              <div key={tx.transactionId} className="bg-card border border-border p-6 rounded-2xl flex items-center justify-between shadow-3d hover:border-primary/40 transition-all group active:scale-[0.99]">
                 <div className="flex items-center gap-5">
                   <div className={cn(
                     "h-14 w-14 rounded-2xl flex items-center justify-center border shadow-inner transition-transform group-hover:rotate-6",
