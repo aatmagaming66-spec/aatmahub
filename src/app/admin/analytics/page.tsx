@@ -156,21 +156,21 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Insights Dashboard</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Store Intelligence Hub</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Analytics Dashboard</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Store Statistics Overview</p>
       </header>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Gross Revenue" value={`₹${stats?.totalRevenue.toLocaleString()}`} icon={IndianRupee} trend="+12%" color="text-primary" />
-        <StatCard label="Daily Intake" value={`₹${stats?.todayRevenue.toLocaleString()}`} icon={Zap} trend="+5%" color="text-accent" />
+        <StatCard label="Total Revenue" value={`₹${stats?.totalRevenue.toLocaleString()}`} icon={IndianRupee} trend="+12%" color="text-primary" />
+        <StatCard label="Today's Revenue" value={`₹${stats?.todayRevenue.toLocaleString()}`} icon={Zap} trend="+5%" color="text-accent" />
         <StatCard label="Total Users" value={stats?.totalUsers || 0} icon={Users} trend="+24" color="text-blue-400" />
-        <StatCard label="Active Cycles" value={stats?.pendingOrders || 0} icon={Package} trend="Live" color="text-orange-400" />
+        <StatCard label="Pending Orders" value={stats?.pendingOrders || 0} icon={Package} trend="Live" color="text-orange-400" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 bg-card border-border rounded-none overflow-hidden shadow-2xl p-6">
           <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xs font-black uppercase tracking-widest">Revenue Velocity (7D)</h3>
+            <h3 className="text-xs font-black uppercase tracking-widest">Revenue Growth (7 Days)</h3>
           </div>
           <div className="h-[300px] w-full">
             <LineChartComponent data={stats?.historyData || []} />
@@ -178,7 +178,7 @@ export default function AnalyticsPage() {
         </Card>
 
         <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl p-6 flex flex-col">
-          <h3 className="text-xs font-black uppercase tracking-widest mb-8">Regional Dominance</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest mb-8">Sales by Region</h3>
           <div className="flex-1 h-[250px] w-full">
             <PieChartComponent data={stats?.regionChartData || []} />
           </div>
@@ -200,23 +200,23 @@ export default function AnalyticsPage() {
          <Card className="bg-card border-border rounded-none p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
                <TrendingUp className="h-5 w-5 text-primary" />
-               <h3 className="text-xs font-black uppercase tracking-widest">Cycle Performance</h3>
+               <h3 className="text-xs font-black uppercase tracking-widest">Platform Performance</h3>
             </div>
             <div className="space-y-6">
-               <PerformanceItem label="Order Fulfillment" value="94.2%" trend="+2.1%" />
+               <PerformanceItem label="Order Fulfillment Rate" value="94.2%" trend="+2.1%" />
                <PerformanceItem label="Customer Retention" value="78.5%" trend="+4.3%" />
-               <PerformanceItem label="System Success Rate" value="99.9%" trend="Stable" />
+               <PerformanceItem label="System Uptime" value="99.9%" trend="Stable" />
             </div>
          </Card>
 
          <Card className="bg-card border-border rounded-none p-8 shadow-2xl">
             <div className="flex items-center gap-3 mb-6">
                <Globe2 className="h-5 w-5 text-accent" />
-               <h3 className="text-xs font-black uppercase tracking-widest">Market Intel</h3>
+               <h3 className="text-xs font-black uppercase tracking-widest">Game Trends</h3>
             </div>
             <div className="space-y-6">
-               <PerformanceItem label="Top: MLBB India" value="42%" color="bg-primary" />
-               <PerformanceItem label="Growth: MLBB Indonesia" value="28%" color="bg-accent" />
+               <PerformanceItem label="MLBB India" value="42%" color="bg-primary" />
+               <PerformanceItem label="MLBB Indonesia" value="28%" color="bg-accent" />
                <PerformanceItem label="Others" value="30%" color="bg-muted" />
             </div>
          </Card>

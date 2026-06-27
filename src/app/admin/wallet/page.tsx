@@ -26,13 +26,13 @@ const WalletCard = memo(function WalletCard({ wallet, onAdjust }: any) {
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary"><Wallet size={20} /></div>
             <div>
-              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">User Identity</p>
+              <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">User ID</p>
               <p className="text-[10px] font-black uppercase text-white truncate max-w-[120px]">{wallet.userId}</p>
             </div>
           </div>
           <div className="text-right">
             <p className="text-xl font-black text-white">₹{wallet.balance.toLocaleString()}</p>
-            <span className="text-[7px] font-black uppercase tracking-widest text-green-500">Available Credits</span>
+            <span className="text-[7px] font-black uppercase tracking-widest text-green-500">Wallet Balance</span>
           </div>
         </div>
         <Button onClick={() => onAdjust(wallet)} className="w-full h-10 bg-white/5 border border-white/5 hover:bg-primary hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest gap-2">
@@ -53,7 +53,7 @@ export default function AdminWalletRegistryPage() {
 
   const walletsQuery = useMemo(() => query(
     collection(db, 'wallets'),
-    limit(50) // OPTIMIZATION: Pagination Limit
+    limit(50)
   ), [db]);
 
   const { data: wallets, loading } = useCollection(walletsQuery);
@@ -72,11 +72,11 @@ export default function AdminWalletRegistryPage() {
         balance: increment(Number(adjustAmount)),
         updatedAt: new Date().toISOString()
       });
-      toast({ title: 'Wallet Balanced', description: `Adjusted by ₹${adjustAmount} successfully.` });
+      toast({ title: 'Wallet Updated', description: `Adjusted balance by ₹${adjustAmount}.` });
       setAdjustingWallet(null);
       setAdjustAmount('');
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Adjustment Failed', description: e.message });
+      toast({ variant: 'destructive', title: 'Error', description: e.message });
     } finally {
       setSaving(false);
     }
@@ -85,14 +85,14 @@ export default function AdminWalletRegistryPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Wallet Registry</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">HUB Credit Ledger</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">User Wallets</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage and Adjust User Balances</p>
       </header>
 
       <div className="relative group">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
         <Input 
-          placeholder="Search by User UID..." 
+          placeholder="Search by User ID..." 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="bg-card border-border pl-12 h-14 rounded-2xl text-xs font-bold focus:border-primary shadow-xl"
@@ -104,7 +104,7 @@ export default function AdminWalletRegistryPage() {
       ) : filteredWallets.length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-[2rem] p-20 text-center">
           <Wallet className="mx-auto h-10 w-10 text-muted-foreground opacity-20 mb-4" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No Wallets Found</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No User Wallets Found</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -116,10 +116,10 @@ export default function AdminWalletRegistryPage() {
 
       <Dialog open={!!adjustingWallet} onOpenChange={() => setAdjustingWallet(null)}>
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-sm">
-          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Balance Correction</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Adjust Balance</DialogTitle></DialogHeader>
           <div className="py-6 space-y-4">
              <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Adjustment Amount (₹)</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Amount to Add (₹)</Label>
                 <Input 
                   type="number" 
                   placeholder="e.g. 500 or -500" 
@@ -127,12 +127,12 @@ export default function AdminWalletRegistryPage() {
                   onChange={(e) => setAdjustAmount(e.target.value)}
                   className="bg-black/50 border-border h-14 rounded-2xl text-xl font-black text-primary px-6"
                 />
-                <p className="text-[8px] text-muted-foreground uppercase font-black">Use negative value to deduct funds from wallet.</p>
+                <p className="text-[8px] text-muted-foreground uppercase font-black">Use a negative value to subtract funds.</p>
              </div>
           </div>
           <DialogFooter>
             <Button onClick={handleAdjust} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Authorize Adjustment"}
+              {saving ? <Loader2 className="animate-spin" /> : "Confirm Adjustment"}
             </Button>
           </DialogFooter>
         </DialogContent>

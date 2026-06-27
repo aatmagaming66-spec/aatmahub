@@ -155,25 +155,25 @@ export default function GameManagementPage() {
       
       await setDoc(gameRef, payload, { merge: true });
       
-      toast({ title: 'Success', description: `${cleanName} has been updated.` });
+      toast({ title: 'Saved', description: `${cleanName} has been updated.` });
       setIsModalOpen(false);
     } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Operation Failed', description: e.message });
+      toast({ variant: 'destructive', title: 'Error', description: e.message });
     } finally { 
       setSaving(false); 
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently delete this record?')) return;
-    try { await deleteDoc(doc(db, 'games', id)); toast({ title: 'Success' }); } catch (e: any) { toast({ variant: 'destructive', title: 'Error', description: e.message }); }
+    if (!confirm('Permanently delete this item?')) return;
+    try { await deleteDoc(doc(db, 'games', id)); toast({ title: 'Deleted' }); } catch (e: any) { toast({ variant: 'destructive', title: 'Error', description: e.message }); }
   };
 
   const toggleRegion = async (id: string, currentStatus: string) => {
     try {
       const newStatus = currentStatus === 'enabled' ? 'disabled' : 'enabled';
       await updateDoc(doc(db, 'regions', id), { status: newStatus });
-      toast({ title: "Updated", description: `${id} is now ${newStatus}.` });
+      toast({ title: "Updated", description: `${id} region is now ${newStatus}.` });
     } catch (error: any) { toast({ variant: 'destructive', title: "Update Failed", description: error.message }); }
   };
 
@@ -181,14 +181,14 @@ export default function GameManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Registry Hub</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage Content & Regional Grid</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Game Management</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage Store Games and Regions</p>
         </div>
       </header>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-card border border-border h-14 p-1.5 rounded-none mb-8 w-full max-w-md">
-          <TabsTrigger value="registry" className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary">Catalog</TabsTrigger>
+          <TabsTrigger value="registry" className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary">Games List</TabsTrigger>
           <TabsTrigger value="regions" className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary">Regions</TabsTrigger>
         </TabsList>
 
@@ -196,10 +196,10 @@ export default function GameManagementPage() {
           <div className="flex justify-between items-center gap-4">
              <div className="relative flex-1 group">
                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-               <Input placeholder="Search catalog..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-12 h-12 rounded-none text-xs font-bold focus:border-primary shadow-xl" />
+               <Input placeholder="Search games..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-12 h-12 rounded-none text-xs font-bold focus:border-primary shadow-xl" />
              </div>
              <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-none font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
-                <Plus size={16} /> Add Product
+                <Plus size={16} /> Add Game
              </Button>
           </div>
 
@@ -236,8 +236,8 @@ export default function GameManagementPage() {
 
         <TabsContent value="regions" className="space-y-6">
           <div className="bg-accent/5 p-6 rounded-none border border-accent/10 space-y-3 max-w-2xl mb-6">
-            <div className="flex items-center gap-2 text-accent"><Globe className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Regional Hub</span></div>
-            <p className="text-[11px] text-muted-foreground font-medium uppercase leading-relaxed tracking-wider">Manage regional availability and distribution grids.</p>
+            <div className="flex items-center gap-2 text-accent"><Globe className="h-4 w-4" /><span className="text-[10px] font-black uppercase tracking-widest">Store Regions</span></div>
+            <p className="text-[11px] text-muted-foreground font-medium uppercase leading-relaxed tracking-wider">Enable or disable regional availability for your games.</p>
           </div>
           {regionsLoading ? (
             <div className="flex h-64 items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>
@@ -267,11 +267,11 @@ export default function GameManagementPage() {
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-card border-border rounded-none p-8 max-w-xl max-h-[90vh] overflow-y-auto no-scrollbar">
-          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">{editingGame ? 'Edit Registry' : 'New Entry'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">{editingGame ? 'Edit Game' : 'Add New Game'}</DialogTitle></DialogHeader>
           <div className="space-y-6 py-4">
              <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Product Name</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Game Name</Label>
                 <input 
                   value={formData.name} 
                   onChange={(e) => { 
@@ -284,7 +284,7 @@ export default function GameManagementPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Unique Slug (ID)</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Slug (URL ID)</Label>
                 <input 
                   value={formData.slug} 
                   onChange={(e) => setFormData({...formData, slug: e.target.value})} 
@@ -295,7 +295,7 @@ export default function GameManagementPage() {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Category Hub</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest">Category</Label>
                 <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
                   <SelectTrigger className="bg-black/50 border-border h-12 rounded-none focus:border-primary font-bold"><SelectValue placeholder="Select Category" /></SelectTrigger>
                   <SelectContent className="bg-card border-border rounded-none">
@@ -304,13 +304,13 @@ export default function GameManagementPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase tracking-widest">Priority Index</Label>
+                <Label className="text-[9px] font-black uppercase tracking-widest">Display Order</Label>
                 <input type="number" value={formData.sortOrder} onChange={(e) => setFormData({...formData, sortOrder: Number(e.target.value)})} className="bg-black/50 border-border h-12 rounded-none text-xs font-bold w-full px-4 outline-none" />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Regional Flag (Emoji)</Label>
+              <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">Region Flag (Emoji)</Label>
               <input 
                 value={formData.flag} 
                 onChange={(e) => setFormData({...formData, flag: e.target.value})} 
@@ -320,16 +320,16 @@ export default function GameManagementPage() {
             </div>
 
             <div className="flex items-center justify-between bg-black/50 border border-border h-12 rounded-none px-4">
-              <span className="text-[10px] font-bold uppercase text-white/60">Operational Status</span>
+              <span className="text-[10px] font-bold uppercase text-white/60">Status (Active)</span>
               <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
             </div>
             <div className="space-y-4">
               <div className="p-4 bg-white/5 border border-white/5 rounded-none space-y-3">
-                 <div className="flex items-center gap-2"><ImageIcon size={14} className="text-primary" /><span className="text-[10px] font-black uppercase tracking-widest">Logo Resource</span></div>
+                 <div className="flex items-center gap-2"><ImageIcon size={14} className="text-primary" /><span className="text-[10px] font-black uppercase tracking-widest">Game Logo</span></div>
                  <input type="file" onChange={(e) => setFiles({...files, logo: e.target.files?.[0] || null})} className="text-[8px]" accept=".jpg,.jpeg,.png,.webp" />
               </div>
               <div className="p-4 bg-white/5 border border-white/5 rounded-none space-y-3">
-                 <div className="flex items-center gap-2"><ImageIcon size={14} className="text-accent" /><span className="text-[10px] font-black uppercase tracking-widest">Banner Resource</span></div>
+                 <div className="flex items-center gap-2"><ImageIcon size={14} className="text-accent" /><span className="text-[10px] font-black uppercase tracking-widest">Game Banner</span></div>
                  <input type="file" onChange={(e) => setFiles({...files, banner: e.target.files?.[0] || null})} className="text-[8px]" accept=".jpg,.jpeg,.png,.webp" />
               </div>
             </div>
@@ -337,17 +337,17 @@ export default function GameManagementPage() {
             <div className="bg-primary/5 border border-primary/20 rounded-none p-4 space-y-2">
                <div className="flex items-center gap-2 text-primary">
                  <Bug size={12} />
-                 <span className="text-[9px] font-black uppercase tracking-widest">State Debug</span>
+                 <span className="text-[9px] font-black uppercase tracking-widest">Debug Info</span>
                </div>
                <div className="grid grid-cols-2 gap-2 text-[8px] font-mono uppercase text-white/40">
-                  <p>Name: <span className="text-white">{formData.name || 'NULL'}</span></p>
-                  <p>Slug: <span className="text-white">{formData.slug || 'NULL'}</span></p>
+                  <p>Name: <span className="text-white">{formData.name || 'N/A'}</span></p>
+                  <p>Slug: <span className="text-white">{formData.slug || 'N/A'}</span></p>
                </div>
             </div>
           </div>
           <DialogFooter>
             <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-none font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Commit Registry Change"}
+              {saving ? <Loader2 className="animate-spin" /> : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

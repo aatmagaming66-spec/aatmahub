@@ -52,7 +52,7 @@ export default function WalletDashboard() {
         </Button>
         <div>
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">My Wallet</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Balance and Transaction History</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage your balance and transactions</p>
         </div>
       </header>
 
@@ -63,7 +63,7 @@ export default function WalletDashboard() {
             <div className="flex justify-between items-start gap-4 relative z-10">
               <span className="font-headline font-black text-sm tracking-tighter text-white uppercase drop-shadow-md">AATMA HUB</span>
               <div className="backdrop-blur-md border border-white/20 px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-xl bg-black/40 text-white">
-                <span className="text-[8px] font-black uppercase tracking-widest">Active Member</span>
+                <span className="text-[8px] font-black uppercase tracking-widest">Wallet Active</span>
               </div>
             </div>
             <div className="mt-auto space-y-3 relative z-10">
@@ -71,13 +71,12 @@ export default function WalletDashboard() {
                 {!initialized || !profile ? (
                   <Skeleton className="h-5 w-32 bg-white/10" />
                 ) : (
-                  <p className="text-sm font-black text-white uppercase truncate drop-shadow-sm">{profile?.fullName || 'My Profile'}</p>
+                  <p className="text-sm font-black text-white uppercase truncate drop-shadow-sm">{profile?.fullName || 'User Name'}</p>
                 )}
-                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/50">Verified Account</p>
+                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/50">Verified Member</p>
               </div>
               <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/40 border-t border-white/10 pt-3">
-                <span>Status: <span className="text-green-400">Active</span></span>
-                <span>ID: <span className="text-white">{user?.uid.substring(0, 10).toUpperCase()}</span></span>
+                <span>Account: <span className="text-white">{user?.uid.substring(0, 10).toUpperCase()}</span></span>
               </div>
             </div>
           </div>
@@ -85,13 +84,13 @@ export default function WalletDashboard() {
           <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-[#ec4899] via-[#dc2626] to-[#110000] border-white/20")}>
             <div className="w-full h-10 bg-black/60 mt-6 shadow-inner shrink-0" />
             <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2">
-              <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em]">Available Balance</span>
+              <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em]">Total Balance</span>
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter drop-shadow-lg leading-none">
                 {(!initialized || walletLoading) ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/60">.00</span>
               </h2>
             </div>
             <div className="p-4 border-t border-white/10 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/40 tracking-widest mt-auto">
-              <span>Account ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
+              <span>User ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
             </div>
           </div>
         </div>
@@ -112,7 +111,7 @@ export default function WalletDashboard() {
 
       <div className="space-y-5">
         <div className="flex justify-between items-end px-2">
-          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Recent Transactions</h3>
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-white/50">Recent Activity</h3>
           <Link href="/wallet/history" prefetch={false}><span className="text-[10px] font-black text-primary uppercase border-b border-primary/30">View All</span></Link>
         </div>
         <div className="space-y-3 pb-10">
@@ -120,7 +119,7 @@ export default function WalletDashboard() {
             Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
           ) : recentTransactions.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-10 rounded-2xl text-center">
-              <p className="text-[10px] font-black uppercase text-muted-foreground">No recent activity found</p>
+              <p className="text-[10px] font-black uppercase text-muted-foreground">No recent transactions</p>
             </div>
           ) : (
              recentTransactions.map((tx) => (

@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -21,15 +20,15 @@ export default function Error({
       <div className="h-20 w-20 bg-accent/20 rounded-full flex items-center justify-center mb-6">
         <Zap className="h-10 w-10 text-accent" />
       </div>
-      <h1 className="text-3xl font-headline font-black uppercase tracking-tighter text-white mb-2">System Breach</h1>
+      <h1 className="text-3xl font-headline font-black uppercase tracking-tighter text-white mb-2">Something Went Wrong</h1>
       <p className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-black max-w-xs mb-8 leading-relaxed">
-        An unexpected anomaly has been detected in the HUB protocol. Security measures have been engaged.
+        An unexpected error has occurred while processing your request. Please try reloading the page.
       </p>
       <Button 
         onClick={() => reset()}
         className="bg-accent hover:bg-primary h-14 px-10 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] gap-3"
       >
-        <RefreshCcw className="h-4 w-4" /> Restart Protocol
+        <RefreshCcw className="h-4 w-4" /> Try Again
       </Button>
     </div>
   );

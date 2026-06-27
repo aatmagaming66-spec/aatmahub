@@ -57,14 +57,14 @@ export default function AdminOrdersPage() {
     try {
       const orderRef = doc(db, 'orders', orderId);
       await updateDoc(orderRef, { status: newStatus });
-      toast({ title: "Status Updated", description: `Order ${orderId} is now ${newStatus}.` });
+      toast({ title: "Status Updated", description: `Order status changed to ${newStatus}.` });
 
       if (newStatus === 'processing') {
         fetch('/api/admin/fulfilment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ orderId }),
-        }).catch(e => console.error('Silent failover for fulfilment trigger'));
+        }).catch(e => console.error('Fulfillment trigger error'));
       }
     } catch (error: any) {
       toast({ variant: 'destructive', title: "Update Failed", description: error.message });
@@ -76,11 +76,11 @@ export default function AdminOrdersPage() {
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Order Management</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Full Lifecycle Control</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage and Update Customer Orders</p>
         </div>
         <div className="flex items-center gap-3">
            <div className="bg-card border border-border px-3 py-1.5 rounded-none flex items-center gap-2">
-              <span className="text-[9px] font-black uppercase text-muted-foreground">Recent Pool:</span>
+              <span className="text-[9px] font-black uppercase text-muted-foreground">Orders Count:</span>
               <span className="text-xs font-black text-primary">{filteredOrders.length}</span>
            </div>
         </div>
@@ -120,8 +120,8 @@ export default function AdminOrdersPage() {
         <Table>
           <TableHeader className="bg-black/20">
             <TableRow className="border-border">
-              <TableHead className="text-[9px] font-black uppercase tracking-widest py-6 px-6">Order Details</TableHead>
-              <TableHead className="text-[9px] font-black uppercase tracking-widest">Player Target</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest py-6 px-6">Order Info</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest">Player Details</TableHead>
               <TableHead className="text-[9px] font-black uppercase tracking-widest">Amount</TableHead>
               <TableHead className="text-[9px] font-black uppercase tracking-widest">Status</TableHead>
               <TableHead className="text-[9px] font-black uppercase tracking-widest text-right px-6">Actions</TableHead>
@@ -133,14 +133,14 @@ export default function AdminOrdersPage() {
                 <TableCell colSpan={5} className="h-64 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Retrieving Secure Records...</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Loading Orders...</span>
                   </div>
                 </TableCell>
               </TableRow>
             ) : filteredOrders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-64 text-center">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">No Transactions Detected</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">No Orders Found</span>
                 </TableCell>
               </TableRow>
             ) : (
@@ -212,10 +212,10 @@ const OrderRow = memo(function OrderRow({ order, isMounted, updateStatus }: any)
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-card border-border min-w-[140px]">
             <DropdownMenuItem onClick={() => updateStatus(order.id, 'processing')} className="text-[10px] font-black uppercase tracking-widest p-3">
-              Processing (API)
+              Mark Processing
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => updateStatus(order.id, 'completed')} className="text-[10px] font-black uppercase tracking-widest p-3 text-green-400">
-              Complete
+              Mark Completed
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => updateStatus(order.id, 'failed')} className="text-[10px] font-black uppercase tracking-widest p-3 text-primary">
               Mark Failed

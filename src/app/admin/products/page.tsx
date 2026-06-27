@@ -85,7 +85,7 @@ export default function AdminProductManagementPage() {
 
   const handleSaveProduct = async () => {
     if (!formData.name || !formData.price || !formData.category) {
-      toast({ variant: 'destructive', title: 'Validation Error', description: 'Mandatory fields missing.' });
+      toast({ variant: 'destructive', title: 'Error', description: 'Please fill all fields.' });
       return;
     }
     setSaving(true);
@@ -98,10 +98,10 @@ export default function AdminProductManagementPage() {
         updatedAt: new Date().toISOString() 
       }, { merge: true });
       
-      toast({ title: "Product Saved", description: `${formData.name} updated successfully.` });
+      toast({ title: "Product Saved", description: `${formData.name} has been updated.` });
       setIsModalOpen(false);
     } catch (e: any) { 
-      toast({ variant: 'destructive', title: 'Save Failed', description: e.message }); 
+      toast({ variant: 'destructive', title: "Save Failed", description: e.message }); 
     } finally { 
       setSaving(false); 
     }
@@ -151,8 +151,8 @@ export default function AdminProductManagementPage() {
       }
 
       toast({ 
-        title: "MLBB India Synchronized", 
-        description: "8 products successfully mapped to MLBB India." 
+        title: "Success", 
+        description: "MLBB India products have been synchronized." 
       });
     } catch (e: any) {
       toast({ variant: 'destructive', title: "Sync Failed", description: e.message });
@@ -164,15 +164,15 @@ export default function AdminProductManagementPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Catalog Management</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Master Registry for SKUs and Prices</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Product Management</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage Store Items, SKUs and Prices</p>
       </header>
 
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
            <div className="relative flex-1 group w-full">
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-             <Input placeholder="Search items by Name, ID or Category..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-12 h-12 rounded-none text-xs font-bold shadow-xl" />
+             <Input placeholder="Search products..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-card border-border pl-12 h-12 rounded-none text-xs font-bold shadow-xl" />
            </div>
            <div className="flex gap-2 w-full md:w-auto">
              <Button onClick={forceSyncMlbbIndia} disabled={saving} variant="outline" className="flex-1 border-primary/20 text-primary h-12 rounded-none font-black uppercase text-[9px] px-6 gap-2 hover:bg-primary/5 shadow-xl">
@@ -215,7 +215,7 @@ export default function AdminProductManagementPage() {
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-card border-border rounded-none p-8 max-w-xl">
-          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Product Information</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Product Info</DialogTitle></DialogHeader>
           <div className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2 col-span-2">
@@ -224,7 +224,7 @@ export default function AdminProductManagementPage() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[9px] font-black uppercase">Category</Label>
+                <Label className="text-[9px] font-black uppercase">Game Category</Label>
                 <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
                   <SelectTrigger className="bg-black/50 border-border h-12 rounded-none font-bold"><SelectValue placeholder="Select Game" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">{games?.map((g) => <SelectItem key={g.id} value={g.id} className="text-[10px] font-black uppercase">{g.name}</SelectItem>)}</SelectContent>

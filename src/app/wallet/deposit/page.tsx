@@ -20,7 +20,7 @@ export default function DepositPage() {
   const handleManualRequest = () => {
     const numAmount = Number(amount);
     if (!numAmount || numAmount < 10) {
-      toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Minimum recharge request is ₹10.' });
+      toast({ variant: 'destructive', title: 'Invalid Amount', description: 'Minimum recharge is ₹10.' });
       return;
     }
 
@@ -30,10 +30,10 @@ export default function DepositPage() {
     }
 
     const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
-    const message = `*MANUAL RECHARGE REQUEST*\n\n*Amount:* ₹${numAmount}\n*User Email:* ${user.email}\n*User UID:* ${user.uid}\n\nPlease provide payment details to complete this top-up.`;
+    const message = `*DEPOSIT REQUEST*\n\n*Amount:* ₹${numAmount}\n*User Email:* ${user.email}\n*User ID:* ${user.uid}\n\nPlease provide payment details to add funds to my wallet.`;
     
     window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
-    toast({ title: "Request Initialized", description: "Redirecting to Support for manual fulfillment." });
+    toast({ title: "Request Initialized", description: "Opening Support WhatsApp for payment instructions." });
   };
 
   return (
@@ -41,14 +41,14 @@ export default function DepositPage() {
       <header className="flex items-center gap-4 py-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-none hover:bg-white/5"><ArrowLeft className="h-5 w-5" /></Button>
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Recharge Hub</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manual Credit Request</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Add Funds</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Recharge your wallet balance</p>
         </div>
       </header>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Enter Requested Amount (₹)</Label>
+          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Amount to Recharge (₹)</Label>
           <Input 
             type="number" 
             placeholder="Min ₹10" 
@@ -67,13 +67,12 @@ export default function DepositPage() {
         <div className="bg-white/5 p-6 rounded-none border border-white/5 space-y-4">
           <div className="flex items-center gap-2">
             <Info className="h-4 w-4 text-primary" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Manual Fulfillment Protocol</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-white/60">How to Recharge</span>
           </div>
           <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-            1. Enter amount and click "Request Manual Top-up"<br/>
-            2. You will be redirected to Support WhatsApp<br/>
-            3. Share payment proof via screenshot<br/>
-            4. Balance will be added to your wallet within 2-5 minutes
+            1. Enter amount and click "Add Funds via WhatsApp"<br/>
+            2. Share payment screenshot on our support chat<br/>
+            3. Balance will be added to your account within 5-10 minutes
           </p>
         </div>
 
@@ -82,10 +81,10 @@ export default function DepositPage() {
           onClick={handleManualRequest}
         >
           <MessageCircle className="h-5 w-5" />
-          Request Manual Top-up
+          Add Funds via WhatsApp
         </Button>
 
-        <div className="flex items-center justify-center gap-3 py-6 opacity-40"><ShieldCheck className="h-4 w-4" /><span className="text-[8px] font-black uppercase tracking-[0.4em]">Verified Aatma Hub Support Channel</span></div>
+        <div className="flex items-center justify-center gap-3 py-6 opacity-40"><ShieldCheck className="h-4 w-4" /><span className="text-[8px] font-black uppercase tracking-[0.4em]">Official Support Channel</span></div>
       </div>
     </div>
   );

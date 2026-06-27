@@ -1,4 +1,3 @@
-
 'use client';
 
 import { ShieldAlert, Wrench, Clock } from 'lucide-react';
@@ -17,17 +16,17 @@ export default function MaintenancePage() {
         </div>
       </div>
       
-      <h1 className="text-4xl font-headline font-black uppercase tracking-tighter text-white mb-3">System Upgrade</h1>
+      <h1 className="text-4xl font-headline font-black uppercase tracking-tighter text-white mb-3">Maintenance</h1>
       <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black max-w-xs mb-8 leading-relaxed">
-        The AATMA HUB protocol is currently undergoing scheduled optimization. All services are temporarily suspended.
+        The website is currently undergoing scheduled maintenance to improve our services. We'll be back shortly.
       </p>
 
       <div className="bg-card border border-border p-6 rounded-3xl mb-8 max-w-sm w-full">
         <div className="flex items-center gap-3 mb-4">
           <Clock className="h-5 w-5 text-accent" />
-          <span className="text-[9px] font-black uppercase tracking-widest text-accent">Estimated Recovery</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-accent">Estimated Time</span>
         </div>
-        <p className="text-sm font-bold text-white uppercase tracking-tight">Approximately 60 Minutes</p>
+        <p className="text-sm font-bold text-white uppercase tracking-tight">Back in about 60 minutes</p>
       </div>
 
       <Link href="/contact">

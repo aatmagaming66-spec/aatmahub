@@ -96,7 +96,7 @@ export default function SocialManagementPage() {
       const serviceRef = doc(db, 'social_services', id);
       await setDoc(serviceRef, { ...formData, id, updatedAt: new Date().toISOString() }, { merge: true });
 
-      toast({ title: 'Service Updated', description: `${formData.name} configuration saved.` });
+      toast({ title: 'Service Saved', description: `${formData.name} settings have been updated.` });
       setIsModalOpen(false);
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Save Failed', description: e.message });
@@ -106,10 +106,10 @@ export default function SocialManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Permanently remove this Social service?')) return;
+    if (!confirm('Delete this service?')) return;
     try {
       await deleteDoc(doc(db, 'social_services', id));
-      toast({ title: 'Service Purged' });
+      toast({ title: 'Service Deleted' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Error', description: e.message });
     }
@@ -119,11 +119,11 @@ export default function SocialManagementPage() {
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Social Hub</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Growth Services</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase text-white">Social Services</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage Growth and Social Media Services</p>
         </div>
         <Button onClick={() => handleOpenModal()} className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2">
-          <Plus size={16} /> Deploy New Service
+          <Plus size={16} /> Add New Service
         </Button>
       </header>
 
@@ -142,7 +142,7 @@ export default function SocialManagementPage() {
       ) : filteredItems.length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-[2rem] p-20 text-center">
           <Share2 className="mx-auto h-10 w-10 text-muted-foreground opacity-20 mb-4" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No Social Services Found</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No Services Found</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -154,18 +154,18 @@ export default function SocialManagementPage() {
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="bg-card border-border rounded-3xl p-8 max-w-xl">
-          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">{editingItem ? 'Update Service' : 'Deploy New Service'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter text-white">{editingItem ? 'Edit Service' : 'Add New Service'}</DialogTitle></DialogHeader>
           <div className="grid grid-cols-2 gap-6 py-6">
             <div className="space-y-2 col-span-2">
               <Label className="text-[9px] font-black uppercase tracking-widest">Service Name</Label>
-              <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Instagram Followers" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
+              <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Instagram Followers" className="bg-black/50 border-border h-12 rounded-xl text-xs font-bold" />
             </div>
             
             <div className="col-span-2 space-y-4 pt-4 border-t border-border">
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
-                  <Label className="text-[10px] font-black uppercase">Enable Service</Label>
-                  <p className="text-[8px] text-muted-foreground uppercase font-black">Visibility on frontend</p>
+                  <Label className="text-10px] font-black uppercase">Enable Service</Label>
+                  <p className="text-[8px] text-muted-foreground uppercase font-black">Make this service visible on the store</p>
                 </div>
                 <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />
               </div>
@@ -173,7 +173,7 @@ export default function SocialManagementPage() {
           </div>
           <DialogFooter>
             <Button onClick={handleSave} disabled={saving} className="w-full bg-primary h-14 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20">
-              {saving ? <Loader2 className="animate-spin" /> : "Commit Changes"}
+              {saving ? <Loader2 className="animate-spin" /> : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>

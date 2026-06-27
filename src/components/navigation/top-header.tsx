@@ -17,15 +17,15 @@ export function TopHeader() {
   const { toggleSidebar } = useSidebar();
 
   const MOCK_NOTIFICATIONS = [
-    { id: 1, title: 'Identity Verified', desc: 'Your account security status is now active.', icon: ShieldCheck, color: 'text-green-400', time: '2m ago' },
-    { id: 2, title: 'Deposit Success', desc: '₹500 has been credited to your hub wallet.', icon: CheckCircle2, color: 'text-primary', time: '1h ago' },
-    { id: 3, title: 'System Optimized', desc: 'V2.1 protocols are now live for all regions.', icon: Zap, color: 'text-accent', time: '5h ago' },
+    { id: 1, title: 'Welcome', desc: 'Your account is ready for use.', icon: ShieldCheck, color: 'text-green-400', time: '2m ago' },
+    { id: 2, title: 'Money Added', desc: '₹500 has been added to your wallet.', icon: CheckCircle2, color: 'text-primary', time: '1h ago' },
+    { id: 3, title: 'Store Update', desc: 'New packages are now available.', icon: Zap, color: 'text-accent', time: '5h ago' },
   ];
 
   return (
     <header className="w-full bg-background/80 backdrop-blur-md border-b border-border h-16">
       <div className="flex h-full items-center justify-between px-4">
-        {/* Left Side: Text Identity */}
+        {/* Left Side: Brand Logo */}
         <div className="flex items-center">
           <Link href="/" prefetch={false} className="flex items-center gap-2 group active-press">
             <span className="font-headline font-black text-2xl tracking-tighter uppercase">
@@ -34,7 +34,7 @@ export function TopHeader() {
           </Link>
         </div>
         
-        {/* Right Side: Actions & Menu with 3D Aesthetic */}
+        {/* Right Side: Navigation Icons */}
         <div className="flex items-center gap-3">
           <Link href="/cart" prefetch={false}>
             <div className={cn(
@@ -70,7 +70,7 @@ export function TopHeader() {
             </PopoverTrigger>
             <PopoverContent className="bg-card border-border w-80 p-0 overflow-hidden shadow-2xl rounded-2xl" align="end">
               <div className="p-4 border-b border-white/5 bg-white/[0.02]">
-                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Hub Notifications</h4>
+                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Notifications</h4>
               </div>
               <div className="max-h-[300px] overflow-y-auto no-scrollbar divide-y divide-white/5">
                  {MOCK_NOTIFICATIONS.map((n) => (
@@ -87,7 +87,7 @@ export function TopHeader() {
                  ))}
               </div>
               <div className="p-3 bg-black/40 border-t border-white/5 text-center">
-                 <Link href="/profile/notifications" className="text-[8px] font-black uppercase tracking-widest text-primary hover:underline">Manage Preferences</Link>
+                 <Link href="/profile/notifications" className="text-[8px] font-black uppercase tracking-widest text-primary hover:underline">Manage Settings</Link>
               </div>
             </PopoverContent>
           </Popover>

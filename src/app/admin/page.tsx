@@ -114,15 +114,15 @@ export default function AdminDashboard() {
     });
   }, [orders, isMounted]);
 
-  const superModules = useMemo(() => [
-    { label: 'Banner Management', href: '/admin/banners', icon: ImageIcon, desc: 'Manage sliders and promo graphics' },
-    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Add or organize supported games' },
-    { label: 'Products & Pricing', href: '/admin/products', icon: Ticket, desc: 'SKU management and denomination pricing' },
-    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Customer accounts and verification' },
-    { label: 'Wallet Management', href: '/admin/wallet', icon: CreditCard, desc: 'Manage balances and adjustments' },
-    { label: 'API Integrations', href: '/admin/settings/smileone', icon: Zap, desc: 'Third-party fulfillment settings' },
-    { label: 'Website Settings', href: '/admin/homepage', icon: HomeIcon, desc: 'Branding, themes, and layout editor' },
-    { label: 'System Settings', icon: Settings, href: '/admin/system', desc: 'Environment and global params' },
+  const managementModules = useMemo(() => [
+    { label: 'Banners', href: '/admin/banners', icon: ImageIcon, desc: 'Manage homepage sliders' },
+    { label: 'Games', href: '/admin/games', icon: Gamepad2, desc: 'Manage supported games' },
+    { label: 'Products', href: '/admin/products', icon: Ticket, desc: 'Manage prices and SKUs' },
+    { label: 'Users', href: '/admin/users', icon: Users, desc: 'Manage user accounts' },
+    { label: 'Wallets', href: '/admin/wallet', icon: CreditCard, desc: 'Manage user balances' },
+    { label: 'APIs', href: '/admin/settings/smileone', icon: Zap, desc: 'Manage API integrations' },
+    { label: 'Homepage', href: '/admin/homepage', icon: HomeIcon, desc: 'Manage site layout' },
+    { label: 'System', icon: Settings, href: '/admin/system', desc: 'General site settings' },
   ], []);
 
   if (!isMounted) return null;
@@ -132,7 +132,7 @@ export default function AdminDashboard() {
       <header className="flex justify-between items-end px-1">
         <div>
           <h1 className="text-2xl font-headline font-black tracking-tighter uppercase text-white">Admin Dashboard</h1>
-          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Enterprise Store Control</p>
+          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Store Management Overview</p>
         </div>
         <div className="flex gap-2">
           <Link href="/admin/reports" prefetch={false}>
@@ -153,10 +153,10 @@ export default function AdminDashboard() {
         <section className="space-y-3">
            <div className="flex items-center gap-2 px-1">
               <ShieldCheck className="h-3 w-3 text-primary" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Management Systems</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Quick Actions</h2>
            </div>
            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              {superModules.map((mod, i) => (
+              {managementModules.map((mod, i) => (
                 <ModuleCard key={i} {...mod} />
               ))}
            </div>
@@ -166,10 +166,10 @@ export default function AdminDashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 bg-card border-border rounded-none overflow-hidden shadow-2xl p-3">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-[10px] font-black uppercase tracking-widest">Revenue Velocity</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest">Revenue (Last 7 Days)</h3>
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 rounded-none bg-primary" />
-              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Last 7 Cycles</span>
+              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Growth Trend</span>
             </div>
           </div>
           <div className="h-[110px] w-full">
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl p-5 space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-widest">Order Lifecycle</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-widest">Order Status</h3>
           <div className="space-y-2">
             <PipelineItem label="Pending" count={orders?.filter(o => o.status === 'pending').length || 0} icon={Clock} color="text-orange-400" />
             <PipelineItem label="Processing" count={orders?.filter(o => o.status === 'processing').length || 0} icon={TrendingUp} color="text-accent" />

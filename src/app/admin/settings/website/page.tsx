@@ -15,7 +15,6 @@ export default function WebsiteSettingsPage() {
   const db = useFirestore();
   const { toast } = useToast();
   
-  // Pointing to master 'site' document instead of 'branding'
   const masterRef = useMemo(() => doc(db, 'settings', 'site'), [db]);
   const { data: masterData, loading } = useDoc(masterRef);
 
@@ -34,7 +33,7 @@ export default function WebsiteSettingsPage() {
     if (masterData) {
       setSettings(prev => ({
         ...prev,
-        ...masterData // Spreading master data which now contains branding fields
+        ...masterData
       }));
     }
   }, [masterData]);
@@ -42,12 +41,11 @@ export default function WebsiteSettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Merging branding fields into the master site doc
       await setDoc(masterRef, {
         ...settings,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      toast({ title: "Branding Synchronized", description: "Website identity updated in master configuration." });
+      toast({ title: "Branding Updated", description: "Website theme and branding settings have been saved." });
     } catch (error: any) {
       toast({ variant: 'destructive', title: "Update Failed", description: error.message });
     } finally {
@@ -66,20 +64,20 @@ export default function WebsiteSettingsPage() {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header>
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Web Branding</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Identity & Design Control</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Branding Settings</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage Website Logo and Visuals</p>
       </header>
 
       <div className="grid lg:grid-cols-2 gap-8">
         <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
           <CardHeader className="p-8 border-b border-border">
             <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-              <ImageIcon className="h-4 w-4 text-primary" /> Visual Identity
+              <ImageIcon className="h-4 w-4 text-primary" /> Visual Branding
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 space-y-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Logo Resource Path</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Logo Image URL</Label>
               <Input 
                 value={settings.logoUrl}
                 onChange={(e) => setSettings({...settings, logoUrl: e.target.value})}
@@ -87,7 +85,7 @@ export default function WebsiteSettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Hero Header Title</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Hero Title</Label>
               <Input 
                 value={settings.heroTitle}
                 onChange={(e) => setSettings({...settings, heroTitle: e.target.value})}
@@ -108,12 +106,12 @@ export default function WebsiteSettingsPage() {
         <Card className="bg-card border-border rounded-[2.5rem] overflow-hidden shadow-2xl">
           <CardHeader className="p-8 border-b border-border">
             <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2">
-              <LinkIcon className="h-4 w-4 text-accent" /> Connectivity Sector
+              <LinkIcon className="h-4 w-4 text-accent" /> Social Links
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8 space-y-6">
              <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Instagram Official Link</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Instagram Link</Label>
               <Input 
                 value={settings.socialInstagram}
                 onChange={(e) => setSettings({...settings, socialInstagram: e.target.value})}
@@ -122,7 +120,7 @@ export default function WebsiteSettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Telegram Channel</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Telegram Link</Label>
               <Input 
                 value={settings.socialTelegram}
                 onChange={(e) => setSettings({...settings, socialTelegram: e.target.value})}
@@ -131,7 +129,7 @@ export default function WebsiteSettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Footer Legal Text</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Footer Text</Label>
               <Input 
                 value={settings.footerText}
                 onChange={(e) => setSettings({...settings, footerText: e.target.value})}
@@ -144,7 +142,7 @@ export default function WebsiteSettingsPage() {
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving} className="bg-primary h-14 px-10 rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-2xl shadow-primary/20 gap-2">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Commit Branding Changes
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save Website Branding
         </Button>
       </div>
     </div>

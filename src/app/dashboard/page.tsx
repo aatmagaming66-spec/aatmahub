@@ -59,8 +59,8 @@ export default function DashboardPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Member Hub</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Account overview and credits</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">User Dashboard</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Your Account and Wallet</p>
         </div>
       </header>
 
@@ -84,18 +84,18 @@ export default function DashboardPage() {
               <span className="font-headline font-black text-xl tracking-tighter text-white uppercase drop-shadow-2xl">AATMA HUB</span>
               <div className="backdrop-blur-xl border border-white/30 px-4 py-1.5 rounded-full flex items-center gap-2 shadow-2xl bg-black/40 text-white">
                 <ShieldCheck size={10} className="text-green-400" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-white/90">Identity Verified</span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-white/90">Account Verified</span>
               </div>
             </div>
             <div className="mt-auto space-y-4 relative z-10">
               <div className="space-y-0.5 min-w-0">
                  {!initialized ? <Skeleton className="h-6 w-40 bg-white/10" /> : (
-                   <p className="text-xl font-black text-white uppercase tracking-tight leading-none truncate drop-shadow-xl">{profile?.fullName || 'OPERATOR ALPHA'}</p>
+                   <p className="text-xl font-black text-white uppercase tracking-tight leading-none truncate drop-shadow-xl">{profile?.fullName || 'User Name'}</p>
                  )}
-                 <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/60">Verified Hub Resident</p>
+                 <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/60">Registered Member</p>
               </div>
               <div className="flex justify-between items-center text-[8px] font-black uppercase text-white/40 border-t border-white/10 pt-4 gap-2">
-                <span className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> Status: <span className="text-green-400">Operational</span></span>
+                <span className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> Status: <span className="text-green-400">Online</span></span>
               </div>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function DashboardPage() {
           )}>
             <div className="w-full h-12 bg-black/60 mt-8 shadow-inner shrink-0" />
             <div className="flex-1 px-8 flex flex-col justify-center text-center space-y-2">
-              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em]">Hub Credits Available</span>
+              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em]">Available Balance</span>
               {walletLoading ? <Skeleton className="h-12 w-32 mx-auto bg-white/10" /> : (
                 <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter leading-none drop-shadow-2xl">
                   ₹{balance.toLocaleString()}<span className="text-2xl text-white/60">.00</span>
@@ -115,7 +115,7 @@ export default function DashboardPage() {
             </div>
             <div className="p-6 border-t border-white/10 bg-black/40 flex justify-between items-center text-[8px] font-black uppercase text-white/40 tracking-widest mt-auto">
                <span>ID: {user?.uid.slice(-12).toUpperCase() || '--------'}</span>
-               <span className="flex items-center gap-2">Protocol: <ShieldCheck size={10} className="text-green-500" /> SECURED</span>
+               <span className="flex items-center gap-2">Security: <ShieldCheck size={10} className="text-green-500" /> SECURE</span>
             </div>
           </div>
         </div>
@@ -124,12 +124,12 @@ export default function DashboardPage() {
       <div className="flex gap-4">
         <Link href="/wallet/deposit" className="flex-1" prefetch={false}>
           <Button className="w-full h-16 bg-primary hover:bg-secondary text-white font-black text-xs uppercase tracking-[0.3em] rounded-2xl shadow-3d gap-4 group">
-            <PlusCircle className="h-6 w-6 group-hover:rotate-90 transition-transform" /> Deposit
+            <PlusCircle className="h-6 w-6 group-hover:rotate-90 transition-transform" /> Add Money
           </Button>
         </Link>
         <Link href="/wallet/history" className="flex-1" prefetch={false}>
           <Button variant="outline" className="w-full h-16 border-border bg-card text-white hover:bg-white/5 font-black text-xs uppercase tracking-[0.3em] rounded-2xl shadow-3d gap-4">
-            <History className="h-6 w-6" /> Logs
+            <History className="h-6 w-6" /> History
           </Button>
         </Link>
       </div>
@@ -138,10 +138,10 @@ export default function DashboardPage() {
         <div className="flex justify-between items-end px-2">
           <div className="flex items-center gap-2">
             <div className="h-4 w-1 bg-primary rounded-full" />
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50">Recent History</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/50">Recent Transactions</h3>
           </div>
           <Link href="/wallet/history" prefetch={false}>
-            <span className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/40 hover:text-white hover:border-white transition-colors">Explorer Registry</span>
+            <span className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/40 hover:text-white hover:border-white transition-colors">View All</span>
           </Link>
         </div>
         
@@ -150,7 +150,7 @@ export default function DashboardPage() {
             Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl bg-card shadow-3d" />)
           ) : recentTransactions.length === 0 ? (
             <div className="bg-card/20 border border-dashed border-border p-12 rounded-[2rem] text-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Financial registry empty</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">No transactions found</p>
             </div>
           ) : (
             recentTransactions.map((tx) => (
@@ -173,7 +173,7 @@ export default function DashboardPage() {
                   <p className={cn("text-lg font-black tracking-tighter", tx.type === 'deposit' ? 'text-green-400' : 'text-primary')}>
                     {tx.type === 'deposit' ? '+' : '-'} ₹{tx.amount}
                   </p>
-                  <p className="text-[8px] font-black uppercase tracking-widest text-white/20 mt-1">HUB-AUDIT-V2</p>
+                  <p className="text-[8px] font-black uppercase tracking-widest text-white/20 mt-1">Transaction Log</p>
                 </div>
               </div>
             ))

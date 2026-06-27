@@ -44,7 +44,6 @@ export default function ReportsPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // OPTIMIZATION: Dynamic Query targeting only the active report type.
-  // Reduces Firestore reads by 66% compared to fetching all collections simultaneously.
   const activeQuery = useMemo(() => query(
     collection(db, reportType),
     orderBy('createdAt', 'desc'),
@@ -80,7 +79,7 @@ export default function ReportsPage() {
 
   const exportCSV = () => {
     if (filteredData.length === 0) {
-      toast({ variant: 'destructive', title: 'Export Failed', description: 'No data matches the current criteria.' });
+      toast({ variant: 'destructive', title: 'Export Failed', description: 'No data to export.' });
       return;
     }
 
@@ -90,65 +89,63 @@ export default function ReportsPage() {
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.body.appendChild(document.createElement('a'));
     link.setAttribute('href', url);
     link.setAttribute('download', `aatma-report-${reportType}-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    toast({ title: 'Export Complete', description: 'Report generated and downloaded successfully.' });
+    toast({ title: 'Export Finished', description: 'Report downloaded.' });
   };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Data Registry</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">System-wide Reporting Protocol</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase">Generate Reports</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">View and Export Site Data</p>
         </div>
         <Button 
           onClick={exportCSV}
           disabled={loading || filteredData.length === 0}
           className="bg-primary h-12 rounded-2xl font-black uppercase text-[10px] tracking-widest px-8 shadow-xl shadow-primary/20 gap-2"
         >
-          <FileSpreadsheet className="h-4 w-4" /> Export Ledger (.CSV)
+          <FileSpreadsheet className="h-4 w-4" /> Export as CSV
         </Button>
       </header>
 
-      {/* Control Panel */}
       <Card className="bg-card border-border rounded-[2rem] overflow-hidden shadow-2xl">
         <CardContent className="p-8 grid md:grid-cols-3 gap-6">
           <div className="space-y-2">
-            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Report Module</span>
+            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Select Data Type</span>
             <Select value={reportType} onValueChange={setReportsType}>
               <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
-                <SelectValue placeholder="Select Logic" />
+                <SelectValue placeholder="Choose report" />
               </SelectTrigger>
               <SelectContent className="bg-card border-border">
-                <SelectItem value="orders" className="text-[10px] font-black uppercase">Order Ledger</SelectItem>
-                <SelectItem value="users" className="text-[10px] font-black uppercase">Identity Registry</SelectItem>
-                <SelectItem value="transactions" className="text-[10px] font-black uppercase">Financial Cycle</SelectItem>
+                <SelectItem value="orders" className="text-[10px] font-black uppercase">Orders</SelectItem>
+                <SelectItem value="users" className="text-[10px] font-black uppercase">Users</SelectItem>
+                <SelectItem value="transactions" className="text-[10px] font-black uppercase">Wallet Transactions</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Temporal Range</span>
+            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Date Range</span>
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold">
-                <SelectValue placeholder="Select Range" />
+                <SelectValue placeholder="Choose range" />
               </SelectTrigger>
               <SelectContent className="bg-card border-border">
                 <SelectItem value="1" className="text-[10px] font-black uppercase">Last 24 Hours</SelectItem>
-                <SelectItem value="7" className="text-[10px] font-black uppercase">Last 7 Cycles</SelectItem>
-                <SelectItem value="30" className="text-[10px] font-black uppercase">Last 30 Cycles</SelectItem>
+                <SelectItem value="7" className="text-[10px] font-black uppercase">Last 7 Days</SelectItem>
+                <SelectItem value="30" className="text-[10px] font-black uppercase">Last 30 Days</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Secure Search</span>
+            <span className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Search Results</span>
             <div className="relative group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <Input 
@@ -162,16 +159,15 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      {/* Report Table */}
       <div className="bg-card border border-border rounded-[2rem] overflow-hidden shadow-2xl">
         <Table>
           <TableHeader className="bg-black/20">
             <TableRow className="border-border">
-              <TableHead className="text-[9px] font-black uppercase tracking-widest py-6 px-6">ID / Reference</TableHead>
-              <TableHead className="text-[9px] font-black uppercase tracking-widest">Entity / Origin</TableHead>
-              <TableHead className="text-[9px] font-black uppercase tracking-widest">Magnitude</TableHead>
-              <TableHead className="text-[9px] font-black uppercase tracking-widest">Sync Date</TableHead>
-              <TableHead className="text-[9px] font-black uppercase tracking-widest text-right px-6">Protocol Status</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest py-6 px-6">ID</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest">Name / Type</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest">Amount</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest">Date</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest text-right px-6">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -180,14 +176,14 @@ export default function ReportsPage() {
                 <TableCell colSpan={5} className="h-64 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <Loader2 className="h-8 w-8 text-primary animate-spin" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Synthesizing Records...</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Generating Table...</span>
                   </div>
                 </TableCell>
               </TableRow>
             ) : filteredData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-64 text-center">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">No Logs Detected in current span</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-30">No data matches your filters</span>
                 </TableCell>
               </TableRow>
             ) : (
@@ -204,7 +200,7 @@ export default function ReportsPage() {
                   <TableCell>
                     <div className="space-y-0.5">
                       <p className="text-xs font-black uppercase text-white/90">{item.fullName || item.items?.[0]?.name || item.type}</p>
-                      <p className="text-[8px] text-muted-foreground uppercase font-black">{item.email || 'System Operation'}</p>
+                      <p className="text-[8px] text-muted-foreground uppercase font-black">{item.email || 'N/A'}</p>
                     </div>
                   </TableCell>
                   <TableCell>
