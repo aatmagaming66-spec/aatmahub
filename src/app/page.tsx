@@ -62,67 +62,60 @@ export default function Home() {
       
       {homepageConfig.showLiveActivity && <LiveActivity />}
 
-      {/* Redesigned Footer matching ClassySmile Style */}
-      <footer className="bg-[#0f111a] border-t border-white/5 pt-12 pb-24 px-6 mt-8">
+      <footer className="bg-[#0f111a] border-t border-white/5 pt-8 pb-16 px-6 mt-6">
         <div className="max-w-xl mx-auto flex flex-col items-center">
           
-          {/* Logo / Branding */}
-          <div className="mb-8 flex flex-col items-center">
+          <div className="mb-6 flex flex-col items-center">
             <Link href="/" className="inline-block">
                <div className="relative group text-center">
-                  <span className="font-headline font-black text-3xl tracking-tighter uppercase text-white flex items-center gap-1">
+                  <span className="font-headline font-black text-2xl tracking-tighter uppercase text-white flex items-center gap-1">
                     <span className="text-[#dc2626]">aatma</span>
                     <span className="text-white">hub</span>
                   </span>
-                  <div className="absolute -top-6 -right-4">
-                    <div className="h-10 w-10 flex items-center justify-center opacity-20">
-                       <ShieldCheck className="text-[#dc2626]" size={40} />
+                  <div className="absolute -top-4 -right-4">
+                    <div className="h-8 w-8 flex items-center justify-center opacity-20">
+                       <ShieldCheck className="text-[#dc2626]" size={32} />
                     </div>
                   </div>
                </div>
             </Link>
           </div>
 
-          {/* Social Icons Grid */}
-          <div className="flex items-center gap-6 mb-10">
+          <div className="flex items-center gap-5 mb-8">
             <a href={socialLinks.whatsapp} target="_blank" className="text-white hover:text-[#dc2626] transition-colors">
-              <WhatsAppIcon className="h-7 w-7" />
+              <WhatsAppIcon className="h-6 w-6" />
             </a>
             <a href={socialLinks.instagram} target="_blank" className="text-white hover:text-[#dc2626] transition-colors">
-              <Instagram className="h-7 w-7" />
+              <Instagram className="h-6 w-6" />
             </a>
             <a href="#" className="text-white hover:text-[#dc2626] transition-colors">
-              <Facebook className="h-7 w-7" />
+              <Facebook className="h-6 w-6" />
             </a>
             <a href={`mailto:${siteSettings?.contactEmail || 'shivatetz@gmail.com'}`} className="text-white hover:text-[#dc2626] transition-colors">
-              <Mail className="h-7 w-7" />
+              <Mail className="h-6 w-6" />
             </a>
           </div>
 
-          {/* Divider */}
-          <div className="w-full h-px bg-white/10 mb-10" />
+          <div className="w-full h-px bg-white/10 mb-8" />
 
-          {/* 2-Column Links Grid */}
-          <div className="w-full grid grid-cols-2 gap-x-8 gap-y-4 mb-12">
-            <div className="flex flex-col space-y-4 text-left">
-              <Link href="/" className="text-sm font-bold text-white hover:text-[#dc2626] transition-colors">Home</Link>
-              <Link href="/login" className="text-sm font-bold text-white hover:text-[#dc2626] transition-colors">Login</Link>
-              <Link href="/register" className="text-sm font-bold text-white hover:text-[#dc2626] transition-colors">Register</Link>
-              <Link href="/support" className="text-sm font-bold text-white hover:text-[#dc2626] transition-colors">Customer Support</Link>
+          <div className="w-full grid grid-cols-2 gap-x-8 gap-y-3 mb-10">
+            <div className="flex flex-col space-y-3 text-left">
+              <Link href="/" className="text-[13px] font-bold text-white hover:text-[#dc2626] transition-colors">Home</Link>
+              <Link href="/login" className="text-[13px] font-bold text-white hover:text-[#dc2626] transition-colors">Login</Link>
+              <Link href="/register" className="text-[13px] font-bold text-white hover:text-[#dc2626] transition-colors">Register</Link>
+              <Link href="/support" className="text-[13px] font-bold text-white hover:text-[#dc2626] transition-colors">Customer Support</Link>
             </div>
-            <div className="flex flex-col space-y-4 text-left">
-              <Link href="/privacy" className="text-sm font-bold text-white hover:text-[#dc2626] transition-colors">Privacy Policy</Link>
-              <Link href="/terms" className="text-sm font-bold text-white hover:text-[#dc2626] transition-colors">Terms & Conditions</Link>
-              <Link href="/refund-policy" className="text-sm font-bold text-white hover:text-[#dc2626] transition-colors">Refund Policy</Link>
+            <div className="flex flex-col space-y-3 text-left">
+              <Link href="/privacy" className="text-[13px] font-bold text-white hover:text-[#dc2626] transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="text-[13px] font-bold text-white hover:text-[#dc2626] transition-colors">Terms & Conditions</Link>
+              <Link href="/refund-policy" className="text-[13px] font-bold text-white hover:text-[#dc2626] transition-colors">Refund Policy</Link>
             </div>
           </div>
 
-          {/* Final Divider */}
-          <div className="w-full h-px bg-white/10 mb-8" />
+          <div className="w-full h-px bg-white/10 mb-6" />
 
-          {/* Copyright */}
           <div className="text-center">
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-loose">
+            <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-loose">
               All Rights Reserved © 2025 | AATMA HUB
             </p>
           </div>

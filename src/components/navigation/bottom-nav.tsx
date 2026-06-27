@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useCallback } from "react";
@@ -8,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase/auth/use-user";
 
 /**
- * BottomNav - Restored original navigation items with Red Theme
+ * BottomNav - Compact design with theme-matching red
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -32,7 +33,7 @@ export function BottomNav() {
   }, []);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#dc2626] h-[60px] safe-area-bottom shadow-[0_-4px_20px_rgba(220,38,38,0.3)] border-t border-white/10">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#dc2626] h-[56px] safe-area-bottom shadow-[0_-4px_20px_rgba(220,38,38,0.3)] border-t border-white/10">
       <div className="flex h-full items-center justify-around">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || (item.label === "Account" && pathname.startsWith("/profile"));
@@ -49,14 +50,14 @@ export function BottomNav() {
               onClick={handleNavClick}
             >
               <item.icon className={cn(
-                "h-5 w-5 transition-transform", 
+                "h-[18px] w-[18px] transition-transform", 
                 isActive && "scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
               )} />
-              <span className="text-[9px] font-bold uppercase tracking-tight">
+              <span className="text-[8px] font-bold uppercase tracking-tight">
                 {item.label}
               </span>
               {isActive && (
-                <div className="absolute -bottom-0.5 w-6 h-0.5 bg-white rounded-t-full shadow-[0_-2px_12px_rgba(255,255,255,0.8)]" />
+                <div className="absolute -bottom-0.5 w-5 h-0.5 bg-white rounded-t-full shadow-[0_-2px_12px_rgba(255,255,255,0.8)]" />
               )}
             </Link>
           );
