@@ -65,36 +65,36 @@ export default function DashboardPage() {
       </header>
 
       <div 
-        className="w-full mb-10 [perspective:1000px] cursor-pointer"
+        className="w-full mb-6 [perspective:1000px] cursor-pointer"
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <div className={cn(
-          "relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]",
+          "relative w-full min-h-[180px] transition-all duration-700 [transform-style:preserve-3d]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
           {/* FRONT OF CARD */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-primary via-accent to-black border-primary/30"
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#ec4899] border-white/20"
           )}>
             <div className="absolute top-0 right-0 p-8 opacity-20 -rotate-12 translate-x-4 -translate-y-4">
               <div className="h-32 w-32 border-8 border-white/20 rounded-full" />
             </div>
             
             <div className="flex justify-between items-start gap-4 relative z-10">
-              <span className="font-headline font-black text-sm sm:text-base tracking-tighter text-white uppercase drop-shadow-md">AATMA HUB</span>
+              <span className="font-headline font-black text-sm tracking-tighter text-white uppercase drop-shadow-md">AATMA HUB</span>
               <div className="backdrop-blur-md border border-white/20 px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-xl bg-black/40 text-white">
                 <span className="text-[8px] font-black uppercase tracking-widest text-white/80">Active</span>
               </div>
             </div>
-            <div className="mt-auto space-y-4 relative z-10">
-              <div className="space-y-1.5 min-w-0">
+            <div className="mt-auto space-y-2 relative z-10">
+              <div className="space-y-0.5 min-w-0">
                  {!initialized ? <Skeleton className="h-5 w-32 bg-white/10" /> : (
-                   <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate drop-shadow-sm">{profile?.fullName || 'AATMA OPERATOR'}</p>
+                   <p className="text-sm font-black text-white uppercase tracking-tight leading-none truncate drop-shadow-sm">{profile?.fullName || 'AATMA OPERATOR'}</p>
                  )}
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Verified Member</p>
+                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/60">Verified Member</p>
               </div>
-              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/40 border-t border-white/10 pt-3.5 gap-2">
-                <span>Account Status: <span className="text-green-400">Verified</span></span>
+              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/40 border-t border-white/10 pt-2 gap-2">
+                <span>Account: <span className="text-green-400">Verified</span></span>
                 <span>Spend: <span className="text-white">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
               </div>
             </div>
@@ -102,13 +102,13 @@ export default function DashboardPage() {
 
           {/* BACK OF CARD */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-accent/90 via-primary/80 to-black border-primary/30"
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-[#ec4899] via-[#dc2626] to-[#110000] border-white/20"
           )}>
-            <div className="w-full h-10 bg-black/60 mt-6 shadow-inner shrink-0" />
-            <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2.5">
+            <div className="w-full h-10 bg-black/60 mt-4 shadow-inner shrink-0" />
+            <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-1">
               <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em]">Available Balance</span>
               {walletLoading ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : (
-                <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tighter leading-none drop-shadow-lg">
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-none drop-shadow-lg">
                   ₹{balance.toLocaleString()}<span className="text-lg text-white/60">.00</span>
                 </h2>
               )}
@@ -123,12 +123,12 @@ export default function DashboardPage() {
 
       <div className="flex gap-4">
         <Link href="/wallet/deposit" className="flex-1">
-          <Button className="w-full h-16 bg-primary hover:bg-secondary text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-primary/20 gap-3 group">
+          <Button className="w-full h-14 bg-primary hover:bg-secondary text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl shadow-primary/20 gap-3 group">
             <PlusCircle className="h-5 w-5 group-hover:rotate-90 transition-transform" /> Deposit
           </Button>
         </Link>
         <Link href="/wallet/history" className="flex-1">
-          <Button variant="outline" className="w-full h-16 border-border bg-card text-white hover:bg-white/5 font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all gap-3">
+          <Button variant="outline" className="w-full h-14 border-border bg-card text-white hover:bg-white/5 font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all gap-3">
             <History className="h-5 w-5" /> History
           </Button>
         </Link>
