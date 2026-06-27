@@ -57,16 +57,16 @@ export default function WalletDashboard() {
       </header>
 
       <div className="w-full mb-6 [perspective:1000px] cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
-        <div className={cn("relative w-full min-h-[180px] transition-all duration-700 [transform-style:preserve-3d]", isFlipped && "[transform:rotateY(180deg)]")}>
+        <div className={cn("relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]", isFlipped && "[transform:rotateY(180deg)]")}>
           {/* FRONT */}
-          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#ec4899] border-white/20")}>
+          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border p-7 flex flex-col justify-between bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#ec4899] border-white/20")}>
             <div className="flex justify-between items-start gap-4 relative z-10">
               <span className="font-headline font-black text-sm tracking-tighter text-white uppercase drop-shadow-md">AATMA HUB</span>
               <div className="backdrop-blur-md border border-white/20 px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-xl bg-black/40 text-white">
                 <span className="text-[8px] font-black uppercase tracking-widest">Active Member</span>
               </div>
             </div>
-            <div className="mt-auto space-y-2 relative z-10">
+            <div className="mt-auto space-y-3 relative z-10">
               <div className="space-y-0.5">
                 {!initialized || !profile ? (
                   <Skeleton className="h-5 w-32 bg-white/10" />
@@ -75,7 +75,7 @@ export default function WalletDashboard() {
                 )}
                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-white/50">Verified Account</p>
               </div>
-              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/40 border-t border-white/10 pt-2">
+              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/40 border-t border-white/10 pt-3">
                 <span>Status: <span className="text-green-400">Active</span></span>
                 <span>ID: <span className="text-white">{user?.uid.substring(0, 10).toUpperCase()}</span></span>
               </div>
@@ -83,8 +83,8 @@ export default function WalletDashboard() {
           </div>
           {/* BACK */}
           <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-[#ec4899] via-[#dc2626] to-[#110000] border-white/20")}>
-            <div className="w-full h-10 bg-black/60 mt-4 shadow-inner shrink-0" />
-            <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-1">
+            <div className="w-full h-10 bg-black/60 mt-6 shadow-inner shrink-0" />
+            <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2">
               <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em]">Available Balance</span>
               <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter drop-shadow-lg leading-none">
                 {(!initialized || walletLoading) ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/60">.00</span>
@@ -127,7 +127,7 @@ export default function WalletDashboard() {
              recentTransactions.map((tx) => (
                <div key={tx.transactionId} className="bg-card border border-border p-5 rounded-2xl flex items-center justify-between shadow-lg">
                   <div className="flex items-center gap-4">
-                    <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center border", tx.type === 'deposit' ? 'bg-green-500/10 border-green-500/10' : 'bg-primary/10 border-primary/10')}>
+                    <div className={cn("h-12 w-12 rounded-2xl flex items-center justify-center border", tx.type === 'deposit' ? 'bg-green-500/10 border-green-500/10' : 'bg-primary/10 border-primary/20')}>
                       {tx.type === 'deposit' ? <ArrowDownLeft className="h-6 w-6 text-green-500" /> : <ArrowUpRight className="h-6 w-6 text-primary" />}
                     </div>
                     <div>
@@ -138,8 +138,10 @@ export default function WalletDashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={cn("text-sm font-black", tx.type === 'deposit' ? 'text-green-400' : 'text-primary')}>
-                      {tx.type === 'deposit' ? '+' : '-'} ₹{tx.amount}
+                    <p className="text-sm font-black">
+                      <span className={cn(tx.type === 'deposit' ? 'text-green-400' : 'text-primary')}>
+                        {tx.type === 'deposit' ? '+' : '-'} ₹{tx.amount}
+                      </span>
                     </p>
                   </div>
                </div>

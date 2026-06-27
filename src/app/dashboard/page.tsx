@@ -69,12 +69,12 @@ export default function DashboardPage() {
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <div className={cn(
-          "relative w-full min-h-[200px] transition-all duration-700 [transform-style:preserve-3d] active:scale-[0.97]",
+          "relative w-full min-h-[240px] transition-all duration-700 [transform-style:preserve-3d] active:scale-[0.97]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
           {/* FRONT OF CARD */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[2rem] overflow-hidden shadow-3d border border-white/20 p-7 flex flex-col justify-between bg-gradient-to-br from-[#110000] via-primary to-accent active-press"
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[2rem] overflow-hidden shadow-3d border border-white/20 p-8 flex flex-col justify-between bg-gradient-to-br from-[#110000] via-primary to-accent active-press"
           )}>
             <div className="absolute top-0 right-0 p-8 opacity-20 -rotate-12 translate-x-4 -translate-y-4">
               <div className="h-40 w-40 border-[12px] border-white/10 rounded-full" />
@@ -87,14 +87,14 @@ export default function DashboardPage() {
                 <span className="text-[9px] font-black uppercase tracking-widest text-white/90">Identity Verified</span>
               </div>
             </div>
-            <div className="mt-auto space-y-3 relative z-10">
+            <div className="mt-auto space-y-4 relative z-10">
               <div className="space-y-0.5 min-w-0">
                  {!initialized ? <Skeleton className="h-6 w-40 bg-white/10" /> : (
                    <p className="text-xl font-black text-white uppercase tracking-tight leading-none truncate drop-shadow-xl">{profile?.fullName || 'OPERATOR ALPHA'}</p>
                  )}
                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-white/60">Verified Hub Resident</p>
               </div>
-              <div className="flex justify-between items-center text-[8px] font-black uppercase text-white/40 border-t border-white/10 pt-3 gap-2">
+              <div className="flex justify-between items-center text-[8px] font-black uppercase text-white/40 border-t border-white/10 pt-4 gap-2">
                 <span className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> Status: <span className="text-green-400">Operational</span></span>
                 <span>Volume: <span className="text-white">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
               </div>
@@ -105,9 +105,9 @@ export default function DashboardPage() {
           <div className={cn(
             "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[2rem] overflow-hidden shadow-3d border border-white/20 flex flex-col bg-gradient-to-br from-accent via-primary to-[#110000]"
           )}>
-            <div className="w-full h-12 bg-black/60 mt-6 shadow-inner shrink-0" />
-            <div className="flex-1 px-8 flex flex-col justify-center text-center space-y-1">
-              <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.4em]">Hub Credits Available</span>
+            <div className="w-full h-12 bg-black/60 mt-8 shadow-inner shrink-0" />
+            <div className="flex-1 px-8 flex flex-col justify-center text-center space-y-2">
+              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em]">Hub Credits Available</span>
               {walletLoading ? <Skeleton className="h-12 w-32 mx-auto bg-white/10" /> : (
                 <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter leading-none drop-shadow-2xl">
                   ₹{balance.toLocaleString()}<span className="text-2xl text-white/60">.00</span>
