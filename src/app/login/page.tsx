@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { Loader2, KeyRound, Mail, ArrowRight } from 'lucide-react';
@@ -111,11 +110,6 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-            </div>
-
-            <div className="flex items-center space-x-2 pt-1">
-              <Checkbox id="remember" className="border-border data-[state=checked]:bg-primary rounded-none" />
-              <label htmlFor="remember" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground cursor-pointer">Remember my session</label>
             </div>
 
             <Button 
