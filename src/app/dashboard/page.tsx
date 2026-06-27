@@ -72,42 +72,48 @@ export default function DashboardPage() {
           "relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
+          {/* FRONT OF CARD */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-zinc-800 via-zinc-950 to-black border-slate-400/40"
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-primary via-accent to-black border-primary/30"
           )}>
-            <div className="flex justify-between items-start gap-4">
-              <span className="font-headline font-black text-sm sm:text-base tracking-tighter text-white uppercase">AATMA HUB</span>
+            <div className="absolute top-0 right-0 p-8 opacity-20 -rotate-12 translate-x-4 -translate-y-4">
+              <div className="h-32 w-32 border-8 border-white/20 rounded-full" />
+            </div>
+            
+            <div className="flex justify-between items-start gap-4 relative z-10">
+              <span className="font-headline font-black text-sm sm:text-base tracking-tighter text-white uppercase drop-shadow-md">AATMA HUB</span>
               <div className="backdrop-blur-md border border-white/20 px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-xl bg-black/40 text-white">
                 <span className="text-[8px] font-black uppercase tracking-widest text-white/80">Active</span>
               </div>
             </div>
-            <div className="mt-auto space-y-4">
+            <div className="mt-auto space-y-4 relative z-10">
               <div className="space-y-1.5 min-w-0">
                  {!initialized ? <Skeleton className="h-5 w-32 bg-white/10" /> : (
-                   <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
+                   <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate drop-shadow-sm">{profile?.fullName || 'AATMA OPERATOR'}</p>
                  )}
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Verified Member</p>
+                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Verified Member</p>
               </div>
-              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-3.5 gap-2">
-                <span>Account Status: <span className="text-green-500/60">Verified</span></span>
-                <span>Spend: <span className="text-white/60">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
+              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/40 border-t border-white/10 pt-3.5 gap-2">
+                <span>Account Status: <span className="text-green-400">Verified</span></span>
+                <span>Spend: <span className="text-white">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
               </div>
             </div>
           </div>
 
+          {/* BACK OF CARD */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-zinc-800 via-zinc-950 to-black border-slate-400/40"
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-accent/90 via-primary/80 to-black border-primary/30"
           )}>
             <div className="w-full h-10 bg-black/60 mt-6 shadow-inner shrink-0" />
             <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2.5">
-              <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Balance</span>
+              <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em]">Available Balance</span>
               {walletLoading ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : (
-                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-none">
-                  ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
+                <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tighter leading-none drop-shadow-lg">
+                  ₹{balance.toLocaleString()}<span className="text-lg text-white/60">.00</span>
                 </h2>
               )}
             </div>
-            <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest mt-auto">
+            <div className="p-4 border-t border-white/10 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/40 tracking-widest mt-auto">
                <span>Member ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
                <span>Volume: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
             </div>

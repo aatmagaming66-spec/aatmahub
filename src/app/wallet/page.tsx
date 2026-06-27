@@ -58,9 +58,10 @@ export default function WalletDashboard() {
 
       <div className="w-full mb-10 [perspective:1000px] cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
         <div className={cn("relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]", isFlipped && "[transform:rotateY(180deg)]")}>
-          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-none overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-zinc-800 via-zinc-950 to-black border-white/10")}>
+          {/* FRONT */}
+          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-none overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-primary via-accent to-black border-primary/30")}>
             <div className="flex justify-between items-start gap-4">
-              <span className="font-headline font-black text-sm tracking-tighter text-white uppercase">AATMA HUB</span>
+              <span className="font-headline font-black text-sm tracking-tighter text-white uppercase drop-shadow-md">AATMA HUB</span>
               <div className="backdrop-blur-md border border-white/20 px-3 py-1 rounded-none flex items-center gap-1.5 shadow-xl bg-black/40 text-white">
                 <span className="text-[8px] font-black uppercase tracking-widest">Active Member</span>
               </div>
@@ -68,27 +69,28 @@ export default function WalletDashboard() {
             <div className="mt-auto space-y-4">
               <div className="space-y-1.5">
                 {!initialized || !profile ? (
-                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-5 w-32 bg-white/10" />
                 ) : (
-                  <p className="text-base font-black text-white uppercase truncate">{profile?.fullName || 'My Profile'}</p>
+                  <p className="text-base font-black text-white uppercase truncate drop-shadow-sm">{profile?.fullName || 'My Profile'}</p>
                 )}
-                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Verified Account</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Verified Account</p>
               </div>
-              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-3.5">
-                <span>Status: <span className="text-green-500/60">Active</span></span>
-                <span>ID: <span className="text-white/60">{user?.uid.substring(0, 10).toUpperCase()}</span></span>
+              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/40 border-t border-white/10 pt-3.5">
+                <span>Status: <span className="text-green-400">Active</span></span>
+                <span>ID: <span className="text-white">{user?.uid.substring(0, 10).toUpperCase()}</span></span>
               </div>
             </div>
           </div>
-          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-none overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-zinc-800 via-zinc-950 to-black border-white/10")}>
+          {/* BACK */}
+          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-none overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-accent/90 via-primary/80 to-black border-primary/30")}>
             <div className="w-full h-10 bg-black/60 mt-6 shadow-inner" />
             <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2.5">
-              <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Balance</span>
-              <h2 className="text-3xl font-black text-white tracking-tighter">
-                {(!initialized || walletLoading) ? <Skeleton className="h-10 w-24 mx-auto" /> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/40">.00</span>
+              <span className="text-[8px] font-black text-white/60 uppercase tracking-[0.3em]">Available Balance</span>
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tighter drop-shadow-lg">
+                {(!initialized || walletLoading) ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : `₹${balance.toLocaleString()}`}<span className="text-lg text-white/60">.00</span>
               </h2>
             </div>
-            <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest">
+            <div className="p-4 border-t border-white/10 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/40 tracking-widest">
               <span>Account ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
               <span>Total Spend: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
             </div>
