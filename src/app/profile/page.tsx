@@ -6,7 +6,6 @@ import { signOut } from 'firebase/auth';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
-import { useGlobalSettings } from '@/firebase/settings-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,12 +27,10 @@ import {
   Link as LinkIcon,
   Fingerprint,
   Zap,
-  Star,
   Camera
 } from 'lucide-react';
 import Link from 'next/link';
 import { RankAvatar } from '@/components/ui/rank-avatar';
-import { getRankFromSpend } from '@/lib/ranks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -42,7 +39,6 @@ const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
 
 export default function ProfilePage() {
   const { user, profile, initialized, loading: profileLoading } = useUser();
-  const { ranks } = useGlobalSettings();
   const auth = useAuth();
   const db = useFirestore();
   const router = useRouter();
@@ -56,10 +52,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  // REDIRECT GUARD: Strictly wait for settling before kicking out
   useEffect(() => {
     if (initialized && !user) {
-      console.log("[Profile] Identity confirmed as signed out. Routing to login...");
       router.replace('/login');
     }
   }, [user, initialized, router]);
@@ -71,10 +65,6 @@ export default function ProfilePage() {
       setPhotoURL(profile.photoURL || '');
     }
   }, [profile, editing]);
-
-  const rankInfo = useMemo(() => {
-    return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
-  }, [profile?.lifetimeSpend, ranks]);
 
   const userLevel = useMemo(() => {
     if (!profile) return 1;
@@ -142,14 +132,12 @@ export default function ProfilePage() {
 
   const isAdmin = profile?.role === 'admin' || profile?.role === 'super_admin';
 
-  // HIGH PRIORITY LOADING SHELL
   if (!initialized || (user && !profile && profileLoading)) {
     return (
       <div className="flex flex-col h-[80vh] items-center justify-center gap-6 animate-in fade-in duration-500">
         <div className="h-12 w-12 rounded-none border-b-2 border-primary animate-spin" />
         <div className="text-center space-y-1">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Synchronizing HUB Session</p>
-          <p className="text-[8px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Verifying secure credentials...</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Syncing Profile</p>
         </div>
       </div>
     );
@@ -167,7 +155,6 @@ export default function ProfilePage() {
             <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
               <RankAvatar 
                 src={photoURL}
-                rank={rankInfo.name} 
                 size="xl" 
                 className="shadow-2xl" 
                 fallback={profile?.fullName?.charAt(0)}
@@ -199,11 +186,7 @@ export default function ProfilePage() {
                     </div>
                     <div className="px-2 py-0.5 bg-accent/20 border border-accent/30 rounded-none flex items-center gap-1">
                       <Zap size={8} className="text-accent" />
-                      <span className="text-[7px] font-black uppercase text-accent tracking-widest">Level {userLevel}</span>
-                    </div>
-                    <div className="px-2 py-0.5 bg-primary/20 border border-primary/30 rounded-none flex items-center gap-1">
-                      <Star size={8} className="text-primary fill-primary" />
-                      <span className="text-[7px] font-black uppercase text-primary tracking-widest">{rankInfo.name} Status</span>
+                      <span className="text-[7px] font-black uppercase text-accent tracking-widest">Level {userLevel} Member</span>
                     </div>
                   </div>
                 )}

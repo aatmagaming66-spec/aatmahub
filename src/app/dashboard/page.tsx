@@ -4,25 +4,26 @@ import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import { useCollection } from '@/firebase/firestore/use-collection';
-import { doc, query, collection, where, orderBy } from 'firebase/firestore';
+import { doc, query, collection, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, Loader2, ArrowLeft, Crown, Target, Zap, ShieldCheck } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
+import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { RankAvatar } from '@/components/ui/rank-avatar';
-import { getRankFromSpend, DEFAULT_RANKS, type RankDefinition } from '@/lib/ranks';
-import { RankProgressionSlider } from '@/components/wallet/rank-progression-slider';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardPage() {
-  const { user, profile, loading: userLoading, initialized } = useUser();
+  const { user, profile, initialized } = useUser();
   const db = useFirestore();
   const router = useRouter();
   const [isFlipped, setIsFlipped] = useState(false);
+
+  useEffect(() => {
+    if (initialized && !user) {
+      router.push('/login');
+    }
+  }, [user, initialized, router]);
 
   const walletRef = useMemo(() => user ? doc(db, 'wallets', user.uid) : null, [user, db]);
   const { data: wallet, loading: walletLoading } = useDoc(walletRef);
@@ -44,49 +45,10 @@ export default function DashboardPage() {
       .slice(0, 5);
   }, [rawTransactions]);
 
-  const lifetimeSpend = useMemo(() => {
-    return profile?.lifetimeSpend || 0;
-  }, [profile]);
-
-  // Dynamic Ranks from Admin (Fallback to Default)
-  const ranksQuery = useMemo(() => query(collection(db, 'ranks'), orderBy('sortOrder', 'asc')), [db]);
-  const { data: dbRanks } = useCollection<RankDefinition>(ranksQuery);
-  const activeRanks = dbRanks && dbRanks.length > 0 ? dbRanks : DEFAULT_RANKS;
-
-  const rankInfo = useMemo(() => {
-    return getRankFromSpend(lifetimeSpend, activeRanks);
-  }, [lifetimeSpend, activeRanks]);
-
-  const getCardTheme = (rankName: string) => {
-    const name = (rankName || 'Warrior').toLowerCase();
-    const baseAatmaBg = 'bg-gradient-to-br from-red-900 via-zinc-950 to-black';
-    
-    if (name.includes('immortal') || name.includes('vip') || name.includes('legend')) return {
-      bg: 'bg-gradient-to-br from-yellow-600 via-red-900 to-yellow-700 animate-pulse',
-      border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]',
-      shine: 'via-white/30',
-    };
-    
-    return {
-      bg: baseAatmaBg,
-      border: 'border-slate-400/40',
-      shine: 'via-white/5',
-    };
-  };
-
-  const cardTheme = getCardTheme(rankInfo.name);
-
-  // REDIRECT GUARD - Non-blocking shell
-  useEffect(() => {
-    if (initialized && !user) {
-      router.push('/login');
-    }
-  }, [user, initialized, router]);
-
   const balance = wallet?.balance || 0;
 
   return (
-    <div id="rank-center" className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700 pb-20">
+    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700 pb-20">
       <header className="flex items-center gap-4 py-4">
         <Button 
           variant="ghost" 
@@ -97,12 +59,11 @@ export default function DashboardPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Wallet</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Manage your balance and transactions</p>
+          <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none text-white">Dashboard</h1>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Account overview and funds</p>
         </div>
       </header>
 
-      {/* 3D FLIPPING PREMIUM DEBIT CARD */}
       <div 
         className="w-full mb-10 [perspective:1000px] cursor-pointer"
         onClick={() => setIsFlipped(!isFlipped)}
@@ -111,75 +72,44 @@ export default function DashboardPage() {
           "relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
-          
-          {/* FRONT SIDE */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border",
-            cardTheme.bg,
-            cardTheme.border
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-zinc-800 via-zinc-950 to-black border-slate-400/40"
           )}>
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay" />
-            
-            <div className="relative h-full p-6 flex flex-col justify-between z-10">
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex flex-col min-w-0">
-                  <span className="font-headline font-black text-sm sm:text-base tracking-tighter text-white uppercase truncate">AATMA HUB</span>
-                  <span className="text-[5px] font-black text-white/50 uppercase tracking-[0.4em]">Digital Gaming Bank</span>
-                </div>
-                <div className={cn(
-                  "backdrop-blur-md border px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-xl bg-black/40 shrink-0 text-white metallic-badge",
-                  cardTheme.border
-                )}>
-                   <Crown size={8} className="fill-white/20 text-white" />
-                   {!initialized ? <Skeleton className="h-3 w-12 bg-white/10" /> : (
-                     <span className="text-[8px] font-black uppercase tracking-widest">{rankInfo.name}</span>
-                   )}
-                </div>
+            <div className="flex justify-between items-start gap-4">
+              <span className="font-headline font-black text-sm sm:text-base tracking-tighter text-white uppercase">AATMA HUB</span>
+              <div className="backdrop-blur-md border border-white/20 px-3 py-1 rounded-lg flex items-center gap-1.5 shadow-xl bg-black/40 text-white">
+                <span className="text-[8px] font-black uppercase tracking-widest text-white/80">Active</span>
               </div>
-
-              <div className="flex-1" />
-
-              <div className="mt-auto space-y-4">
-                 <div className="flex justify-between items-end gap-4">
-                    <div className="space-y-1.5 min-w-0">
-                       {!initialized ? <Skeleton className="h-5 w-32 bg-white/10" /> : (
-                         <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
-                       )}
-                       {!initialized ? <Skeleton className="h-3 w-20 bg-white/10" /> : (
-                         <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name}</p>
-                       )}
-                    </div>
-                 </div>
-                 <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-3.5 gap-2">
-                   <span className="shrink-0">Reward: <span className="text-green-500/60">{rankInfo.discount}% OFF</span></span>
-                   <span className="shrink-0">Spent: <span className="text-white/60">₹{lifetimeSpend.toLocaleString()}</span></span>
-                 </div>
+            </div>
+            <div className="mt-auto space-y-4">
+              <div className="space-y-1.5 min-w-0">
+                 {!initialized ? <Skeleton className="h-5 w-32 bg-white/10" /> : (
+                   <p className="text-base font-black text-white uppercase tracking-tight leading-none truncate">{profile?.fullName || 'AATMA OPERATOR'}</p>
+                 )}
+                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Verified Member</p>
+              </div>
+              <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-3.5 gap-2">
+                <span>Account Status: <span className="text-green-500/60">Verified</span></span>
+                <span>Spend: <span className="text-white/60">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
               </div>
             </div>
           </div>
 
-          {/* BACK SIDE */}
           <div className={cn(
-            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border",
-            cardTheme.bg,
-            cardTheme.border
+            "absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-[1.375rem] overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-zinc-800 via-zinc-950 to-black border-slate-400/40"
           )}>
-            <div className="relative h-full flex flex-col z-10">
-              <div className="w-full h-10 bg-black/60 mt-6 shadow-inner shrink-0" />
-              <div className="flex-1 px-6 flex flex-col justify-center gap-4">
-                 <div className="text-center space-y-2.5 py-2">
-                    <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Credits</span>
-                    {walletLoading ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : (
-                      <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-none truncate px-2">
-                        ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
-                      </h2>
-                    )}
-                 </div>
-              </div>
-              <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest mt-auto">
-                 <span>Member ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
-                 <span>Total Volume: ₹{lifetimeSpend.toLocaleString()}</span>
-              </div>
+            <div className="w-full h-10 bg-black/60 mt-6 shadow-inner shrink-0" />
+            <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2.5">
+              <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Balance</span>
+              {walletLoading ? <Skeleton className="h-10 w-24 mx-auto bg-white/10" /> : (
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tighter leading-none">
+                  ₹{balance.toLocaleString()}<span className="text-lg text-white/40">.00</span>
+                </h2>
+              )}
+            </div>
+            <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest mt-auto">
+               <span>Member ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
+               <span>Volume: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
             </div>
           </div>
         </div>
@@ -193,14 +123,10 @@ export default function DashboardPage() {
         </Link>
         <Link href="/wallet/history" className="flex-1">
           <Button variant="outline" className="w-full h-16 border-border bg-card text-white hover:bg-white/5 font-black text-xs uppercase tracking-[0.2em] rounded-2xl transition-all gap-3">
-            <History className="h-5 w-5" /> Transaction History
+            <History className="h-5 w-5" /> History
           </Button>
         </Link>
       </div>
-
-      {!initialized ? <Skeleton className="h-32 w-full rounded-[2rem] bg-card" /> : (
-        <RankProgressionSlider lifetimeSpend={lifetimeSpend} ranks={activeRanks} />
-      )}
 
       <div className="space-y-5">
         <div className="flex justify-between items-end px-2">

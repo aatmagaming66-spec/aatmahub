@@ -28,11 +28,9 @@ import {
   ArrowLeft,
   Loader2,
   User,
-  Receipt,
-  TicketPercent
+  Receipt
 } from 'lucide-react';
 import { sendTelegramNotification } from '@/lib/telegram';
-import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CheckoutPage() {
@@ -62,20 +60,7 @@ export default function CheckoutPage() {
     }
   }, [user, initialized, router, toast]);
 
-  // MEMBERSHIP DISCOUNT ENGINE
-  const rankInfo = useMemo(() => {
-    const spend = profile?.lifetimeSpend || 0;
-    return getRankFromSpend(spend, DEFAULT_RANKS);
-  }, [profile]);
-
-  const discountAmount = useMemo(() => {
-    if (rankInfo.discount <= 0) return 0;
-    return Math.floor((totalAmount * rankInfo.discount) / 100);
-  }, [totalAmount, rankInfo]);
-
-  const grandTotal = useMemo(() => {
-    return totalAmount - discountAmount;
-  }, [totalAmount, discountAmount]);
+  const grandTotal = totalAmount;
 
   const groupedIdentities = useMemo(() => {
     if (!items || items.length === 0) return [];
@@ -133,14 +118,12 @@ export default function CheckoutPage() {
         userId: user.uid,
         items: items, 
         totalAmount,
-        discountAmount,
+        discountAmount: 0,
         grandTotal,
         totalAccounts: groupedIdentities.length,
         totalProducts: items.length,
         walletUsed: paymentMethod === 'wallet' ? Math.min(grandTotal, walletBalance) : 0,
         payableAmount,
-        membershipRank: rankInfo.name,
-        membershipDiscountPct: rankInfo.discount,
         playerInfo: { 
           playerId: primaryIdentity.playerId, 
           serverId: primaryIdentity.serverId,
@@ -176,22 +159,15 @@ export default function CheckoutPage() {
 
         await setDoc(orderRef, { ...baseOrderData, status: 'pending' });
         
-        // Update user spend and rank with 90-day expiry
         const currentSpend = profile?.lifetimeSpend || 0;
         const newSpend = currentSpend + grandTotal;
-        const newRank = getRankFromSpend(newSpend, DEFAULT_RANKS);
-        const expiryDate = new Date();
-        expiryDate.setDate(expiryDate.getDate() + 90);
         
         updateDoc(userDocRef, {
           lifetimeSpend: newSpend,
-          currentRank: newRank.name,
-          rankId: newRank.id,
-          rankExpiry: expiryDate.toISOString(),
           updatedAt: new Date().toISOString()
         }).catch(err => console.error("Update fail", err));
 
-        sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nRank: ${rankInfo.name}\nAmount: ₹${grandTotal}`);
+        sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nAmount: ₹${grandTotal}`);
         router.push(`/checkout/success/${orderId}`);
       } else if (paymentMethod === 'phonepe') {
         await setDoc(orderRef, { ...baseOrderData, status: 'pending_payment' });
@@ -220,7 +196,7 @@ export default function CheckoutPage() {
     <div className="flex flex-col w-full p-4 space-y-6 animate-in fade-in duration-700">
       <header className="py-2">
         <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Review Order</h1>
-        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Membership discounts applied</p>
+        <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Finalize digital asset delivery</p>
       </header>
 
       <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl relative">
@@ -274,13 +250,6 @@ export default function CheckoutPage() {
               <span>Order Subtotal</span>
               <span className="text-white">₹{totalAmount}</span>
             </div>
-            
-            {discountAmount > 0 && (
-              <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-green-500">
-                <span className="flex items-center gap-1"><TicketPercent size={10} /> {rankInfo.name} Discount ({rankInfo.discount}%)</span>
-                <span>-₹{discountAmount}</span>
-              </div>
-            )}
 
             <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-muted-foreground">
               <span>Wallet Balance</span>

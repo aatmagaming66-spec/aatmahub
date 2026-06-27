@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import { useUser } from '@/firebase/auth/use-user';
 import { 
   LayoutDashboard, 
-  Package, 
   ShoppingCart, 
   Users, 
   CreditCard,
@@ -32,7 +31,7 @@ const ADMIN_LINKS = [
 const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Store Insights', icon: BarChart3 },
   { href: '/admin/banners', label: 'Hero Banners', icon: ImageIcon },
-  { href: '/admin/games', label: 'Products', icon: Gamepad2 },
+  { href: '/admin/games', label: 'Products Registry', icon: Gamepad2 },
   { href: '/admin/users', label: 'Members', icon: Users },
   { href: '/admin/settings/payments', label: 'Payments', icon: CreditCard },
   { href: '/admin/settings/smileone', label: 'Smile.one', icon: Zap },

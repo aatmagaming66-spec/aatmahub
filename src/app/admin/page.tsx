@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { useFirestore } from '@/firebase/provider';
-import { collection, doc, getDoc, query, where, limit, orderBy } from 'firebase/firestore';
+import { collection, doc, getDoc, query, where, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useUser } from '@/firebase/auth/use-user';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,13 +18,10 @@ import {
   Bot,
   BarChart3,
   ShieldCheck,
-  Globe,
   Database,
-  Activity,
   ChevronRight,
   Home as HomeIcon,
   Gamepad2,
-  Trophy,
   Settings,
   Image as ImageIcon,
   Zap
@@ -33,7 +30,6 @@ import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Dynamic Import for heavy chart module
 const BarChartComponent = dynamic(() => import('recharts').then(mod => {
   const { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } = mod;
   return function RechartsWrapper({ data }: { data: any[] }) {
@@ -68,7 +64,6 @@ export default function AdminDashboard() {
   const [tgStatus, setTgStatus] = useState<any>(null);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Updated to include both admin roles
   const isSuper = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   const thirtyDaysAgo = useMemo(() => subDays(new Date(), 30).toISOString(), []);
@@ -126,14 +121,14 @@ export default function AdminDashboard() {
 
   const superModules = useMemo(() => [
     { label: 'Hero Banners', href: '/admin/banners', icon: ImageIcon, desc: 'Homepage slide management' },
-    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Manage games and regions' },
-    { label: 'Product Management', href: '/admin/products', icon: Package, desc: 'Manage prices and ranks' },
-    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'View and edit user accounts' },
+    { label: 'Game Registry', href: '/admin/games', icon: Gamepad2, desc: 'Manage games and categories' },
+    { label: 'Catalog & Prices', href: '/admin/products', icon: Package, desc: 'Manage digital product SKUs' },
+    { label: 'Member Registry', href: '/admin/users', icon: Users, desc: 'View and edit user accounts' },
     { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Configure payment gateways' },
-    { label: 'Integrations', href: '/admin/settings/smileone', icon: Zap, desc: 'Smile.one, UniPin, MooGold' },
-    { label: 'Home Page Editor', href: '/admin/homepage', icon: HomeIcon, desc: 'Change home page layout' },
-    { label: 'Global Settings', href: '/admin/system', icon: Settings, desc: 'Website and system settings' },
-    { label: 'System Backups', href: '/admin/backups', icon: Database, desc: 'Export and backup data' },
+    { label: 'Automation Hub', href: '/admin/settings/smileone', icon: Zap, desc: 'API Fulfilment integration' },
+    { label: 'Layout Editor', href: '/admin/homepage', icon: HomeIcon, desc: 'Change site visual layout' },
+    { label: 'System Master', href: '/admin/system', icon: Settings, desc: 'Core platform settings' },
+    { label: 'Data Archives', href: '/admin/backups', icon: Database, desc: 'Export system registries' },
   ], []);
 
   if (!isMounted) return null;

@@ -3,22 +3,18 @@
 import { useUser } from '@/firebase/auth/use-user';
 import { useFirestore } from '@/firebase/provider';
 import { useDoc } from '@/firebase/firestore/use-doc';
-import { useGlobalSettings } from '@/firebase/settings-context';
 import { doc, query, collection, where } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, ArrowLeft, Crown } from 'lucide-react';
+import { PlusCircle, History, ArrowUpRight, ArrowDownLeft, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { getRankFromSpend } from '@/lib/ranks';
-import { RankProgressionSlider } from '@/components/wallet/rank-progression-slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCollection } from '@/firebase/firestore/use-collection';
 
 export default function WalletDashboard() {
   const { user, profile, initialized } = useUser();
-  const { ranks } = useGlobalSettings();
   const db = useFirestore();
   const router = useRouter();
   const [isFlipped, setIsFlipped] = useState(false);
@@ -46,19 +42,6 @@ export default function WalletDashboard() {
     return [...rawTransactions].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
   }, [rawTransactions]);
 
-  const rankInfo = useMemo(() => {
-    return getRankFromSpend(profile?.lifetimeSpend || 0, ranks);
-  }, [profile, ranks]);
-
-  const theme = useMemo(() => {
-    const name = (rankInfo.name || 'Warrior').toLowerCase();
-    if (name.includes('immortal') || name.includes('vip') || name.includes('legend')) return {
-      bg: 'bg-gradient-to-br from-yellow-600 via-red-900 to-yellow-700 animate-pulse',
-      border: 'border-yellow-400/50 shadow-[0_0_25px_rgba(234,179,8,0.3)]'
-    };
-    return { bg: 'bg-gradient-to-br from-red-900 via-zinc-950 to-black', border: 'border-slate-400/40' };
-  }, [rankInfo.name]);
-
   const balance = wallet?.balance || 0;
 
   return (
@@ -75,12 +58,11 @@ export default function WalletDashboard() {
 
       <div className="w-full mb-10 [perspective:1000px] cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
         <div className={cn("relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]", isFlipped && "[transform:rotateY(180deg)]")}>
-          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-none overflow-hidden shadow-2xl border p-6 flex flex-col justify-between", theme.bg, theme.border)}>
+          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-none overflow-hidden shadow-2xl border p-6 flex flex-col justify-between bg-gradient-to-br from-zinc-800 via-zinc-950 to-black border-white/10")}>
             <div className="flex justify-between items-start gap-4">
               <span className="font-headline font-black text-sm tracking-tighter text-white uppercase">AATMA HUB</span>
               <div className="backdrop-blur-md border border-white/20 px-3 py-1 rounded-none flex items-center gap-1.5 shadow-xl bg-black/40 text-white">
-                <Crown size={8} />
-                <span className="text-[8px] font-black uppercase tracking-widest">{rankInfo.name}</span>
+                <span className="text-[8px] font-black uppercase tracking-widest">Active Member</span>
               </div>
             </div>
             <div className="mt-auto space-y-4">
@@ -90,15 +72,15 @@ export default function WalletDashboard() {
                 ) : (
                   <p className="text-base font-black text-white uppercase truncate">{profile?.fullName || 'My Profile'}</p>
                 )}
-                <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: rankInfo.color }}>{rankInfo.name} Rank</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Verified Account</p>
               </div>
               <div className="flex justify-between items-center text-[7px] font-black uppercase text-white/30 border-t border-white/5 pt-3.5">
-                <span>Benefits: <span className="text-green-500/60">{rankInfo.discount}% Discount</span></span>
-                <span>Total Spend: <span className="text-white/60">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
+                <span>Status: <span className="text-green-500/60">Active</span></span>
+                <span>ID: <span className="text-white/60">{user?.uid.substring(0, 10).toUpperCase()}</span></span>
               </div>
             </div>
           </div>
-          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-none overflow-hidden shadow-2xl border flex flex-col", theme.bg, theme.border)}>
+          <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-none overflow-hidden shadow-2xl border flex flex-col bg-gradient-to-br from-zinc-800 via-zinc-950 to-black border-white/10")}>
             <div className="w-full h-10 bg-black/60 mt-6 shadow-inner" />
             <div className="flex-1 px-6 flex flex-col justify-center text-center space-y-2.5">
               <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Available Balance</span>
@@ -108,7 +90,7 @@ export default function WalletDashboard() {
             </div>
             <div className="p-4 border-t border-white/5 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/30 tracking-widest">
               <span>Account ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
-              <span>Total Volume: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
+              <span>Total Spend: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
             </div>
           </div>
         </div>
@@ -126,8 +108,6 @@ export default function WalletDashboard() {
           </Button>
         </Link>
       </div>
-
-      <RankProgressionSlider lifetimeSpend={profile?.lifetimeSpend || 0} ranks={ranks} />
 
       <div className="space-y-5">
         <div className="flex justify-between items-end px-2">
