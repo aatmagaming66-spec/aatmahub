@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { collection, setDoc, deleteDoc, doc, query, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
@@ -23,20 +23,32 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Search, Tag, IndianRupee, RefreshCw } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Search, Tag, IndianRupee, RefreshCw, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
+
+const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dynduenfb/image/upload";
+const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
 
 export default function AdminProductManagementPage() {
   const db = useFirestore();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
-    id: '', name: '', price: '', category: '', region: 'India', status: 'active'
+    id: '', 
+    name: '', 
+    price: '', 
+    category: '', 
+    region: 'India', 
+    status: 'active',
+    imageUrl: ''
   });
 
   const productsQuery = useMemo(() => query(collection(db, 'products'), limit(500)), [db]);
@@ -56,16 +68,51 @@ export default function AdminProductManagementPage() {
     if (product) {
       setEditingProduct(product);
       setFormData({
-        id: product.id || '', name: product.name || '', price: product.price?.toString() || '',
-        category: product.category || '', region: product.region || 'India', status: product.status || 'active'
+        id: product.id || '', 
+        name: product.name || '', 
+        price: product.price?.toString() || '',
+        category: product.category || '', 
+        region: product.region || 'India', 
+        status: product.status || 'active',
+        imageUrl: product.imageUrl || ''
       });
     } else {
       setEditingProduct(null);
       setFormData({ 
-        id: '', name: '', price: '', category: games?.[0]?.id || '', region: 'India', status: 'active'
+        id: '', 
+        name: '', 
+        price: '', 
+        category: games?.[0]?.id || '', 
+        region: 'India', 
+        status: 'active',
+        imageUrl: ''
       });
     }
     setIsModalOpen(true);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      fd.append("folder", "aatmahub_products");
+      
+      const res = await fetch(CLOUDINARY_UPLOAD_URL, { method: "POST", body: fd });
+      if (!res.ok) throw new Error('Cloudinary rejection');
+      const data = await res.json();
+      
+      setFormData(prev => ({ ...prev, imageUrl: data.secure_url }));
+      toast({ title: 'Image Uploaded' });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSaveProduct = async () => {
@@ -76,10 +123,20 @@ export default function AdminProductManagementPage() {
     setSaving(true);
     try {
       const pId = formData.id || `${formData.category}-${Date.now()}`;
-      await setDoc(doc(db, 'products', pId), { ...formData, id: pId, price: Number(formData.price), updatedAt: new Date().toISOString() }, { merge: true });
+      await setDoc(doc(db, 'products', pId), { 
+        ...formData, 
+        id: pId, 
+        price: Number(formData.price), 
+        updatedAt: new Date().toISOString() 
+      }, { merge: true });
+      
       toast({ title: "Product Saved", description: `${formData.name} updated successfully.` });
       setIsModalOpen(false);
-    } catch (e: any) { toast({ variant: 'destructive', title: 'Save Failed', description: e.message }); } finally { setSaving(false); }
+    } catch (e: any) { 
+      toast({ variant: 'destructive', title: 'Save Failed', description: e.message }); 
+    } finally { 
+      setSaving(false); 
+    }
   };
 
   const forceSyncMlbbIndia = async () => {
@@ -167,10 +224,19 @@ export default function AdminProductManagementPage() {
               <Card key={p.id} className="bg-card border-border rounded-none overflow-hidden shadow-2xl group hover:border-primary/20 transition-all">
                 <CardContent className="p-6 space-y-6">
                   <div className="flex justify-between items-start">
-                     <div className="space-y-1">
-                        <div className="flex items-center gap-1 text-primary"><Tag size={10} /><span className="text-[8px] font-black uppercase tracking-widest">{p.category}</span></div>
-                        <h3 className="text-sm font-black uppercase tracking-tight text-white">{p.name}</h3>
-                        <p className="text-[7px] text-white/20 font-mono uppercase">ID: {p.id}</p>
+                     <div className="flex items-start gap-4">
+                        <div className="h-12 w-12 bg-white/5 rounded-lg overflow-hidden flex-shrink-0 border border-white/5 relative">
+                          {p.imageUrl ? (
+                            <Image src={p.imageUrl} alt={p.name} fill className="object-cover" />
+                          ) : (
+                            <div className="flex items-center justify-center h-full opacity-20"><ImageIcon size={20} /></div>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1 text-primary"><Tag size={10} /><span className="text-[8px] font-black uppercase tracking-widest">{p.category}</span></div>
+                          <h3 className="text-sm font-black uppercase tracking-tight text-white">{p.name}</h3>
+                          <p className="text-[7px] text-white/20 font-mono uppercase">ID: {p.id}</p>
+                        </div>
                      </div>
                      <div className="text-right">
                         <p className="text-lg font-black text-primary leading-none">₹{p.price}</p>
@@ -193,8 +259,31 @@ export default function AdminProductManagementPage() {
           <DialogHeader><DialogTitle className="text-xl font-black uppercase tracking-tighter">Product Information</DialogTitle></DialogHeader>
           <div className="space-y-6 py-4">
             <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-2 col-span-2"><Label className="text-[9px] font-black uppercase">Package Name</Label><Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. 86 Diamonds" className="bg-black/50 border-border h-12 rounded-none text-xs font-bold" /></div>
-              <div className="space-y-2"><Label className="text-[9px] font-black uppercase">Category</Label>
+              <div className="space-y-2 col-span-2">
+                <Label className="text-[9px] font-black uppercase">Package Name</Label>
+                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. 86 Diamonds" className="bg-black/50 border-border h-12 rounded-none text-xs font-bold" />
+              </div>
+
+              <div className="space-y-2 col-span-2">
+                <Label className="text-[9px] font-black uppercase">Package Image</Label>
+                <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-lg">
+                  <div className="h-16 w-16 bg-black rounded-lg overflow-hidden border border-white/10 relative">
+                    {formData.imageUrl ? <Image src={formData.imageUrl} alt="Preview" fill className="object-cover" /> : <div className="flex items-center justify-center h-full opacity-20"><ImageIcon size={20} /></div>}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" accept="image/*" />
+                    <Button variant="outline" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="h-9 px-4 text-[10px] font-black uppercase rounded-none w-full border-border">
+                      {uploading ? <Loader2 className="animate-spin h-3 w-3" /> : (formData.imageUrl ? 'Change Image' : 'Upload Image')}
+                    </Button>
+                    {formData.imageUrl && (
+                      <button onClick={() => setFormData({...formData, imageUrl: ''})} className="text-[8px] font-black uppercase text-primary tracking-widest hover:underline">Remove Image</button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black uppercase">Category</Label>
                 <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
                   <SelectTrigger className="bg-black/50 border-border h-12 rounded-none font-bold"><SelectValue placeholder="Select Game" /></SelectTrigger>
                   <SelectContent className="bg-card border-border">{games?.map((g) => <SelectItem key={g.id} value={g.id} className="text-[10px] font-black uppercase">{g.name}</SelectItem>)}</SelectContent>

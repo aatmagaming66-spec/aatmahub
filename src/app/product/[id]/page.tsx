@@ -165,15 +165,33 @@ export default function ProductPage() {
             <div className="h-4 w-1 bg-primary rounded-none shadow-[0_0_8px_#DC2626]" />
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Available Packages</h3>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-3">
             {packs?.map((pack) => (
-              <button key={pack.id} onClick={() => setSelectedPack(pack)} className={cn("p-6 rounded-2xl border transition-all text-left bg-card group relative shadow-2xl", selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border")}>
-                <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight mb-3 uppercase">{pack.name}</p>
-                <p className="text-2xl font-black text-primary leading-none tracking-tighter">₹{pack.price}</p>
+              <button 
+                key={pack.id} 
+                onClick={() => setSelectedPack(pack)} 
+                className={cn(
+                  "p-3 rounded-xl border transition-all text-left bg-card group relative shadow-2xl flex flex-col gap-3", 
+                  selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border"
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="h-10 w-10 bg-white/5 rounded-lg overflow-hidden flex-shrink-0 relative border border-white/5">
+                    {pack.imageUrl ? (
+                      <Image src={pack.imageUrl} alt={pack.name} fill className="object-cover" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full opacity-10"><ImageIcon size={16} /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[8px] font-black text-white group-hover:text-primary transition-colors leading-tight uppercase truncate">{pack.name}</p>
+                    <p className="text-sm font-black text-primary leading-none tracking-tighter mt-1">₹{pack.price}</p>
+                  </div>
+                </div>
               </button>
             ))}
             {productsLoading && Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-24 bg-white/5 animate-pulse rounded-2xl border border-white/5" />
+              <div key={i} className="h-16 bg-white/5 animate-pulse rounded-xl border border-white/5" />
             ))}
           </div>
         </section>
