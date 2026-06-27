@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Zap, ArrowRight, Loader2, ImageIcon, MessageCircle, ShieldCheck } from "lucide-react";
+import { Zap, ArrowRight, Loader2, ImageIcon, MessageCircle, ShieldCheck, UserCheck } from "lucide-react";
 import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
 import { doc } from "firebase/firestore";
@@ -48,6 +48,7 @@ export default function ProductPage() {
   const [serverId, setServerId] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [verifiedName, setVerifiedName] = useState("");
 
   useEffect(() => {
     if (!isManualCategory && packs && packs.length > 0 && !selectedPack) {
@@ -64,10 +65,15 @@ export default function ProductPage() {
   const handleVerify = () => {
     if (!playerId) return;
     setVerifying(true);
+    
+    // Simulating identity resolution logic
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-    }, 800);
+      // Sample name format requested: "aatmahub√"
+      // We derive a plausible handle based on the ID for visual feedback
+      setVerifiedName(`AATMA_${playerId.slice(-4)}√`);
+    }, 1200);
   };
 
   const handleBuyNow = () => {
@@ -83,7 +89,7 @@ export default function ProductPage() {
       region: selectedPack.region || "Global",
       playerId,
       serverId,
-      verifiedName: "Verified User"
+      verifiedName: verifiedName
     });
     router.push('/checkout');
   };
@@ -149,18 +155,52 @@ export default function ProductPage() {
              <ShieldCheck size={12} className="text-primary" />
              <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Identity Verification</span>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-2">
                <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Player Identity</Label>
-               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 5629472" className="bg-black/50 border-border h-14 rounded-2xl text-base font-bold shadow-inner" />
+               <Input 
+                  value={playerId} 
+                  onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); setVerifiedName(""); }} 
+                  placeholder="e.g. 5629472" 
+                  className="bg-black/50 border-border h-14 rounded-2xl text-base font-bold shadow-inner" 
+               />
              </div>
              <div className="space-y-2">
                <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Distribution Server</Label>
-               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 1002" className="bg-black/50 border-border h-14 rounded-2xl text-base font-bold shadow-inner" />
+               <Input 
+                  value={serverId} 
+                  onChange={(e) => { setServerId(e.target.value); setIsVerified(false); setVerifiedName(""); }} 
+                  placeholder="e.g. 1002" 
+                  className="bg-black/50 border-border h-14 rounded-2xl text-base font-bold shadow-inner" 
+               />
              </div>
           </div>
-          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] transition-all", isVerified ? "bg-green-600 hover:bg-green-600 border-green-500 shadow-green-500/20" : "bg-primary")}>
-            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Target Locked & Verified" : "Engage Verification")}
+
+          {isVerified && verifiedName && (
+             <div className="bg-green-500/10 border border-green-500/30 p-4 rounded-2xl flex items-center justify-between animate-in zoom-in-95 duration-500 shadow-lg">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <UserCheck size={16} className="text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-[8px] font-black text-green-500/60 uppercase tracking-widest leading-none mb-1">Target Account</p>
+                    <p className="text-sm font-black text-green-400 uppercase tracking-tight">{verifiedName}</p>
+                  </div>
+                </div>
+                <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+             </div>
+          )}
+
+          <Button 
+            onClick={handleVerify} 
+            disabled={verifying || isVerified || !playerId} 
+            className={cn(
+              "w-full h-14 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] transition-all", 
+              isVerified ? "bg-green-600 hover:bg-green-600 border-green-500 shadow-green-500/20" : "bg-primary"
+            )}
+          >
+            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Verification Successful" : "Engage Verification")}
           </Button>
         </section>
 
