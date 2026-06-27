@@ -36,17 +36,14 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
 
   if (loading) {
     return (
-      <section className="py-6 px-4">
-        <div className="flex items-center gap-2 mb-6">
-          <div className={isOtt ? "w-1 h-5 bg-accent rounded-full shadow-[0_0_8px_#EC4899]" : "w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]"} />
-          <h2 className="text-base font-headline font-black uppercase tracking-tighter">{title}</h2>
+      <section className="py-6 px-2">
+        <div className="flex items-center gap-2 mb-6 px-2">
+          <div className={isOtt ? "w-1.5 h-5 bg-accent rounded-full shadow-[0_0_12px_#EC4899]" : "w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_#DC2626]"} />
+          <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">{title}</h2>
         </div>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2 px-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className={cn(
-              "w-full bg-white/5 rounded-2xl",
-              isOtt ? "aspect-[3/4]" : "aspect-square"
-            )} />
+            <Skeleton key={i} className="w-full aspect-square bg-white/5 rounded-2xl" />
           ))}
         </div>
       </section>
@@ -79,10 +76,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
                 !isActive && "cursor-default"
               )}
             >
-              <div className={cn(
-                "relative overflow-hidden mb-2 border border-white/10 bg-transparent shadow-2xl transition-all rounded-2xl",
-                isOtt ? "aspect-[3/4]" : "aspect-square"
-              )}>
+              <div className="relative aspect-square overflow-hidden mb-2 border border-white/10 bg-transparent shadow-2xl transition-all rounded-2xl">
                 {item.logo ? (
                   <Image 
                     src={item.logo} 
