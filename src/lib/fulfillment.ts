@@ -1,26 +1,40 @@
 import crypto from 'crypto';
 import { Firestore, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { sendTelegramNotification } from './telegram';
 
 /**
  * SMILE.ONE EXCLUSIVE FULFILLMENT
  * Processes digital asset delivery through the Smile.one API.
+ * UPDATED: Environment awareness added (Demo vs Live).
  */
 export async function processSmileOneOrder(db: Firestore, orderId: string) {
   try {
     const orderRef = doc(db, 'orders', orderId);
     const orderSnap = await getDoc(orderRef);
-    const settingsSnap = await getDoc(doc(db, 'settings', 'smileone'));
+    const settingsSnap = await getDoc(doc(db, 'settings', 'site'));
+    const smileoneSnap = await getDoc(doc(db, 'settings', 'smileone'));
 
     if (!orderSnap.exists() || !settingsSnap.exists()) {
-      console.error('[Fulfillment] Missing order or Smile.one configuration.');
+      console.error('[Fulfillment] Missing order or core configuration.');
       return;
     }
 
     const order = orderSnap.data();
     const settings = settingsSnap.data();
+    const smileone = smileoneSnap.data();
 
-    if (!settings.isEnabled) {
+    // ENVIRONMENT CHECK
+    if (!settings.productionMode) {
+      console.log(`[Fulfillment] DEMO MODE DETECTED. Skipping Smile.one API for Order: ${orderId}`);
+      await updateDoc(orderRef, {
+        status: 'completed',
+        fulfillmentType: 'simulated',
+        smileOneStatus: 'simulated_success',
+        updatedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
+    if (!smileone?.isEnabled) {
       console.warn('[Fulfillment] Smile.one is currently disabled in settings.');
       return;
     }
@@ -37,7 +51,7 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
 
     // Construct Payload
     const payload = {
-      uid: settings.apiUid,
+      uid: smileone.apiUid,
       email: order.userId + '@aatma.com',
       productid: smileOneId,
       playerid: order.playerInfo.playerId,
@@ -45,7 +59,7 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
     };
 
     // Security Signature (MD5)
-    const stringToSign = `${payload.uid}${payload.email}${payload.productid}${payload.playerid}${payload.serverid}${settings.secretKey}`;
+    const stringToSign = `${payload.uid}${payload.email}${payload.productid}${payload.playerid}${payload.serverid}${smileone.secretKey}`;
     const sign = crypto.createHash('md5').update(stringToSign).digest('hex');
 
     const response = await fetch('https://api.smile.one/pg/v1/order', {
@@ -60,6 +74,7 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
       await updateDoc(orderRef, {
         smileOneStatus: 'success',
         status: 'completed',
+        fulfillmentType: 'live',
         updatedAt: new Date().toISOString(),
       });
       console.log(`[Fulfillment] Success: Order ${orderId} delivered.`);
