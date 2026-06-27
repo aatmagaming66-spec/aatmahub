@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useEffect, useMemo } from "react";
@@ -6,7 +7,7 @@ import { QuickActions } from "@/components/home/quick-actions";
 import { GameGrid } from "@/components/home/game-grid";
 import { ServiceCarousel } from "@/components/home/service-carousel";
 import { LiveActivity } from "@/components/home/live-activity";
-import { Send, Facebook, Instagram } from "lucide-react";
+import { Send, Facebook, Instagram, ShieldCheck, MapPin, Globe, Headphones } from "lucide-react";
 import Link from 'next/link';
 import { useGlobalSettings } from "@/firebase/settings-context";
 
@@ -61,69 +62,124 @@ export default function Home() {
       
       {homepageConfig.showLiveActivity && <LiveActivity />}
 
-      <footer className="bg-background border-t border-border pt-12 pb-10 px-4 md:px-8 mt-8">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
-          <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-6">
-            <Link href="/" className="inline-block group active-press">
-              <span className="font-headline font-black text-3xl tracking-tighter uppercase drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]">
-                <span className="text-primary">AATMA</span> HUB
-              </span>
-            </Link>
-            <p className="text-[12px] font-medium text-muted-foreground leading-relaxed uppercase tracking-wider max-w-sm opacity-80">
-              AATMA HUB is India's leading MLBB Diamond specialized center, providing instant distribution protocols for Mobile Legends players across all regions.
-            </p>
-            
-            <div className="flex items-center justify-center lg:justify-start gap-4 pt-2">
-              <a href={socialLinks.telegram} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
-                <Send size={20} className="text-white group-hover:text-primary transition-colors" />
-              </a>
-              <a href="#" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
-                <Facebook size={20} className="text-white group-hover:text-primary transition-colors" />
-              </a>
-              <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
-                <Instagram size={20} className="text-white group-hover:text-primary transition-colors" />
-              </a>
-              <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
-                <WhatsAppIcon className="h-5 w-5 text-white group-hover:text-primary transition-colors" />
-              </a>
+      <footer className="bg-[#050505] border-t border-white/5 pt-20 pb-10 px-4 md:px-8 mt-12 relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-30" />
+        
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            {/* Branding Column */}
+            <div className="lg:col-span-1 space-y-6">
+              <Link href="/" className="inline-block group">
+                <span className="font-headline font-black text-3xl tracking-tighter uppercase text-white">
+                  <span className="text-primary">AATMA</span> HUB
+                </span>
+              </Link>
+              <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest leading-relaxed opacity-60">
+                Premium Digital Solutions for Gaming and Social Growth. India's Most Trusted MLBB Diamond specialized distribution protocol.
+              </p>
+              <div className="flex items-center gap-3">
+                <a href={socialLinks.telegram} target="_blank" rel="noopener noreferrer" className="h-10 w-10 bg-white/5 border border-white/10 flex items-center justify-center rounded-lg hover:border-primary/50 hover:bg-primary/10 transition-all text-white/40 hover:text-primary">
+                  <Send size={16} />
+                </a>
+                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="h-10 w-10 bg-white/5 border border-white/10 flex items-center justify-center rounded-lg hover:border-primary/50 hover:bg-primary/10 transition-all text-white/40 hover:text-primary">
+                  <Instagram size={16} />
+                </a>
+                <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="h-10 w-10 bg-white/5 border border-white/10 flex items-center justify-center rounded-lg hover:border-primary/50 hover:bg-primary/10 transition-all text-white/40 hover:text-primary">
+                  <WhatsAppIcon className="h-4 w-4" />
+                </a>
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col space-y-6">
-            <div className="text-center lg:text-left">
-              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/40 mb-6">HUB Directory</h3>
-              <div className="grid grid-cols-2 gap-y-4 gap-x-8">
+            {/* Services Column */}
+            <div className="space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Store Front</h3>
+              <ul className="space-y-4">
                 {[
                   { label: "MLBB India", href: "/product/mlbb-india" },
                   { label: "MLBB Global", href: "/product/mlbb-global" },
-                  { label: "About HUB", href: "/about-us" },
-                  { label: "Support", href: "/support" },
-                  { label: "My Orders", href: "/orders" },
-                  { label: "Terms", href: "/terms" },
-                  { label: "Privacy", href: "/privacy" },
-                  { label: "Refunds", href: "/refund-policy" },
+                  { label: "HOK Topup", href: "/product/honor-of-kings" },
+                  { label: "Social Services", href: "/social-services" },
+                  { label: "ID Checker", href: "/id-checker" },
                 ].map((link) => (
-                  <Link 
-                    key={link.label} 
-                    href={link.href}
-                    className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest hover:text-primary transition-all flex items-center justify-start gap-3 group"
-                  >
-                    <div className="w-1.5 h-1.5 bg-white/10 rounded-full group-hover:bg-primary group-hover:scale-125 transition-all shrink-0" />
-                    {link.label}
-                  </Link>
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors flex items-center gap-2">
+                      <div className="w-1 h-1 bg-primary rounded-full" />
+                      {link.label}
+                    </Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
+            </div>
+
+            {/* Account Column */}
+            <div className="space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Account Hub</h3>
+              <ul className="space-y-4">
+                {[
+                  { label: "Member Profile", href: "/profile" },
+                  { label: "Order Registry", href: "/orders" },
+                  { label: "Wallet Balance", href: "/wallet" },
+                  { label: "Support Center", href: "/support" },
+                  { label: "About HUB", href: "/about-us" },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors flex items-center gap-2">
+                      <div className="w-1 h-1 bg-primary rounded-full" />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Legal Column */}
+            <div className="space-y-6">
+              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Compliance</h3>
+              <ul className="space-y-4">
+                {[
+                  { label: "Terms of Service", href: "/terms" },
+                  { label: "Privacy Policy", href: "/privacy" },
+                  { label: "Refund Policy", href: "/refund-policy" },
+                  { label: "Secure Payment", href: "/wallet/deposit" },
+                  { label: "Contact Us", href: "/contact" },
+                ].map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors flex items-center gap-2">
+                      <div className="w-1 h-1 bg-primary rounded-full" />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-        </div>
 
-        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">
-            © 2026 AATMA HUB - DIGITAL PROTOCOL V2
-          </p>
-          <p className="text-[14px] font-black uppercase tracking-[0.4em] bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent drop-shadow-md">
-            AATMA OFFICIAL
-          </p>
+          <div className="pt-10 border-t border-white/5 flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-green-500" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Verified Hub Protocol</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe size={16} className="text-primary" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Secured SSL Connection</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Headphones size={16} className="text-accent" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-white/40">24/7 Digital Support</span>
+              </div>
+            </div>
+            
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
+              © 2026 AATMA HUB • ALL RIGHTS RESERVED
+            </p>
+          </div>
+
+          <div className="mt-16 text-center">
+            <span className="text-[20px] font-black uppercase tracking-[0.6em] text-white/5 block select-none pointer-events-none">
+              AATMA OFFICIAL
+            </span>
+          </div>
         </div>
       </footer>
     </div>
