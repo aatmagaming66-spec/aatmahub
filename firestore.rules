@@ -10,7 +10,7 @@ service cloud.firestore {
     }
     
     function isOwner(userId) {
-      return request.auth.uid == userId;
+      return isSignedIn() && request.auth.uid == userId;
     }
     
     function getUserData() {
@@ -22,7 +22,17 @@ service cloud.firestore {
     }
     
     function isNotBanned() {
-      return !getUserData().banned;
+      return isSignedIn() && (!('banned' in getUserData()) || getUserData().banned == false);
+    }
+
+    // SCHEMA VALIDATION
+    function userProfileSchema() {
+      return request.resource.data.keys().hasOnly([
+        'uid', 'fullName', 'email', 'phoneNumber', 'photoURL', 'role', 
+        'authProvider', 'lifetimeSpend', 'currentRank', 'rankId', 'rankExpiry',
+        'banned', 'is2FAEnabled', 'twoFactorSecret', 'twoFactorExpiry',
+        'backupCodes', 'lastLoginAt', 'createdAt', 'updatedAt', 'notifications'
+      ]);
     }
 
     // GLOBAL BANNED CHECK: Block all access if user is banned
@@ -40,18 +50,19 @@ service cloud.firestore {
 
     // USER PROFILE PROTECTION
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isOwner(userId);
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow create: if isSignedIn() && isOwner(userId) && userProfileSchema();
       allow update: if (isOwner(userId) && isNotBanned() && 
                       // Prevent role escalation & field tampering
                       !request.resource.data.diff(resource.data).affectedKeys()
-                        .hasAny(['role', 'banned', 'uid', 'email', 'lifetimeSpend'])) 
+                        .hasAny(['role', 'banned', 'uid', 'email', 'lifetimeSpend']) &&
+                      userProfileSchema()) 
                    || isAdmin();
     }
     
     // FINANCIAL LEDGER SECURITY
     match /wallets/{userId} {
-      allow read: if isSignedIn() && isOwner(userId);
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
       allow write: if isAdmin(); // Users NEVER write to their own wallet balance
     }
     
@@ -62,8 +73,7 @@ service cloud.firestore {
     }
     
     match /orders/{orderId} {
-      allow read: if (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin()))
-                  || (resource.data.status == 'completed');
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isSignedIn() && isNotBanned() && request.resource.data.userId == request.auth.uid;
       allow update: if isAdmin();
       allow delete: if false; // Orders are preserved for audit

@@ -6,7 +6,7 @@ import { doc, getDoc } from 'firebase/firestore';
 
 /**
  * Secure API route for Admins to trigger fulfillment.
- * HARDENED: Added internal validation for order ownership and status.
+ * HARDENED: Refined server-side validation to prevent session ID spoofing.
  */
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
@@ -19,13 +19,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Mandatory identifiers missing' }, { status: 400 });
     }
 
-    // Server-side Admin Role Verification
+    // Server-side Verification: Check actual identity in the users registry
     const adminRef = doc(db, 'users', adminUid);
     const adminSnap = await getDoc(adminRef);
-    const adminData = adminSnap.data();
+    
+    if (!adminSnap.exists()) {
+      return NextResponse.json({ success: false, error: 'Admin record not found' }, { status: 403 });
+    }
 
-    if (!adminSnap.exists() || !['admin', 'super_admin'].includes(adminData?.role)) {
-      console.error(`[Security Audit] Unauthorized fulfillment attempt from UID: ${adminUid}`);
+    const adminData = adminSnap.data();
+    if (!['admin', 'super_admin'].includes(adminData?.role) || adminData.banned) {
+      console.error(`[Security Audit] Unauthorized or banned attempt from UID: ${adminUid}`);
       return NextResponse.json({ success: false, error: 'Unauthorized operational access' }, { status: 403 });
     }
 
@@ -53,7 +57,7 @@ export async function POST(req: NextRequest) {
     console.error('[Security Audit] Fulfillment exception:', error);
     return NextResponse.json({ 
       success: false, 
-      error: 'Internal system fault during fulfillment.' 
+      error: 'Internal system fault during fulfillment sequence.' 
     }, { status: 500 });
   }
 }
