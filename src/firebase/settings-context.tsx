@@ -24,7 +24,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Listen to Global Site Settings (Maintenance, Branding, etc.)
+    // 1. Listen to Global Site Settings (Maintenance, Announcement, Contact info)
     const siteRef = doc(db, 'settings', 'site');
     const unsubSite = onSnapshot(siteRef, (snap) => {
       if (snap.exists()) {
@@ -40,7 +40,15 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // 3. Fetch Ranks Once (Rarely changes)
+    // 3. Listen to Website Branding (Logo, Hero, Social Links)
+    const brandingRef = doc(db, 'settings', 'branding');
+    const unsubBranding = onSnapshot(brandingRef, (snap) => {
+      if (snap.exists()) {
+        setSiteSettings((prev: any) => ({ ...prev, ...snap.data() }));
+      }
+    });
+
+    // 4. Fetch Ranks Once (Rarely changes)
     const fetchRanks = async () => {
       try {
         const q = query(collection(db, 'ranks'), orderBy('sortOrder', 'asc'));
@@ -61,6 +69,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     return () => {
       unsubSite();
       unsubHome();
+      unsubBranding();
     };
   }, [db]);
 

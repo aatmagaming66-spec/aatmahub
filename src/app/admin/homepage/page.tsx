@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { doc, setDoc } from 'firebase/firestore';
 import { useDoc } from '@/firebase/firestore/use-doc';
@@ -20,7 +20,14 @@ export default function HomepageManagementPage() {
   const [saving, setSaving] = useState(false);
   const [localConfig, setLocalConfig] = useState<any>(null);
 
-  const settings = localConfig || config || {
+  // Sync local state when database data arrives
+  useEffect(() => {
+    if (config) {
+      setLocalConfig(config);
+    }
+  }, [config]);
+
+  const settings = localConfig || {
     showGames: true,
     showSocial: true,
     showLiveActivity: true,
@@ -43,7 +50,7 @@ export default function HomepageManagementPage() {
     }
   };
 
-  if (loading) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
+  if (loading && !localConfig) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -67,7 +74,7 @@ export default function HomepageManagementPage() {
           <CardContent className="p-8 space-y-6">
             {[
               { key: 'showGames', label: 'Mobile Games Grid', desc: 'Display regional game top-ups' },
-              { key: 'showSocial', label: 'Social Growth Hub', desc: 'SMM & Engagement services' },
+              { key: 'showSocial', label: 'Social Growth Hub', desc: 'MLBB Specialized services' },
               { key: 'showLiveActivity', label: 'Live Activity Feed', desc: 'Real-time distribution logs' },
               { key: 'showTrustBadges', label: 'Security Trust Bar', desc: 'Top platform safety badges' },
             ].map((section) => (
