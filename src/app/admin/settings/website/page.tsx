@@ -1,9 +1,9 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useDoc } from '@/firebase/firestore/use-doc';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,7 +14,11 @@ import { Palette, Globe, Image as ImageIcon, Link as LinkIcon, Loader2, Save } f
 export default function WebsiteSettingsPage() {
   const db = useFirestore();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  
+  // Pointing to master 'site' document instead of 'branding'
+  const masterRef = useMemo(() => doc(db, 'settings', 'site'), [db]);
+  const { data: masterData, loading } = useDoc(masterRef);
+
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     logoUrl: '/logo.png',
@@ -27,24 +31,23 @@ export default function WebsiteSettingsPage() {
   });
 
   useEffect(() => {
-    async function fetchSettings() {
-      try {
-        const snap = await getDoc(doc(db, 'settings', 'branding'));
-        if (snap.exists()) setSettings(snap.data() as any);
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
+    if (masterData) {
+      setSettings(prev => ({
+        ...prev,
+        ...masterData // Spreading master data which now contains branding fields
+      }));
     }
-    fetchSettings();
-  }, [db]);
+  }, [masterData]);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await setDoc(doc(db, 'settings', 'branding'), {
+      // Merging branding fields into the master site doc
+      await setDoc(masterRef, {
         ...settings,
         updatedAt: new Date().toISOString(),
       }, { merge: true });
-      toast({ title: "Branding Synchronized", description: "Website identity settings updated successfully." });
+      toast({ title: "Branding Synchronized", description: "Website identity updated in master configuration." });
     } catch (error: any) {
       toast({ variant: 'destructive', title: "Update Failed", description: error.message });
     } finally {

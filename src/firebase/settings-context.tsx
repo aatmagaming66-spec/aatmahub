@@ -24,31 +24,29 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Listen to Global Site Settings (Maintenance, Announcement, Contact info)
-    const siteRef = doc(db, 'settings', 'site');
-    const unsubSite = onSnapshot(siteRef, (snap) => {
+    // 1. Listen to Unified Master Settings Document
+    // This single doc now contains: site config, homepage toggles, and branding
+    const masterRef = doc(db, 'settings', 'site');
+    const unsubMaster = onSnapshot(masterRef, (snap) => {
       if (snap.exists()) {
-        setSiteSettings((prev: any) => ({ ...prev, ...snap.data() }));
+        const data = snap.data();
+        setSiteSettings(data);
+      } else {
+        // Fallback defaults if doc doesn't exist
+        setSiteSettings({
+          maintenanceMode: false,
+          siteBranding: 'AATMA HUB',
+          homepage: {
+            showGames: true,
+            showSocial: true,
+            showLiveActivity: true,
+            showTrustBadges: true,
+          }
+        });
       }
     });
 
-    // 2. Listen to Homepage Specific Layout Settings (Visibility Toggles)
-    const homeRef = doc(db, 'settings', 'homepage');
-    const unsubHome = onSnapshot(homeRef, (snap) => {
-      if (snap.exists()) {
-        setSiteSettings((prev: any) => ({ ...prev, homepage: snap.data() }));
-      }
-    });
-
-    // 3. Listen to Website Branding (Logo, Hero, Social Links)
-    const brandingRef = doc(db, 'settings', 'branding');
-    const unsubBranding = onSnapshot(brandingRef, (snap) => {
-      if (snap.exists()) {
-        setSiteSettings((prev: any) => ({ ...prev, ...snap.data() }));
-      }
-    });
-
-    // 4. Fetch Ranks Once (Rarely changes)
+    // 2. Fetch Ranks Once (Rarely changes)
     const fetchRanks = async () => {
       try {
         const q = query(collection(db, 'ranks'), orderBy('sortOrder', 'asc'));
@@ -67,9 +65,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     fetchRanks();
     
     return () => {
-      unsubSite();
-      unsubHome();
-      unsubBranding();
+      unsubMaster();
     };
   }, [db]);
 

@@ -14,20 +14,22 @@ import { Home, Layout, Save, Loader2, Sparkles } from 'lucide-react';
 export default function HomepageManagementPage() {
   const db = useFirestore();
   const { toast } = useToast();
-  const configRef = useMemo(() => doc(db, 'settings', 'homepage'), [db]);
-  const { data: config, loading } = useDoc(configRef);
+  
+  // Pointing to master 'site' document instead of 'homepage'
+  const configRef = useMemo(() => doc(db, 'settings', 'site'), [db]);
+  const { data: siteData, loading } = useDoc(configRef);
 
   const [saving, setSaving] = useState(false);
-  const [localConfig, setLocalConfig] = useState<any>(null);
+  const [localLayout, setLocalLayout] = useState<any>(null);
 
-  // Sync local state when database data arrives
+  // Sync local state when master data arrives
   useEffect(() => {
-    if (config) {
-      setLocalConfig(config);
+    if (siteData?.homepage) {
+      setLocalLayout(siteData.homepage);
     }
-  }, [config]);
+  }, [siteData]);
 
-  const settings = localConfig || {
+  const settings = localLayout || {
     showGames: true,
     showSocial: true,
     showLiveActivity: true,
@@ -35,14 +37,18 @@ export default function HomepageManagementPage() {
   };
 
   const handleToggle = (key: string, val: boolean) => {
-    setLocalConfig({ ...settings, [key]: val });
+    setLocalLayout({ ...settings, [key]: val });
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await setDoc(configRef, { ...settings, updatedAt: new Date().toISOString() }, { merge: true });
-      toast({ title: 'Config Synchronized', description: 'Homepage visibility updated.' });
+      // Merging updated homepage layout into master site doc
+      await setDoc(configRef, { 
+        homepage: settings, 
+        updatedAt: new Date().toISOString() 
+      }, { merge: true });
+      toast({ title: 'Layout Synchronized', description: 'Homepage visibility updated in master registry.' });
     } catch (e: any) {
       toast({ variant: 'destructive', title: 'Update Failed', description: e.message });
     } finally {
@@ -50,7 +56,7 @@ export default function HomepageManagementPage() {
     }
   };
 
-  if (loading && !localConfig) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
+  if (loading && !localLayout) return <div className="flex h-screen items-center justify-center"><Loader2 className="h-10 w-10 text-primary animate-spin" /></div>;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -97,10 +103,10 @@ export default function HomepageManagementPage() {
           <div className="bg-accent/5 p-8 rounded-[2.5rem] border border-accent/10 space-y-4">
              <div className="flex items-center gap-2">
                <Sparkles className="h-4 w-4 text-accent" />
-               <h3 className="text-[10px] font-black uppercase tracking-widest text-accent">Kernel Note</h3>
+               <h3 className="text-[10px] font-black uppercase tracking-widest text-accent">Unified Config</h3>
              </div>
              <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-               These controls only affect the visual rendering of the homepage. Underlying database logic and routes remain active even if the UI section is disabled.
+               These controls are now part of the master <b>site-wide configuration</b>. Any change here is saved to the core registry instantly.
              </p>
           </div>
           
