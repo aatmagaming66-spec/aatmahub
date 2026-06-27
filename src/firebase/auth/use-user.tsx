@@ -1,9 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import { User, onAuthStateChanged, getRedirectResult, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { User, onAuthStateChanged, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { useAuth, useFirestore } from '../provider';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 interface ProfileContextType {
   user: User | null;
@@ -33,26 +33,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     const initAuth = async () => {
       try {
         await setPersistence(auth, browserLocalPersistence);
-        const result = await getRedirectResult(auth).catch(() => null);
         
-        if (result?.user && isMounted) {
-          const uid = result.user.uid;
-          const userDocRef = doc(db, 'users', uid);
-          const userSnap = await getDoc(userDocRef);
-          
-          if (!userSnap.exists()) {
-            await setDoc(userDocRef, {
-              uid,
-              fullName: result.user.displayName || 'Member',
-              email: result.user.email || '',
-              role: 'user',
-              lifetimeSpend: 0,
-              createdAt: new Date().toISOString(),
-              authProvider: 'google.com'
-            });
-          }
-        }
-
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
           if (isMounted) {
             setUser(firebaseUser);
@@ -62,7 +43,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         });
 
         return () => unsubscribe();
-
       } catch (error) {
         if (isMounted) {
           setInitialized(true);
@@ -76,7 +56,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   }, [auth, db]);
 
   useEffect(() => {
-    if (!user || !initialized) return;
+    if (!user || !initialized) {
+      setProfile(null);
+      return;
+    }
 
     setLoading(true);
     const userDocRef = doc(db, 'users', user.uid);
