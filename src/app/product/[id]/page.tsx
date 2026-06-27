@@ -171,12 +171,24 @@ export default function ProductPage() {
                 key={pack.id} 
                 onClick={() => setSelectedPack(pack)} 
                 className={cn(
-                  "p-4 rounded-xl border transition-all text-center bg-card group relative shadow-2xl flex flex-col items-center justify-center gap-2 min-h-[100px]", 
-                  selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border"
+                  "p-4 rounded-xl border transition-all text-center group relative shadow-2xl flex flex-col items-center justify-center gap-2 min-h-[100px]", 
+                  selectedPack?.id === pack.id 
+                    ? "bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#991b1b] border-primary/50 shadow-[0_0_25px_rgba(220,38,38,0.4)]" 
+                    : "bg-gradient-to-br from-black to-[#1a0000] border-white/5 hover:border-primary/30"
                 )}
               >
-                <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight uppercase">{pack.name}</p>
-                <p className="text-sm font-black text-primary leading-none tracking-tighter">₹{pack.price}</p>
+                <p className={cn(
+                  "text-[10px] font-black uppercase transition-colors leading-tight",
+                  selectedPack?.id === pack.id ? "text-white" : "text-white/80 group-hover:text-white"
+                )}>
+                  {pack.name}
+                </p>
+                <p className={cn(
+                  "text-sm font-black leading-none tracking-tighter",
+                  selectedPack?.id === pack.id ? "text-white" : "text-primary"
+                )}>
+                  ₹{pack.price}
+                </p>
               </button>
             ))}
             {productsLoading && Array.from({ length: 6 }).map((_, i) => (
