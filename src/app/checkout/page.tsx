@@ -35,7 +35,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CheckoutPage() {
   const { items, totalAmount } = useCart();
-  const { user, profile, loading: userLoading, initialized } = useUser();
+  const { user, profile, initialized } = useUser();
   const router = useRouter();
   const { toast } = useToast();
   const db = useFirestore();

@@ -36,7 +36,7 @@ export default function AdminProductManagementPage() {
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    id: '', name: '', price: '', category: '', region: 'India', tab: 'small', status: 'active'
+    id: '', name: '', price: '', category: '', region: 'India', status: 'active'
   });
 
   const productsQuery = useMemo(() => query(collection(db, 'products'), limit(500)), [db]);
@@ -57,12 +57,12 @@ export default function AdminProductManagementPage() {
       setEditingProduct(product);
       setFormData({
         id: product.id || '', name: product.name || '', price: product.price?.toString() || '',
-        category: product.category || '', region: product.region || 'India', tab: product.tab || 'small', status: product.status || 'active'
+        category: product.category || '', region: product.region || 'India', status: product.status || 'active'
       });
     } else {
       setEditingProduct(null);
       setFormData({ 
-        id: '', name: '', price: '', category: games?.[0]?.id || '', region: 'India', tab: 'small', status: 'active'
+        id: '', name: '', price: '', category: games?.[0]?.id || '', region: 'India', status: 'active'
       });
     }
     setIsModalOpen(true);
@@ -111,13 +111,12 @@ export default function AdminProductManagementPage() {
       ];
 
       for (const p of mlbbIndiaProducts) {
-        const productId = `mlbb-india-small-${p.name.toLowerCase().replace(/\s+/g, '-')}`;
+        const productId = `mlbb-india-${p.name.toLowerCase().replace(/\s+/g, '-')}`;
         const productData = {
           id: productId,
           name: p.name,
           price: p.price,
           category: gameId,
-          tab: 'small',
           region: 'India',
           status: 'active',
           updatedAt: new Date().toISOString(),
@@ -175,7 +174,7 @@ export default function AdminProductManagementPage() {
                      </div>
                      <div className="text-right">
                         <p className="text-lg font-black text-primary leading-none">₹{p.price}</p>
-                        <p className="text-[7px] font-black uppercase opacity-40 mt-1">{p.tab} • {p.region}</p>
+                        <p className="text-[7px] font-black uppercase opacity-40 mt-1">{p.region}</p>
                      </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">

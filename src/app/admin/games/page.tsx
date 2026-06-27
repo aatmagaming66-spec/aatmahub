@@ -51,11 +51,9 @@ export default function GameManagementPage() {
     sortOrder: 0,
     logo: '',
     banner: '',
-    flag: '',
-    tabs: [] as string[]
+    flag: ''
   });
 
-  const [newTab, setNewTab] = useState('');
   const [files, setFiles] = useState<{ logo: File | null, banner: File | null }>({ logo: null, banner: null });
 
   const gamesQuery = useMemo(() => query(collection(db, 'games'), orderBy('sortOrder', 'asc')), [db]);
@@ -88,19 +86,17 @@ export default function GameManagementPage() {
         sortOrder: game.sortOrder || 0,
         logo: game.logo || '',
         banner: game.banner || '',
-        flag: game.flag || '',
-        tabs: game.tabs || ['small', 'large', 'pass', 'promo']
+        flag: game.flag || ''
       });
     } else {
       setEditingGame(null);
       setFormData({
         id: '', name: '', slug: '', category: 'Mobile Games', status: 'active',
         sortOrder: (games?.length || 0) + 1,
-        logo: '', banner: '', flag: '', tabs: ['small', 'large', 'pass', 'promo']
+        logo: '', banner: '', flag: ''
       });
     }
     setFiles({ logo: null, banner: null });
-    setNewTab('');
     setIsModalOpen(true);
   };
 
@@ -150,7 +146,6 @@ export default function GameManagementPage() {
         category: formData.category, 
         status: formData.status,
         sortOrder: Number(formData.sortOrder), 
-        tabs: formData.tabs, 
         logo: logoUrl, 
         banner: bannerUrl,
         flag: formData.flag,
@@ -324,18 +319,6 @@ export default function GameManagementPage() {
               />
             </div>
 
-            <div className="space-y-3">
-               <Label className="text-[9px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2"><Layers size={12} className="text-primary" /> Product Tab Configuration</Label>
-               <div className="flex gap-2">
-                  <input value={newTab} onChange={(e) => setNewTab(e.target.value)} placeholder="e.g. Small Packs" className="bg-black/50 border-border h-10 rounded-none text-[10px] flex-1 px-4 outline-none" onKeyDown={(e) => { if(e.key === 'Enter'){ if(!newTab || formData.tabs.includes(newTab.toLowerCase())) return; setFormData({...formData, tabs: [...formData.tabs, newTab.toLowerCase()]}); setNewTab(''); } }} />
-                  <Button onClick={()=>{ if(!newTab || formData.tabs.includes(newTab.toLowerCase())) return; setFormData({...formData, tabs: [...formData.tabs, newTab.toLowerCase()]}); setNewTab(''); }} className="h-10 bg-white/5 border border-white/10 text-[9px] font-black uppercase px-4 rounded-none">Add</Button>
-               </div>
-               <div className="flex flex-wrap gap-2 pt-1">
-                  {formData.tabs.map((tab, idx) => (
-                    <div key={idx} className="bg-primary/10 border border-primary/30 text-primary text-[8px] font-black uppercase px-2 py-1 rounded-none flex items-center gap-2">{tab}<button onClick={() => setFormData({...formData, tabs: formData.tabs.filter(t => t !== tab)})} className="hover:text-white"><X size={10} /></button></div>
-                  ))}
-               </div>
-            </div>
             <div className="flex items-center justify-between bg-black/50 border border-border h-12 rounded-none px-4">
               <span className="text-[10px] font-bold uppercase text-white/60">Operational Status</span>
               <Switch checked={formData.status === 'active'} onCheckedChange={(v) => setFormData({...formData, status: v ? 'active' : 'inactive'})} />

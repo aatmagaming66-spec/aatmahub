@@ -64,7 +64,7 @@ export default function CartPage() {
                     <div>
                       <h4 className="text-sm font-black uppercase tracking-tight">{item.name}</h4>
                       <p className="text-[9px] text-muted-foreground uppercase font-bold tracking-widest mt-0.5">
-                        {item.region} {item.tabName && `• ${item.tabName}`}
+                        {item.region}
                       </p>
                     </div>
                     <button onClick={() => removeItem(item.id)} className="text-muted-foreground hover:text-primary transition-colors">

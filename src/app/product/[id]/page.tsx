@@ -10,7 +10,6 @@ import { useFirestore } from "@/firebase/provider";
 import { doc } from "firebase/firestore";
 import { useDoc } from "@/firebase/firestore/use-doc";
 import { useGlobalSettings } from "@/firebase/settings-context";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
@@ -46,7 +45,6 @@ export default function ProductPage() {
   const { data: packs, loading: productsLoading } = useCollection(productsQuery);
 
   const [selectedPack, setSelectedPack] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("small");
   const [playerId, setPlayerId] = useState("");
   const [serverId, setServerId] = useState("");
   const [verifying, setVerifying] = useState(false);
@@ -54,11 +52,9 @@ export default function ProductPage() {
 
   useEffect(() => {
     if (!isManualCategory && packs && packs.length > 0 && !selectedPack) {
-      const defaultPack = packs.find(p => p.tab === activeTab) || packs[0];
-      setSelectedPack(defaultPack);
-      if (defaultPack.tab) setActiveTab(defaultPack.tab);
+      setSelectedPack(packs[0]);
     }
-  }, [packs, selectedPack, activeTab, isManualCategory]);
+  }, [packs, selectedPack, isManualCategory]);
 
   const handleWhatsAppOrder = () => {
     const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
@@ -86,7 +82,6 @@ export default function ProductPage() {
       quantity: 1,
       image: gameInfo?.logo || "",
       region: selectedPack.region || "Global",
-      tabName: selectedPack.tab || "Pack",
       playerId,
       serverId,
       verifiedName: "Verified User"
@@ -166,19 +161,21 @@ export default function ProductPage() {
         </section>
 
         <section className="space-y-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-xl mb-6">
-              {['small', 'large', 'pass', 'promo'].map(t => <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-lg data-[state=active]:bg-primary">{t}</TabsTrigger>)}
-            </TabsList>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {packs?.filter(p => p.tab === activeTab).map((pack) => (
-                <button key={pack.id} onClick={() => setSelectedPack(pack)} className={cn("p-6 rounded-2xl border transition-all text-left bg-card group relative shadow-2xl", selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border")}>
-                  <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight mb-3 uppercase">{pack.name}</p>
-                  <p className="text-2xl font-black text-primary leading-none tracking-tighter">₹{pack.price}</p>
-                </button>
-              ))}
-            </div>
-          </Tabs>
+          <div className="flex items-center gap-2 px-1 mb-4">
+            <div className="h-4 w-1 bg-primary rounded-none shadow-[0_0_8px_#DC2626]" />
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Available Packages</h3>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {packs?.map((pack) => (
+              <button key={pack.id} onClick={() => setSelectedPack(pack)} className={cn("p-6 rounded-2xl border transition-all text-left bg-card group relative shadow-2xl", selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border")}>
+                <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight mb-3 uppercase">{pack.name}</p>
+                <p className="text-2xl font-black text-primary leading-none tracking-tighter">₹{pack.price}</p>
+              </button>
+            ))}
+            {productsLoading && Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-24 bg-white/5 animate-pulse rounded-2xl border border-white/5" />
+            ))}
+          </div>
         </section>
 
         <div className="flex flex-col gap-4 pb-24 pt-4">
