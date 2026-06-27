@@ -39,7 +39,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar className="border-r border-white/5">
-      <SidebarHeader className="h-14 flex items-center px-4 border-b border-white/5">
+      <SidebarHeader className="h-16 flex items-center px-4 border-b border-white/5">
         <button 
           className="font-headline font-bold text-lg text-primary text-left uppercase tracking-tighter active-press transition-transform"
           onClick={() => navigateTo('/')}
