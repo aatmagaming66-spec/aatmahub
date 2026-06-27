@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import Image from 'next/image';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Share2, MessageCircle, Zap } from 'lucide-react';
@@ -15,16 +15,14 @@ export default function SocialServicesPage() {
   const db = useFirestore();
   const { siteSettings } = useGlobalSettings();
   
-  const socialQuery = useMemo(() => query(
-    collection(db, 'games'),
-    where('category', '==', 'Direct Services')
-  ), [db]);
-
+  const socialQuery = useMemo(() => query(collection(db, 'games')), [db]);
   const { data: rawItems, loading } = useCollection(socialQuery);
 
   const items = useMemo(() => {
     if (!rawItems) return [];
-    return [...rawItems].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    return [...rawItems]
+      .filter(i => i.category === 'Direct Services' || i.category === 'Social Services')
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawItems]);
 
   const handleWhatsAppOrder = (serviceName: string) => {

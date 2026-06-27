@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useFirestore } from "@/firebase/provider";
-import { collection, query, where } from "firebase/firestore";
+import { collection, query } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Share2, Zap } from "lucide-react";
@@ -19,19 +19,16 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const db = useFirestore();
   const Icon = Share2;
 
-  const servicesQuery = useMemo(() => 
-    query(
-      collection(db, 'games'), 
-      where('category', '==', category)
-    ), 
-  [db, category]);
-
+  const servicesQuery = useMemo(() => query(collection(db, 'games')), [db]);
   const { data: rawItems, loading } = useCollection(servicesQuery);
 
   const items = useMemo(() => {
     if (!rawItems) return [];
-    return [...rawItems].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-  }, [rawItems]);
+    // Resilient filtering for Social Services transition
+    return [...rawItems]
+      .filter(i => i.category === category || i.category === 'Social Services')
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+  }, [rawItems, category]);
 
   if (loading) {
     return (

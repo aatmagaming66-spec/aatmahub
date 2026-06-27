@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { collection, query } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Gamepad2, Zap } from 'lucide-react';
@@ -13,16 +13,13 @@ import { cn } from '@/lib/utils';
 export default function GamesPage() {
   const db = useFirestore();
   
-  const gamesQuery = useMemo(() => query(
-    collection(db, 'games'),
-    where('category', '==', 'Direct Topup')
-  ), [db]);
-
+  const gamesQuery = useMemo(() => query(collection(db, 'games')), [db]);
   const { data: rawGames, loading } = useCollection(gamesQuery);
 
   const mobileGames = useMemo(() => {
     if (!rawGames) return [];
     return [...rawGames]
+      .filter(g => g.category === 'Direct Topup' || g.category === 'Mobile Games')
       .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
