@@ -4,15 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase/auth/use-user';
 import { AdminNav } from '@/components/admin/admin-nav';
-import { Loader2, Menu, X, ShieldCheck, Lock, Zap, PlayCircle } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2, Menu, X, ShieldCheck, Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useGlobalSettings } from '@/firebase/settings-context';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, initialized } = useUser();
-  const { siteSettings } = useGlobalSettings();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
@@ -23,7 +20,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   const hasAdminAccess = profile?.role === 'admin' || profile?.role === 'super_admin';
-  const isLive = siteSettings?.productionMode === true;
 
   useEffect(() => {
     if (initialized && isMounted) {
@@ -98,14 +94,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Menu size={20} />
             </Button>
             <div className="hidden sm:block"><span className="font-headline font-black text-sm tracking-tighter uppercase">AATMA <span className="text-primary">HUB</span></span></div>
-            
-            <div className={cn(
-              "px-3 py-1 rounded-none border text-[8px] font-black uppercase tracking-widest hidden md:flex items-center gap-2",
-              isLive ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-primary/10 text-primary border-primary/20"
-            )}>
-              {isLive ? <Zap size={10} /> : <PlayCircle size={10} />}
-              {isLive ? 'LIVE PROTOCOL' : 'DEMO MODE'}
-            </div>
           </div>
           
           <div className="flex items-center gap-4">

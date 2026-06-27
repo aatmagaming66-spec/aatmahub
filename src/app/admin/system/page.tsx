@@ -5,13 +5,12 @@ import { useFirestore } from '@/firebase/provider';
 import { doc, getDoc, collection, query, limit, orderBy, setDoc } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Database, Loader2, History, ShieldCheck, Zap, Globe, MessageCircle, PlayCircle, ShieldAlert } from 'lucide-react';
+import { Database, Loader2, History, ShieldCheck, Zap, Globe, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 
 export default function SystemSettingsPage() {
   const db = useFirestore();
@@ -21,7 +20,6 @@ export default function SystemSettingsPage() {
   const [health, setHealth] = useState<any>({ firestore: 'checking' });
   const [settings, setSettings] = useState({
     maintenanceMode: false,
-    productionMode: false,
     maintenanceMessage: 'System is under maintenance.',
     contactWhatsApp: '+91 8566936666',
     contactEmail: 'shivatetz@gmail.com',
@@ -71,44 +69,6 @@ export default function SystemSettingsPage() {
       </header>
 
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* Environment Control */}
-        <Card className={cn(
-          "bg-card border-2 rounded-none overflow-hidden shadow-2xl",
-          settings.productionMode ? "border-green-500/20" : "border-primary/20"
-        )}>
-          <CardHeader className={cn("p-8 border-b", settings.productionMode ? "border-green-500/10 bg-green-500/5" : "border-primary/10 bg-primary/5")}>
-            <CardTitle className="text-xs font-black uppercase tracking-widest flex items-center gap-2 text-white">
-              <ShieldAlert className={cn("h-4 w-4", settings.productionMode ? "text-green-500" : "text-primary")} /> 
-              Environment Matrix
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8 space-y-6">
-            <div className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-none">
-              <div className="space-y-1">
-                <Label className="text-sm font-black uppercase tracking-tight">Production Mode</Label>
-                <p className="text-[9px] text-muted-foreground uppercase font-black">Toggle real top-ups and payments</p>
-              </div>
-              <Switch 
-                checked={settings.productionMode} 
-                onCheckedChange={(val) => setSettings({...settings, productionMode: val})} 
-                className="data-[state=checked]:bg-green-500" 
-              />
-            </div>
-            
-            <div className="p-4 border border-border bg-black/40 rounded-none space-y-3">
-               <div className="flex items-center gap-2">
-                 <PlayCircle size={14} className={settings.productionMode ? "text-green-500" : "text-primary"} />
-                 <span className="text-[10px] font-black uppercase text-white">Protocol Status</span>
-               </div>
-               <p className="text-[10px] text-muted-foreground font-bold uppercase leading-relaxed">
-                 {settings.productionMode 
-                   ? "LIVE MODE: Orders will be fulfilled via Smile.one and real payment requests will be active." 
-                   : "DEMO MODE: All financial transactions and game top-ups will be simulated. Smile.one API will not be triggered."}
-               </p>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Status Indicators */}
         <div className="grid grid-cols-2 gap-4">
           <HealthCard icon={Database} label="Core Firestore" status={health.firestore} color="text-blue-400" />

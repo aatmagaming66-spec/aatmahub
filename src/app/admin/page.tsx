@@ -3,10 +3,9 @@
 import { useMemo, useState, useEffect, memo } from 'react';
 import dynamic from 'next/dynamic';
 import { useFirestore } from '@/firebase/provider';
-import { collection, query, where, limit, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, limit } from 'firebase/firestore';
 import { useCollection } from '@/firebase/firestore/use-collection';
 import { useUser } from '@/firebase/auth/use-user';
-import { useGlobalSettings } from '@/firebase/settings-context';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
   Users, 
@@ -24,16 +23,11 @@ import {
   CreditCard,
   Ticket,
   Gamepad2,
-  BarChart3,
-  Loader2,
-  AlertTriangle,
-  PlayCircle
+  BarChart3
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 
 const BarChartComponent = dynamic(() => import('recharts').then(mod => {
   const { Bar, BarChart, ResponsiveContainer, XAxis, Tooltip } = mod;
@@ -66,13 +60,9 @@ const BarChartComponent = dynamic(() => import('recharts').then(mod => {
 export default function AdminDashboard() {
   const db = useFirestore();
   const { profile } = useUser();
-  const { siteSettings } = useGlobalSettings();
-  const { toast } = useToast();
   const [isMounted, setIsMounted] = useState(false);
-  const [updatingMode, setUpdatingMode] = useState(false);
 
   const isSuper = profile?.role === 'admin' || profile?.role === 'super_admin';
-  const isLive = siteSettings?.productionMode === true;
 
   const thirtyDaysAgo = useMemo(() => subDays(new Date(), 30).toISOString(), []);
 
@@ -95,26 +85,6 @@ export default function AdminDashboard() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const toggleEnvironment = async () => {
-    if (!isSuper) return;
-    setUpdatingMode(true);
-    try {
-      const newMode = !isLive;
-      await setDoc(doc(db, 'settings', 'site'), { 
-        productionMode: newMode,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-      toast({ 
-        title: newMode ? "LIVE PROTOCOL ENGAGED" : "DEMO MODE ACTIVE", 
-        description: newMode ? "Real top-ups and payments are now enabled." : "Transactions and fulfillments are now simulated." 
-      });
-    } catch (e: any) {
-      toast({ variant: 'destructive', title: 'Mode Switch Failed', description: e.message });
-    } finally {
-      setUpdatingMode(false);
-    }
-  };
 
   const stats = useMemo(() => {
     if (!isMounted) return [];
@@ -172,44 +142,6 @@ export default function AdminDashboard() {
           </Link>
         </div>
       </header>
-
-      {isSuper && (
-        <Card className={cn(
-          "mx-1 p-6 border-2 transition-all duration-500 rounded-none shadow-2xl",
-          isLive ? "bg-green-500/5 border-green-500/20" : "bg-primary/5 border-primary/20"
-        )}>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-               <div className={cn(
-                 "h-14 w-14 rounded-none flex items-center justify-center border transition-all",
-                 isLive ? "bg-green-500 text-white border-green-400" : "bg-primary text-white border-primary/50"
-               )}>
-                 {isLive ? <Zap size={24} /> : <PlayCircle size={24} />}
-               </div>
-               <div>
-                  <h2 className="text-lg font-black uppercase tracking-tighter text-white">
-                    System Environment: {isLive ? 'LIVE' : 'DEMO'}
-                  </h2>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">
-                    {isLive 
-                      ? 'REAL-TIME PROTOCOL ENGAGED. Fulfillments are active.' 
-                      : 'SIMULATION ACTIVE. No real top-ups or payments.'}
-                  </p>
-               </div>
-            </div>
-            <Button 
-              onClick={toggleEnvironment} 
-              disabled={updatingMode}
-              className={cn(
-                "h-14 px-10 rounded-none font-black uppercase text-[11px] tracking-widest min-w-[200px]",
-                isLive ? "bg-primary hover:bg-secondary" : "bg-green-600 hover:bg-green-700"
-              )}
-            >
-              {updatingMode ? <Loader2 className="animate-spin h-5 w-5" /> : (isLive ? 'Switch to Demo' : 'Switch to Live')}
-            </Button>
-          </div>
-        </Card>
-      )}
 
       <div className="grid grid-cols-4 gap-1 px-1">
         {stats.map((stat, i) => (
@@ -306,5 +238,3 @@ const PipelineItem = memo(function PipelineItem({ label, count, icon: Icon, colo
     </div>
   );
 });
-
-import { cn } from '@/lib/utils';

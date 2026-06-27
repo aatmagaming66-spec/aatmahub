@@ -4,7 +4,6 @@ import { Firestore, doc, getDoc, updateDoc, increment } from 'firebase/firestore
 /**
  * SMILE.ONE EXCLUSIVE FULFILLMENT
  * Processes digital asset delivery through the Smile.one API.
- * UPDATED: Environment awareness added (Demo vs Live).
  */
 export async function processSmileOneOrder(db: Firestore, orderId: string) {
   try {
@@ -19,20 +18,7 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
     }
 
     const order = orderSnap.data();
-    const settings = settingsSnap.data();
     const smileone = smileoneSnap.data();
-
-    // ENVIRONMENT CHECK
-    if (!settings.productionMode) {
-      console.log(`[Fulfillment] DEMO MODE DETECTED. Skipping Smile.one API for Order: ${orderId}`);
-      await updateDoc(orderRef, {
-        status: 'completed',
-        fulfillmentType: 'simulated',
-        smileOneStatus: 'simulated_success',
-        updatedAt: new Date().toISOString(),
-      });
-      return;
-    }
 
     if (!smileone?.isEnabled) {
       console.warn('[Fulfillment] Smile.one is currently disabled in settings.');

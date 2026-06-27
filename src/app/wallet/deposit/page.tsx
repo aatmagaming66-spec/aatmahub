@@ -7,9 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, MessageCircle, ShieldCheck, Info, PlayCircle, Zap } from 'lucide-react';
+import { ArrowLeft, MessageCircle, ShieldCheck, Info } from 'lucide-react';
 import { useGlobalSettings } from '@/firebase/settings-context';
-import { cn } from '@/lib/utils';
 
 export default function DepositPage() {
   const [amount, setAmount] = useState('');
@@ -17,8 +16,6 @@ export default function DepositPage() {
   const { siteSettings } = useGlobalSettings();
   const { toast } = useToast();
   const router = useRouter();
-
-  const isLive = siteSettings?.productionMode === true;
 
   const handleManualRequest = () => {
     const numAmount = Number(amount);
@@ -32,15 +29,6 @@ export default function DepositPage() {
       return;
     }
 
-    if (!isLive) {
-      toast({ 
-        title: "DEMO SIMULATION ACTIVE", 
-        description: "Payment redirects are disabled in Demo Mode. Switch to Live in Admin to test real top-ups.",
-        variant: "default"
-      });
-      return;
-    }
-
     const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
     const message = `*MANUAL RECHARGE REQUEST*\n\n*Amount:* ₹${numAmount}\n*User Email:* ${user.email}\n*User UID:* ${user.uid}\n\nPlease provide payment details to complete this top-up.`;
     
@@ -49,7 +37,7 @@ export default function DepositPage() {
   };
 
   return (
-    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700 pb-20">
+    <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700 pb-20 text-foreground">
       <header className="flex items-center gap-4 py-4">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="rounded-none hover:bg-white/5"><ArrowLeft className="h-5 w-5" /></Button>
         <div>
@@ -59,16 +47,6 @@ export default function DepositPage() {
       </header>
 
       <div className="space-y-6">
-        {!isLive && (
-          <div className="bg-primary/10 border-2 border-primary/20 p-5 rounded-none flex items-center gap-4 animate-pulse">
-             <PlayCircle size={24} className="text-primary shrink-0" />
-             <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-primary">Simulation Active</p>
-                <p className="text-[9px] text-white/60 uppercase font-bold tracking-widest">Real payments are disabled in Demo Mode.</p>
-             </div>
-          </div>
-        )}
-
         <div className="space-y-2">
           <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Enter Requested Amount (₹)</Label>
           <Input 
@@ -92,30 +70,19 @@ export default function DepositPage() {
             <span className="text-[10px] font-black uppercase tracking-widest text-white/60">Manual Fulfillment Protocol</span>
           </div>
           <p className="text-[11px] text-muted-foreground font-medium leading-relaxed uppercase tracking-wider">
-            {isLive ? (
-              <>
-                1. Enter amount and click "Request Manual Top-up"<br/>
-                2. You will be redirected to Support WhatsApp<br/>
-                3. Share payment proof via screenshot<br/>
-                4. Balance will be added to your wallet within 2-5 minutes
-              </>
-            ) : (
-              <>
-                SYSTEM IN DEMO MODE. In Live mode, this request would redirect to WhatsApp support for payment verification. No actual funds will be transferred currently.
-              </>
-            )}
+            1. Enter amount and click "Request Manual Top-up"<br/>
+            2. You will be redirected to Support WhatsApp<br/>
+            3. Share payment proof via screenshot<br/>
+            4. Balance will be added to your wallet within 2-5 minutes
           </p>
         </div>
 
         <Button 
-          className={cn(
-            "w-full h-16 text-sm font-black uppercase tracking-[0.2em] shadow-2xl rounded-none transition-all group gap-3",
-            isLive ? "bg-primary hover:bg-secondary shadow-primary/20" : "bg-white/10 text-white/40 cursor-not-allowed"
-          )} 
+          className="w-full h-16 text-sm font-black uppercase tracking-[0.2em] shadow-2xl rounded-none transition-all group gap-3 bg-primary hover:bg-secondary shadow-primary/20"
           onClick={handleManualRequest}
         >
-          {isLive ? <MessageCircle className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
-          {isLive ? 'Request Manual Top-up' : 'Simulation Restricted'}
+          <MessageCircle className="h-5 w-5" />
+          Request Manual Top-up
         </Button>
 
         <div className="flex items-center justify-center gap-3 py-6 opacity-40"><ShieldCheck className="h-4 w-4" /><span className="text-[8px] font-black uppercase tracking-[0.4em]">Verified Aatma Hub Support Channel</span></div>
