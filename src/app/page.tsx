@@ -7,7 +7,7 @@ import { QuickActions } from "@/components/home/quick-actions";
 import { GameGrid } from "@/components/home/game-grid";
 import { ServiceCarousel } from "@/components/home/service-carousel";
 import { LiveActivity } from "@/components/home/live-activity";
-import { Send, Instagram, ShieldCheck, Globe, Headphones } from "lucide-react";
+import { Send, Instagram, Facebook, Mail, ShieldCheck, Globe, Headphones } from "lucide-react";
 import Link from 'next/link';
 import { useGlobalSettings } from "@/firebase/settings-context";
 
@@ -62,87 +62,69 @@ export default function Home() {
       
       {homepageConfig.showLiveActivity && <LiveActivity />}
 
-      <footer className="bg-[#050505] border-t border-white/5 pt-16 pb-10 px-4 md:px-8 mt-12 relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-30" />
-        
-        <div className="max-w-4xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-16 text-center">
-            {/* Branding Column */}
-            <div className="flex flex-col items-center space-y-6">
-              <Link href="/" className="inline-block group">
-                <span className="font-headline font-black text-3xl tracking-tighter uppercase text-white">
-                  <span className="text-primary">AATMA</span> HUB
-                </span>
-              </Link>
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] leading-relaxed opacity-60 max-w-sm">
-                Premium Digital Solutions for Gaming and Social Growth. India's Most Trusted distribution protocol.
-              </p>
-              <div className="flex items-center gap-4">
-                <a href={socialLinks.telegram} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all text-white/40 hover:text-primary">
-                  <Send size={18} />
-                </a>
-                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all text-white/40 hover:text-primary">
-                  <Instagram size={18} />
-                </a>
-                <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all text-white/40 hover:text-primary">
-                  <WhatsAppIcon className="h-5 w-5" />
-                </a>
-              </div>
-            </div>
+      {/* Redesigned Footer matching ClassySmile Style */}
+      <footer className="bg-[#0f111a] border-t border-white/5 pt-12 pb-24 px-6 mt-8">
+        <div className="max-w-xl mx-auto flex flex-col items-center">
+          
+          {/* Logo / Branding */}
+          <div className="mb-8 flex flex-col items-center">
+            <Link href="/" className="inline-block">
+               <div className="relative group">
+                  <span className="font-headline font-black text-3xl tracking-tighter uppercase text-white flex items-center gap-1">
+                    <span className="text-[#00c2ff]">aatma</span>
+                    <span className="text-white">hub</span>
+                  </span>
+                  <div className="absolute -top-6 -right-4">
+                    <div className="h-10 w-10 flex items-center justify-center opacity-20">
+                       <ShieldCheck className="text-[#00c2ff]" size={40} />
+                    </div>
+                  </div>
+               </div>
+            </Link>
+          </div>
 
-            {/* Quick Links Column */}
-            <div className="flex flex-col items-center space-y-6">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-primary">Quick Links</h3>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-4 text-left">
-                {[
-                  { label: "Home", href: "/" },
-                  { label: "Mobile Games", href: "/games" },
-                  { label: "Social Hub", href: "/social-services" },
-                  { label: "My Orders", href: "/orders" },
-                  { label: "Account", href: "/profile" },
-                  { label: "Support", href: "/support" },
-                  { label: "About Us", href: "/about-us" },
-                  { label: "Contact", href: "/contact" },
-                  { label: "Terms & Conditions", href: "/terms" },
-                  { label: "Refund Policy", href: "/refund-policy" },
-                  { label: "Privacy Policy", href: "/privacy" },
-                ].map((link) => (
-                  <Link 
-                    key={link.label} 
-                    href={link.href} 
-                    className="text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </div>
+          {/* Social Icons Grid */}
+          <div className="flex items-center gap-6 mb-10">
+            <a href={socialLinks.whatsapp} target="_blank" className="text-white hover:text-[#00c2ff] transition-colors">
+              <WhatsAppIcon className="h-7 w-7" />
+            </a>
+            <a href={socialLinks.instagram} target="_blank" className="text-white hover:text-[#00c2ff] transition-colors">
+              <Instagram className="h-7 w-7" />
+            </a>
+            <a href="#" className="text-white hover:text-[#00c2ff] transition-colors">
+              <Facebook className="h-7 w-7" />
+            </a>
+            <a href={`mailto:${siteSettings?.contactEmail || 'shivatetz@gmail.com'}`} className="text-white hover:text-[#00c2ff] transition-colors">
+              <Mail className="h-7 w-7" />
+            </a>
+          </div>
+
+          {/* Divider */}
+          <div className="w-full h-px bg-white/10 mb-10" />
+
+          {/* 2-Column Links Grid */}
+          <div className="w-full grid grid-cols-2 gap-x-8 gap-y-4 mb-12">
+            <div className="flex flex-col space-y-4 text-left">
+              <Link href="/" className="text-sm font-bold text-white hover:text-[#00c2ff] transition-colors">Home</Link>
+              <Link href="/login" className="text-sm font-bold text-white hover:text-[#00c2ff] transition-colors">Login</Link>
+              <Link href="/register" className="text-sm font-bold text-white hover:text-[#00c2ff] transition-colors">Register</Link>
+              <Link href="/support" className="text-sm font-bold text-white hover:text-[#00c2ff] transition-colors">Customer Support</Link>
+            </div>
+            <div className="flex flex-col space-y-4 text-left">
+              <Link href="/privacy" className="text-sm font-bold text-white hover:text-[#00c2ff] transition-colors">Privacy Policy</Link>
+              <Link href="/terms" className="text-sm font-bold text-white hover:text-[#00c2ff] transition-colors">Terms & Conditions</Link>
+              <Link href="/refund-policy" className="text-sm font-bold text-white hover:text-[#00c2ff] transition-colors">Refund Policy</Link>
             </div>
           </div>
 
-          <div className="pt-10 border-t border-white/5 flex flex-col items-center gap-8">
-            <div className="flex flex-wrap justify-center items-center gap-6">
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={14} className="text-green-500" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Verified HUB</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Globe size={14} className="text-primary" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-white/40">Secured SSL</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Headphones size={14} className="text-accent" />
-                <span className="text-[9px] font-black uppercase tracking-widest text-white/40">24/7 Support</span>
-              </div>
-            </div>
-            
-            <div className="text-center space-y-2">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
-                © 2026 AATMA HUB • ALL RIGHTS RESERVED
-              </p>
-              <span className="text-[16px] font-black uppercase tracking-[0.8em] text-white/5 block select-none pointer-events-none">
-                AATMA OFFICIAL
-              </span>
-            </div>
+          {/* Final Divider */}
+          <div className="w-full h-px bg-white/10 mb-8" />
+
+          {/* Copyright */}
+          <div className="text-center">
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest leading-loose">
+              All Rights Reserved © 2025 | AATMA HUB
+            </p>
           </div>
         </div>
       </footer>
