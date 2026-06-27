@@ -12,13 +12,13 @@ import { MaintenanceCheck } from '@/components/navigation/maintenance-check';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://aatmahub.com'),
-  title: 'AATMA HUB - Premium Digital Solutions',
-  description: 'Premium Digital Solutions for Gaming and Social Needs. Instant top-ups, OTT access, and social media growth.',
-  keywords: ['MLBB Top up', 'Free Fire Diamonds', 'OTT Premium', 'Gaming India', 'Social Media Services'],
+  title: 'AATMA HUB - Premium MLBB Diamond Hub',
+  description: 'India\'s Premier MLBB Diamond Top-up Center. Instant Mobile Legends top-ups, weekly passes, and twilight passes.',
+  keywords: ['MLBB Top up', 'MLBB India', 'MLBB Diamonds', 'Mobile Legends Top up', 'Weekly Diamond Pass'],
   authors: [{ name: 'AATMA OFFICIAL' }],
   openGraph: {
-    title: 'AATMA HUB - Premium Digital Marketplace',
-    description: 'Instant Game Top-Ups, OTT Services, and Social Growth.',
+    title: 'AATMA HUB - Instant MLBB Diamonds',
+    description: 'Fastest Mobile Legends Diamond Top-up Hub.',
     url: 'https://aatmahub.com',
     siteName: 'AATMA HUB',
     locale: 'en_IN',
@@ -26,12 +26,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AATMA HUB | Gaming & Social Solutions',
-    description: 'India\'s fastest digital service hub.',
+    title: 'AATMA HUB | MLBB Diamond Center',
+    description: 'India\'s fastest MLBB diamond distribution hub.',
   },
 };
 
-// Explicit viewport optimization for zero-delay taps
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -51,7 +50,6 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-        {/* Force early hardware acceleration */}
         <style dangerouslySetInnerHTML={{ __html: `
           * { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
           .page-shell { transform: translate3d(0,0,0); backface-visibility: hidden; }
@@ -65,12 +63,10 @@ export default function RootLayout({
                 <AppSidebar />
                 <div className="flex-1 flex flex-col w-full min-w-0">
                   <MaintenanceCheck />
-                  {/* Sticky Top Navigation Region */}
                   <div className="sticky top-0 z-40 w-full flex flex-col">
                     <AnnouncementBar />
                     <TopHeader />
                   </div>
-                  {/* Main Content Region */}
                   <main className="flex-1 w-full pb-16">
                     {children}
                   </main>

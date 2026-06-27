@@ -20,34 +20,36 @@ export default function GamesPage() {
 
   const { data: rawGames, loading } = useCollection(gamesQuery);
 
-  const games = useMemo(() => {
+  const mlbbGames = useMemo(() => {
     if (!rawGames) return [];
-    return [...rawGames].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    // Exclusively MLBB
+    return [...rawGames]
+      .filter(g => g.name?.toLowerCase().includes('mlbb'))
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-700">
       <header className="py-4">
-        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">Games Hub</h1>
-        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Mobile Game Top-Ups</p>
+        <h1 className="text-3xl font-headline font-black tracking-tighter uppercase leading-none">MLBB Diamond Hub</h1>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-[0.3em] font-black opacity-60">Mobile Legends Regional Top-Ups</p>
       </header>
 
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="aspect-square w-full rounded-2xl bg-white/5" />
           ))}
         </div>
-      ) : games.length === 0 ? (
+      ) : mlbbGames.length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-2xl p-20 text-center space-y-4">
            <Gamepad2 className="h-10 w-10 text-muted-foreground mx-auto opacity-20" />
-           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Global Registry Empty</p>
+           <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">MLBB Registry Empty</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {games.map((game) => {
+          {mlbbGames.map((game) => {
             const isActive = game.status === 'active';
-            const isMlbb = game.name?.toLowerCase().includes('mlbb');
 
             return (
               <Link 
@@ -59,14 +61,11 @@ export default function GamesPage() {
                 )}
               >
                 <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-3 border border-border shadow-2xl bg-transparent group-hover:border-primary/50 transition-all duration-500">
-                  {/* Instant Badge for MLBB */}
-                  {isMlbb && (
-                    <div className="absolute top-2 left-2 z-30 bg-primary/90 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(220,38,38,0.4)]">
-                      <span className="text-[7px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
-                        INSTANT <Zap size={6} className="fill-current" />
-                      </span>
-                    </div>
-                  )}
+                  <div className="absolute top-2 left-2 z-30 bg-primary/90 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(220,38,38,0.4)]">
+                    <span className="text-[7px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
+                      INSTANT <Zap size={6} className="fill-current" />
+                    </span>
+                  </div>
 
                   {game.logo ? (
                     <Image 

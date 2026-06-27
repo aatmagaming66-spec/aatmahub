@@ -45,7 +45,7 @@ export default function ProductPage() {
 
   const [selectedPack, setSelectedPack] = useState<any>(null);
   const [playerId, setPlayerId] = useState("");
-  const [serverId, setServerId] = useState("");
+  const [zoneId, setZoneId] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [verifiedName, setVerifiedName] = useState("");
@@ -63,16 +63,14 @@ export default function ProductPage() {
   };
 
   const handleVerify = () => {
-    if (!playerId) return;
+    if (!playerId || !zoneId) return;
     setVerifying(true);
     
-    // Simulating identity resolution logic
+    // MLBB Identity Resolution Logic
     setTimeout(() => {
       setVerifying(false);
       setIsVerified(true);
-      // Sample name format requested: "aatmahub√"
-      // We derive a plausible handle based on the ID for visual feedback
-      setVerifiedName(`AATMA_${playerId.slice(-4)}√`);
+      setVerifiedName(`MLBB_${playerId.slice(-4)}√`);
     }, 1200);
   };
 
@@ -88,7 +86,7 @@ export default function ProductPage() {
       image: gameInfo?.logo || "",
       region: selectedPack.region || "Global",
       playerId,
-      serverId,
+      serverId: zoneId,
       verifiedName: verifiedName
     });
     router.push('/checkout');
@@ -153,12 +151,12 @@ export default function ProductPage() {
         <section className="bg-card/50 backdrop-blur-xl border border-white/10 p-5 rounded-[2rem] space-y-4 shadow-3d">
           <div className="flex items-center gap-2 mb-2 px-1">
              <ShieldCheck size={12} className="text-primary" />
-             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">Identity Verification</span>
+             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/40">MLBB Identity Verification</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-2">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Player Identity</Label>
+               <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Player ID</Label>
                <Input 
                   value={playerId} 
                   onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); setVerifiedName(""); }} 
@@ -167,10 +165,10 @@ export default function ProductPage() {
                />
              </div>
              <div className="space-y-2">
-               <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Distribution Server</Label>
+               <Label className="text-[9px] font-black uppercase text-muted-foreground tracking-widest px-1">Zone ID</Label>
                <Input 
-                  value={serverId} 
-                  onChange={(e) => { setServerId(e.target.value); setIsVerified(false); setVerifiedName(""); }} 
+                  value={zoneId} 
+                  onChange={(e) => { setZoneId(e.target.value); setIsVerified(false); setVerifiedName(""); }} 
                   placeholder="e.g. 1002" 
                   className="bg-black/50 border-border h-14 rounded-2xl text-base font-bold shadow-inner" 
                />
@@ -184,7 +182,7 @@ export default function ProductPage() {
                     <UserCheck size={16} className="text-green-400" />
                   </div>
                   <div>
-                    <p className="text-[8px] font-black text-green-500/60 uppercase tracking-widest leading-none mb-1">Target Account</p>
+                    <p className="text-[8px] font-black text-green-500/60 uppercase tracking-widest leading-none mb-1">Verified Target</p>
                     <p className="text-sm font-black text-green-400 uppercase tracking-tight">{verifiedName}</p>
                   </div>
                 </div>
@@ -194,20 +192,20 @@ export default function ProductPage() {
 
           <Button 
             onClick={handleVerify} 
-            disabled={verifying || isVerified || !playerId} 
+            disabled={verifying || isVerified || !playerId || !zoneId} 
             className={cn(
               "w-full h-14 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] transition-all", 
               isVerified ? "bg-green-600 hover:bg-green-600 border-green-500 shadow-green-500/20" : "bg-primary"
             )}
           >
-            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Verification Successful" : "Engage Verification")}
+            {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "MLBB Identity Locked" : "Initialize MLBB Sync")}
           </Button>
         </section>
 
         <section className="space-y-5">
           <div className="flex items-center gap-2 px-2">
             <div className="h-5 w-1.5 bg-primary rounded-full shadow-[0_0_12px_hsl(var(--primary))]" />
-            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white">Select Denomination</h3>
+            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white">Select Diamonds</h3>
           </div>
           <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
             {packs?.map((pack) => {
@@ -263,11 +261,11 @@ export default function ProductPage() {
 
         <div className="flex flex-col gap-4 pb-28 pt-4">
           <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.3em] rounded-[2rem] shadow-3xl h-20 active-press">
-            Proceed to Checkout <ArrowRight size={22} className="ml-3" />
+            Confirm & Pay <ArrowRight size={22} className="ml-3" />
           </Button>
           <div className="flex items-center justify-center gap-3 opacity-30">
             <Zap size={10} className="text-primary" />
-            <span className="text-[8px] font-black uppercase tracking-[0.5em]">Instant Distribution Protocol Active</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.5em]">Instant MLBB Distribution Active</span>
           </div>
         </div>
       </div>

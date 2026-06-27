@@ -22,9 +22,12 @@ export function GameGrid() {
 
   const { data: rawGames, loading } = useCollection(gamesQuery);
 
-  const games = useMemo(() => {
+  const mlbbGames = useMemo(() => {
     if (!rawGames) return [];
-    return [...rawGames].sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    // Strictly filter for MLBB games
+    return [...rawGames]
+      .filter(g => g.name?.toLowerCase().includes('mlbb'))
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
   }, [rawGames]);
 
   if (loading) {
@@ -32,10 +35,10 @@ export function GameGrid() {
       <section className="py-6 px-2">
         <div className="flex items-center gap-2 mb-6 px-2">
           <div className="w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
-          <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">Mobile Games</h2>
+          <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">MLBB Hub</h2>
         </div>
         <div className="grid grid-cols-3 gap-2">
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="w-full aspect-square rounded-2xl bg-white/5" />
           ))}
         </div>
@@ -43,7 +46,7 @@ export function GameGrid() {
     );
   }
 
-  if (games.length === 0) return null;
+  if (mlbbGames.length === 0) return null;
 
   return (
     <section className="py-6 px-2">
@@ -51,13 +54,13 @@ export function GameGrid() {
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">
-            Mobile Games
+            MLBB Diamonds
           </h2>
         </div>
       </div>
       
       <div className="grid grid-cols-3 gap-2">
-        {games.map((game) => (
+        {mlbbGames.map((game) => (
           <GameCard key={game.id} game={game} />
         ))}
       </div>
@@ -67,7 +70,6 @@ export function GameGrid() {
 
 function GameCard({ game }: { game: any }) {
   const isActive = game.status === 'active';
-  const isMlbb = game.name?.toLowerCase().includes('mlbb');
 
   return (
     <Link 
@@ -79,14 +81,11 @@ function GameCard({ game }: { game: any }) {
       )}
     >
       <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-transparent border border-white/10 shadow-2xl transition-all duration-300">
-        {/* Instant Badge for MLBB */}
-        {isMlbb && (
-          <div className="absolute top-2 left-2 z-30 bg-primary/90 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(220,38,38,0.4)] animate-in fade-in duration-500">
-            <span className="text-[7px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
-              INSTANT <Zap size={6} className="fill-current" />
-            </span>
-          </div>
-        )}
+        <div className="absolute top-2 left-2 z-30 bg-primary/90 backdrop-blur-md px-1.5 py-0.5 rounded border border-white/20 shadow-[0_0_10px_rgba(220,38,38,0.4)]">
+          <span className="text-[7px] font-black text-white uppercase tracking-tighter flex items-center gap-0.5">
+            INSTANT <Zap size={6} className="fill-current" />
+          </span>
+        </div>
 
         {game.logo ? (
           <Image 

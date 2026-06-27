@@ -56,13 +56,13 @@ export default function Home() {
       
       {homepageConfig.showSocial && (
         <div className="bg-gradient-to-b from-transparent via-primary/5 to-transparent">
-          <ServiceCarousel title="Social Growth Services" category="Social Services" />
+          <ServiceCarousel title="MLBB Specialized Services" category="Social Services" />
         </div>
       )}
 
       {homepageConfig.showOtt && (
         <div className="bg-gradient-to-b from-transparent via-accent/5 to-transparent">
-          <ServiceCarousel title="Premium OTT Plans" category="OTT Services" />
+          <ServiceCarousel title="Premium OTT Access" category="OTT Services" />
         </div>
       )}
       
@@ -70,7 +70,6 @@ export default function Home() {
 
       <footer className="bg-background border-t border-border pt-12 pb-10 px-4 md:px-8 mt-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
-          {/* Column 1: Brand & Info */}
           <div className="flex flex-col items-center text-center lg:items-start lg:text-left space-y-6">
             <Link href="/" className="inline-block group active-press">
               <span className="font-headline font-black text-3xl tracking-tighter uppercase drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]">
@@ -78,7 +77,7 @@ export default function Home() {
               </span>
             </Link>
             <p className="text-[12px] font-medium text-muted-foreground leading-relaxed uppercase tracking-wider max-w-sm opacity-80">
-              AATMA HUB DIGITAL SERVICES is a trusted gaming topup and digital services platform providing fast, secure and affordable recharge solutions for gamers worldwide.
+              AATMA HUB is India's leading MLBB Diamond specialized center, providing instant distribution protocols for Mobile Legends players across all regions.
             </p>
             
             <div className="flex items-center justify-center lg:justify-start gap-4 pt-2">
@@ -97,22 +96,19 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Column 2: Navigation Links */}
           <div className="flex flex-col space-y-6">
             <div className="text-center lg:text-left">
-              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/40 mb-6">Marketplace Directory</h3>
+              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/40 mb-6">Diamond Directory</h3>
               <div className="grid grid-cols-2 gap-y-4 gap-x-8">
                 {[
-                  { label: "Home", href: "/" },
-                  { label: "About Us", href: "/about-us" },
-                  { label: "Contact Us", href: "/contact" },
+                  { label: "MLBB India", href: "/product/mlbb-india" },
+                  { label: "MLBB Global", href: "/product/mlbb-global" },
+                  { label: "About HUB", href: "/about-us" },
                   { label: "Support", href: "/support" },
-                  { label: "Login", href: "/login" },
-                  { label: "Sign Up", href: "/register" },
                   { label: "My Orders", href: "/orders" },
-                  { label: "Privacy Policy", href: "/privacy" },
-                  { label: "Terms & Conditions", href: "/terms" },
-                  { label: "Refund Policy", href: "/refund-policy" },
+                  { label: "Terms", href: "/terms" },
+                  { label: "Privacy", href: "/privacy" },
+                  { label: "Refunds", href: "/refund-policy" },
                 ].map((link) => (
                   <Link 
                     key={link.label} 
@@ -130,17 +126,11 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">
-            © 2026 All Rights Reserved - AATMA HUB DIGITAL SERVICES
+            © 2026 AATMA HUB - MLBB DIAMOND PROTOCOL V2
           </p>
-          
-          <div className="flex flex-col items-center md:items-end gap-1.5">
-            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.5em]">
-              Designed & Developed By
-            </p>
-            <p className="text-[14px] font-black uppercase tracking-[0.4em] bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent drop-shadow-md">
-              AATMA OFFICIAL
-            </p>
-          </div>
+          <p className="text-[14px] font-black uppercase tracking-[0.4em] bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent drop-shadow-md">
+            AATMA OFFICIAL
+          </p>
         </div>
       </footer>
     </div>
