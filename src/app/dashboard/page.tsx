@@ -69,7 +69,7 @@ export default function DashboardPage() {
         onClick={() => setIsFlipped(!isFlipped)}
       >
         <div className={cn(
-          "relative w-full min-h-[240px] transition-all duration-700 [transform-style:preserve-3d] active:scale-[0.97]",
+          "relative w-full min-h-[250px] transition-all duration-700 [transform-style:preserve-3d] active:scale-[0.97]",
           isFlipped && "[transform:rotateY(180deg)]"
         )}>
           {/* FRONT OF CARD */}
@@ -96,7 +96,6 @@ export default function DashboardPage() {
               </div>
               <div className="flex justify-between items-center text-[8px] font-black uppercase text-white/40 border-t border-white/10 pt-4 gap-2">
                 <span className="flex items-center gap-1.5"><div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" /> Status: <span className="text-green-400">Operational</span></span>
-                <span>Volume: <span className="text-white">₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span></span>
               </div>
             </div>
           </div>

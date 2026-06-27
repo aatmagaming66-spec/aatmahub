@@ -121,8 +121,9 @@ export default function AdminDashboard() {
     { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Add or organize supported games' },
     { label: 'Products & Pricing', href: '/admin/products', icon: Ticket, desc: 'SKU management and denomination pricing' },
     { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Customer accounts and verification' },
+    { label: 'Wallet Management', href: '/admin/wallet', icon: CreditCard, desc: 'Manage balances and adjustments' },
     { label: 'Payment Gateway', href: '/admin/settings/payments', icon: CreditCard, desc: 'Payment provider and webhook config' },
-    { label: 'Automation Hub', href: '/admin/settings/smileone', icon: Zap, desc: 'Smile.one API fulfillment settings' },
+    { label: 'API Integrations', href: '/admin/settings/smileone', icon: Zap, desc: 'Third-party fulfillment settings' },
     { label: 'Website Settings', href: '/admin/homepage', icon: HomeIcon, desc: 'Branding, themes, and layout editor' },
     { label: 'System Settings', icon: Settings, href: '/admin/system', desc: 'Maintenance mode and global params' },
     { label: 'Backup & Logs', href: '/admin/backups', icon: Database, desc: 'Export system history and data' },
@@ -134,11 +135,11 @@ export default function AdminDashboard() {
     <div className="space-y-6 animate-in fade-in duration-700 pb-10">
       <header className="flex justify-between items-end px-1">
         <div>
-          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Super Admin Hub</h1>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase text-white">Admin Dashboard</h1>
           <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Enterprise Store Control</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/admin/analytics" prefetch={false}>
+          <Link href="/admin/reports" prefetch={false}>
              <div className="p-2 border border-border rounded-none flex items-center bg-white/5 hover:border-primary transition-all active-press">
                 <BarChart3 className="h-4 w-4 text-primary" />
              </div>
@@ -156,7 +157,7 @@ export default function AdminDashboard() {
         <section className="space-y-3">
            <div className="flex items-center gap-2 px-1">
               <ShieldCheck className="h-3 w-3 text-primary" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Management Matrix</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Management Systems</h2>
            </div>
            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {superModules.map((mod, i) => (

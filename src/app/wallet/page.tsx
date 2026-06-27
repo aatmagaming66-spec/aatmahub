@@ -57,7 +57,7 @@ export default function WalletDashboard() {
       </header>
 
       <div className="w-full mb-6 [perspective:1000px] cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
-        <div className={cn("relative w-full min-h-[220px] transition-all duration-700 [transform-style:preserve-3d]", isFlipped && "[transform:rotateY(180deg)]")}>
+        <div className={cn("relative w-full min-h-[250px] transition-all duration-700 [transform-style:preserve-3d]", isFlipped && "[transform:rotateY(180deg)]")}>
           {/* FRONT */}
           <div className={cn("absolute inset-0 w-full h-full [backface-visibility:hidden] rounded-[1.375rem] overflow-hidden shadow-2xl border p-7 flex flex-col justify-between bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#ec4899] border-white/20")}>
             <div className="flex justify-between items-start gap-4 relative z-10">
@@ -92,7 +92,6 @@ export default function WalletDashboard() {
             </div>
             <div className="p-4 border-t border-white/10 bg-black/40 flex justify-between items-center text-[7px] font-black uppercase text-white/40 tracking-widest mt-auto">
               <span>Account ID: {user?.uid.slice(-8).toUpperCase() || '--------'}</span>
-              <span>Total Spend: ₹{profile?.lifetimeSpend?.toLocaleString() || 0}</span>
             </div>
           </div>
         </div>

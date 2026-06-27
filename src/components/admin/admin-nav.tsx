@@ -20,23 +20,24 @@ import {
   Settings,
   Zap,
   Image as ImageIcon,
-  Ticket
+  Ticket,
+  Lock
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-  { href: '/admin/reports', label: 'Sales Reports', icon: FileText },
+  { href: '/admin/reports', label: 'Reports & Analytics', icon: FileText },
 ];
 
 const SUPER_ADMIN_LINKS = [
-  { href: '/admin/analytics', label: 'Store Insights', icon: BarChart3 },
   { href: '/admin/banners', label: 'Banner Management', icon: ImageIcon },
   { href: '/admin/games', label: 'Game Management', icon: Gamepad2 },
   { href: '/admin/products', label: 'Products & Pricing', icon: Ticket },
   { href: '/admin/users', label: 'User Management', icon: Users },
+  { href: '/admin/wallet', label: 'Wallet Management', icon: CreditCard },
   { href: '/admin/settings/payments', label: 'Payment Gateway', icon: CreditCard },
-  { href: '/admin/settings/smileone', label: 'Automation Hub', icon: Zap },
+  { href: '/admin/settings/smileone', label: 'API Integrations', icon: Zap },
   { href: '/admin/homepage', label: 'Website Settings', icon: HomeIcon },
   { href: '/admin/system', label: 'System Settings', icon: Settings },
   { href: '/admin/backups', label: 'Backup & Logs', icon: Database },

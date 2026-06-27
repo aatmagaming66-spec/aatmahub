@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/init';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { sendTelegramNotification } from '@/lib/telegram';
-import { getRankFromSpend, DEFAULT_RANKS } from '@/lib/ranks';
 
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
@@ -35,26 +34,18 @@ export async function POST(req: NextRequest) {
             updatedAt: new Date().toISOString(),
           });
 
-          // 2. Update User Membership Persistence (90-day expiry from last rank gain)
+          // 2. Update Lifetime Spend (Membership tier logic removed)
           const userRef = doc(db, 'users', order.userId);
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             const userData = userSnap.data();
             const newSpend = (userData.lifetimeSpend || 0) + order.totalAmount;
-            const newRank = getRankFromSpend(newSpend, DEFAULT_RANKS);
-            
-            // Set rank expiry to 90 days from now
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + 90);
 
             await updateDoc(userRef, {
               lifetimeSpend: newSpend,
-              currentRank: newRank.name,
-              rankId: newRank.id,
-              rankExpiry: expiryDate.toISOString(),
               updatedAt: new Date().toISOString()
             });
-            console.log(`[Membership Audit] Rank Sync: user=${order.userId}, spend=${newSpend}, rank=${newRank.name}, expires=${expiryDate.toISOString()}`);
+            console.log(`[Profile Audit] Spend Sync: user=${order.userId}, new_total=${newSpend}`);
           }
 
           sendTelegramNotification(db, `✅ <b>PAYMENT SUCCESS</b>\n\n📦 Order: ${id}\n💰 Amount: ₹${order.totalAmount}\n💳 Gateway: PhonePe`);
