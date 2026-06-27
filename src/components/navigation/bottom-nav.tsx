@@ -1,16 +1,14 @@
 'use client';
 
 import { useMemo, useCallback } from "react";
-import { Home, Search, Headphones, UserCircle, LogIn } from "lucide-react";
+import { Home, Wallet, Package, UserCircle, LogIn } from "lucide-react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase/auth/use-user";
 
 /**
- * BottomNav - Performance Refactored with Red/Pink Theme
- * Optimized for zero-latency interaction with the brand-specific red design.
- * Height reduced for a sleeker profile.
+ * BottomNav - Restored original navigation items with Red Theme
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -19,8 +17,8 @@ export function BottomNav() {
   const NAV_ITEMS = useMemo(() => {
     return [
       { label: "Home", icon: Home, href: "/" },
-      { label: "Search", icon: Search, href: "/games" },
-      { label: "Support", icon: Headphones, href: "/support" },
+      { label: "Wallet", icon: Wallet, href: "/wallet" },
+      { label: "Orders", icon: Package, href: "/orders" },
       { 
         label: !initialized || user ? "Account" : "Login", 
         icon: !initialized || user ? UserCircle : LogIn, 
