@@ -183,13 +183,13 @@ export default function ProductPage() {
                   className={cn(
                     "p-5 rounded-[1.5rem] border transition-all relative flex flex-col items-start justify-between min-h-[120px] overflow-hidden active-press", 
                     selectedPack?.id === pack.id 
-                      ? "bg-gradient-to-br from-primary/30 via-primary/10 to-transparent border-primary ring-2 ring-primary/20 shadow-3d bezel-glow scale-[1.03] z-10" 
-                      : "bg-card border-white/5 hover:border-white/20 shadow-3d"
+                      ? "bg-[#2d001a] border-accent ring-2 ring-accent/30 shadow-[0_0_25px_-5px_rgba(236,72,153,0.5)] scale-[1.03] z-10" 
+                      : "bg-[#1a0000] border-primary/20 hover:border-primary/40 shadow-3d"
                   )}
                 >
                   {selectedPack?.id === pack.id && (
                     <div className="absolute top-0 right-0 p-3">
-                       <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                       <div className="h-2 w-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_#ec4899]" />
                     </div>
                   )}
                   
@@ -207,7 +207,7 @@ export default function ProductPage() {
                   <div className="w-full flex justify-end mt-4">
                     <span className={cn(
                       "text-sm font-black tracking-tighter px-2.5 py-1 rounded-lg border border-white/5",
-                      selectedPack?.id === pack.id ? "bg-primary text-white" : "bg-black/40 text-white/60"
+                      selectedPack?.id === pack.id ? "bg-accent text-white" : "bg-primary/20 text-white/80"
                     )}>
                       ₹{pack.price}
                     </span>
