@@ -9,11 +9,11 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, initialized } = useUser();
+  const { user, profile, initialized, loading } = useUser();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [accessDenied, setAccessDenied] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -22,21 +22,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const hasAdminAccess = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   useEffect(() => {
-    if (initialized && isMounted) {
+    // Only perform the security check once the app is mounted and Auth + Profile are fully synchronized
+    if (isMounted && initialized && !loading) {
       if (!user || !hasAdminAccess) {
         setAccessDenied(true);
-        const timer = setTimeout(() => router.replace('/'), 2000);
+        const timer = setTimeout(() => router.replace('/'), 3000);
         return () => clearTimeout(timer);
       }
     }
-  }, [user, profile, initialized, hasAdminAccess, router, isMounted]);
+  }, [user, profile, initialized, loading, hasAdminAccess, router, isMounted]);
 
-  if (!isMounted || !initialized) {
+  // Show loading state while Auth or Profile are in transit
+  if (!isMounted || !initialized || loading) {
     return (
       <div className="flex h-screen bg-background">
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
           <Loader2 className="h-8 w-8 text-primary animate-spin" />
-          <p className="text-[10px] font-black uppercase tracking-widest text-primary">Syncing Admin Session...</p>
+          <div className="text-center space-y-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary">Syncing Admin Session...</p>
+            <p className="text-[8px] font-black uppercase text-muted-foreground opacity-40">Verifying Security Credentials</p>
+          </div>
         </div>
       </div>
     );
@@ -44,19 +49,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (accessDenied) {
     return (
-      <div className="flex h-screen items-center justify-center p-6 text-center">
+      <div className="flex h-screen items-center justify-center p-6 text-center bg-background">
         <div className="space-y-4 animate-in fade-in zoom-in duration-500">
-          <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+          <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border-2 border-primary/20">
             <Lock className="h-10 w-10 text-primary" />
           </div>
           <h1 className="text-2xl font-black uppercase tracking-tighter">Access Restricted</h1>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">Insufficient permissions for core operations</p>
-          <p className="text-[8px] text-primary/50 font-black uppercase">Redirecting to base...</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest max-w-xs mx-auto">
+            Insufficient permissions for core operations. Your identity does not match the administrator registry.
+          </p>
+          <div className="pt-4">
+             <p className="text-[8px] text-primary font-black uppercase animate-pulse">Redirecting to Base Protocol...</p>
+          </div>
         </div>
       </div>
     );
   }
 
+  // Final guard to prevent flicker if everything is loaded but access is still being evaluated
   if (!user || !hasAdminAccess) return null;
 
   return (
