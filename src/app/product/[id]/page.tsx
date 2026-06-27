@@ -169,7 +169,7 @@ export default function ProductPage() {
             <div className="h-5 w-1.5 bg-primary rounded-full shadow-[0_0_12px_hsl(var(--primary))]" />
             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white">Select Denomination</h3>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
             {packs?.map((pack) => {
               const nameParts = pack.name.split(' ');
               const quantity = nameParts[0];
@@ -181,32 +181,32 @@ export default function ProductPage() {
                   key={pack.id} 
                   onClick={() => setSelectedPack(pack)} 
                   className={cn(
-                    "p-5 rounded-[1.5rem] border transition-all relative flex flex-col items-start justify-between min-h-[120px] overflow-hidden active-press", 
+                    "p-3 sm:p-5 rounded-2xl border transition-all relative flex flex-col items-start justify-between min-h-[110px] sm:min-h-[120px] overflow-hidden active-press", 
                     selectedPack?.id === pack.id 
                       ? "bg-[#2d001a] border-accent ring-2 ring-accent/30 shadow-[0_0_25px_-5px_rgba(236,72,153,0.5)] scale-[1.03] z-10" 
                       : "bg-[#1a0000] border-primary/20 hover:border-primary/40 shadow-3d"
                   )}
                 >
                   {selectedPack?.id === pack.id && (
-                    <div className="absolute top-0 right-0 p-3">
-                       <div className="h-2 w-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_#ec4899]" />
+                    <div className="absolute top-0 right-0 p-2">
+                       <div className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_#ec4899]" />
                     </div>
                   )}
                   
-                  <div className="text-left relative z-10">
+                  <div className="text-left relative z-10 w-full">
                     {isNumeric ? (
                       <>
-                        <span className="text-4xl font-black block leading-none text-white tracking-tighter">{quantity}</span>
-                        <span className="text-[9px] font-black uppercase opacity-50 text-white tracking-widest mt-1 block">{label}</span>
+                        <span className="text-2xl sm:text-4xl font-black block leading-none text-white tracking-tighter">{quantity}</span>
+                        <span className="text-[7px] sm:text-[9px] font-black uppercase opacity-50 text-white tracking-widest mt-1 block truncate">{label}</span>
                       </>
                     ) : (
-                      <span className="text-sm font-black uppercase leading-tight text-white tracking-tight">{pack.name}</span>
+                      <span className="text-[10px] sm:text-sm font-black uppercase leading-tight text-white tracking-tight line-clamp-2">{pack.name}</span>
                     )}
                   </div>
                   
-                  <div className="w-full flex justify-end mt-4">
+                  <div className="w-full flex justify-end mt-2 sm:mt-4">
                     <span className={cn(
-                      "text-sm font-black tracking-tighter px-2.5 py-1 rounded-lg border border-white/5",
+                      "text-[10px] sm:text-sm font-black tracking-tighter px-2 py-0.5 sm:py-1 rounded-lg border border-white/5",
                       selectedPack?.id === pack.id ? "bg-accent text-white" : "bg-primary/20 text-white/80"
                     )}>
                       ₹{pack.price}
@@ -216,7 +216,7 @@ export default function ProductPage() {
               );
             })}
             {productsLoading && Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-32 bg-white/5 animate-pulse rounded-[1.5rem] border border-white/5 shadow-3d" />
+              <div key={i} className="aspect-square h-[110px] sm:h-32 bg-white/5 animate-pulse rounded-2xl border border-white/5 shadow-3d" />
             ))}
           </div>
         </section>
