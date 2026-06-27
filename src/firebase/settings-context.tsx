@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -20,18 +19,28 @@ const SettingsContext = createContext<SettingsContextType>({
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const db = useFirestore();
-  const [siteSettings, setSiteSettings] = useState<any>(null);
+  const [siteSettings, setSiteSettings] = useState<any>({});
   const [ranks, setRanks] = useState<RankDefinition[]>(DEFAULT_RANKS);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Singleton Settings Listener
-    const settingsRef = doc(db, 'settings', 'site');
-    const unsubSettings = onSnapshot(settingsRef, (snap) => {
-      if (snap.exists()) setSiteSettings(snap.data());
+    // 1. Listen to Global Site Settings (Maintenance, Branding, etc.)
+    const siteRef = doc(db, 'settings', 'site');
+    const unsubSite = onSnapshot(siteRef, (snap) => {
+      if (snap.exists()) {
+        setSiteSettings((prev: any) => ({ ...prev, ...snap.data() }));
+      }
     });
 
-    // 2. Fetch Ranks Once (Rarely changes)
+    // 2. Listen to Homepage Specific Layout Settings (Visibility Toggles)
+    const homeRef = doc(db, 'settings', 'homepage');
+    const unsubHome = onSnapshot(homeRef, (snap) => {
+      if (snap.exists()) {
+        setSiteSettings((prev: any) => ({ ...prev, homepage: snap.data() }));
+      }
+    });
+
+    // 3. Fetch Ranks Once (Rarely changes)
     const fetchRanks = async () => {
       try {
         const q = query(collection(db, 'ranks'), orderBy('sortOrder', 'asc'));
@@ -48,7 +57,11 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     };
 
     fetchRanks();
-    return () => unsubSettings();
+    
+    return () => {
+      unsubSite();
+      unsubHome();
+    };
   }, [db]);
 
   return (
