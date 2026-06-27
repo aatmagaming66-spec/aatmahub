@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useCallback } from "react";
@@ -9,8 +8,8 @@ import { cn } from "@/lib/utils";
 import { useUser } from "@/firebase/auth/use-user";
 
 /**
- * BottomNav - Performance Refactored to match ClassySmile Style
- * Optimized for zero-latency interaction with the specific purple design.
+ * BottomNav - Performance Refactored with Red/Pink Theme
+ * Optimized for zero-latency interaction with the brand-specific red design.
  */
 export function BottomNav() {
   const pathname = usePathname();
@@ -34,7 +33,7 @@ export function BottomNav() {
   }, []);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#4c1d95] h-[72px] safe-area-bottom shadow-[0_-4px_20px_rgba(0,0,0,0.4)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#dc2626] h-[72px] safe-area-bottom shadow-[0_-4px_20px_rgba(220,38,38,0.3)] border-t border-white/10">
       <div className="flex h-full items-center justify-around">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || (item.label === "Account" && pathname.startsWith("/profile"));
@@ -52,13 +51,13 @@ export function BottomNav() {
             >
               <item.icon className={cn(
                 "h-6 w-6 transition-transform", 
-                isActive && "scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                isActive && "scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
               )} />
               <span className="text-[10px] font-bold uppercase tracking-tight">
                 {item.label}
               </span>
               {isActive && (
-                <div className="absolute -bottom-1 w-8 h-1 bg-white rounded-t-full shadow-[0_-2px_10px_white]" />
+                <div className="absolute -bottom-1 w-8 h-1 bg-white rounded-t-full shadow-[0_-2px_12px_rgba(255,255,255,0.8)]" />
               )}
             </Link>
           );
