@@ -23,29 +23,29 @@ export function TopHeader() {
         </div>
         
         {/* Right Side: Actions & Menu */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1">
           <Link href="/cart" prefetch={false}>
-            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full relative hover:bg-white/5 active-press">
-              <ShoppingCart className="h-6 w-6 text-foreground" />
+            <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full relative hover:bg-white/5 active-press">
+              <ShoppingCart className="h-7 w-7 text-foreground" />
               {totalCount > 0 && (
-                <span className="absolute top-1 right-1 h-5 w-5 bg-primary rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-[0_0_10px_rgba(220,38,38,0.6)] border-2 border-background">
+                <span className="absolute top-2 right-2 h-5 w-5 bg-primary rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-[0_0_10px_rgba(220,38,38,0.6)] border-2 border-background">
                   {totalCount}
                 </span>
               )}
             </Button>
           </Link>
           
-          <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full hover:bg-white/5 active-press">
-            <Bell className="h-6 w-6 text-foreground" />
+          <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full hover:bg-white/5 active-press">
+            <Bell className="h-7 w-7 text-foreground" />
           </Button>
 
           <Button 
             variant="ghost" 
             size="icon" 
-            className="h-12 w-12 rounded-full hover:bg-white/5 active-press"
+            className="h-14 w-14 rounded-full hover:bg-white/5 active-press"
             onClick={toggleSidebar}
           >
-            <Menu className="h-6 w-6 text-foreground" />
+            <Menu className="h-7 w-7 text-foreground" />
           </Button>
         </div>
       </div>
