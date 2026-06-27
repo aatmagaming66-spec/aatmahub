@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import Link from 'link';
+import Link from 'next/link';
 import Image from 'next/image';
 import { useFirestore } from '@/firebase/provider';
 import { collection, query, orderBy, where } from 'firebase/firestore';
