@@ -166,31 +166,43 @@ export default function ProductPage() {
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">Available Packages</h3>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {packs?.map((pack) => (
-              <button 
-                key={pack.id} 
-                onClick={() => setSelectedPack(pack)} 
-                className={cn(
-                  "p-4 rounded-xl border transition-all text-center group relative shadow-2xl flex flex-col items-center justify-center gap-2 min-h-[100px]", 
-                  selectedPack?.id === pack.id 
-                    ? "bg-gradient-to-br from-[#ec4899] via-[#be185d] to-[#9d174d] border-white shadow-[0_0_25px_rgba(236,72,153,0.5)] scale-[1.05] z-10" 
-                    : "bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#7f1d1d] border-white/10 hover:border-primary/40"
-                )}
-              >
-                <p className={cn(
-                  "text-[10px] font-black uppercase transition-colors leading-tight",
-                  selectedPack?.id === pack.id ? "text-white" : "text-white/80 group-hover:text-white"
-                )}>
-                  {pack.name}
-                </p>
-                <p className={cn(
-                  "text-sm font-black leading-none tracking-tighter",
-                  selectedPack?.id === pack.id ? "text-white" : "text-white/60 group-hover:text-white"
-                )}>
-                  ₹{pack.price}
-                </p>
-              </button>
-            ))}
+            {packs?.map((pack) => {
+              const nameParts = pack.name.split(' ');
+              const quantity = nameParts[0];
+              const label = nameParts.slice(1).join(' ');
+              const isNumeric = /^\d+$/.test(quantity);
+
+              return (
+                <button 
+                  key={pack.id} 
+                  onClick={() => setSelectedPack(pack)} 
+                  className={cn(
+                    "p-4 rounded-xl border transition-all group relative shadow-2xl flex flex-col items-start justify-start min-h-[100px] overflow-hidden", 
+                    selectedPack?.id === pack.id 
+                      ? "bg-gradient-to-br from-[#ec4899] via-[#be185d] to-[#9d174d] border-white shadow-[0_0_25px_rgba(236,72,153,0.5)] scale-[1.05] z-10" 
+                      : "bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#7f1d1d] border-white/10 hover:border-primary/40"
+                  )}
+                >
+                  <div className="text-left">
+                    {isNumeric ? (
+                      <>
+                        <span className="text-3xl font-black block leading-none text-white">{quantity}</span>
+                        <span className="text-[8px] font-black uppercase opacity-60 text-white tracking-widest">{label}</span>
+                      </>
+                    ) : (
+                      <span className="text-sm font-black uppercase leading-tight text-white">{pack.name}</span>
+                    )}
+                  </div>
+                  
+                  <span className={cn(
+                    "absolute bottom-2 right-3 text-[10px] font-black tracking-tighter",
+                    selectedPack?.id === pack.id ? "text-white" : "text-white/60"
+                  )}>
+                    ₹{pack.price}
+                  </span>
+                </button>
+              );
+            })}
             {productsLoading && Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="h-24 bg-white/5 animate-pulse rounded-xl border border-white/5" />
             ))}
