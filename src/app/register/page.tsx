@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import { sendTelegramNotification } from '@/lib/telegram';
-import { Loader2, UserPlus, User, Mail, Smartphone, KeyRound, ArrowRight } from 'lucide-react';
+import { Loader2, UserPlus, User, Mail, Smartphone, KeyRound, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
 
@@ -29,6 +29,8 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const auth = useAuth();
   const db = useFirestore();
@@ -145,14 +147,40 @@ export default function RegisterPage() {
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Create Password</Label>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
-                  <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min 8 chars" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                  <Input 
+                    type={showPassword ? 'text' : 'password'} 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    placeholder="Min 8 chars" 
+                    className="bg-background border-border h-12 rounded-none pl-10 pr-10 font-bold text-xs" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Repeat Password</Label>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
-                  <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                  <Input 
+                    type={showConfirmPassword ? 'text' : 'password'} 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                    placeholder="Repeat password" 
+                    className="bg-background border-border h-12 rounded-none pl-10 pr-10 font-bold text-xs" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
               </div>
             </div>

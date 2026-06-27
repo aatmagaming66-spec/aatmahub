@@ -15,12 +15,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Loader2, KeyRound, Mail, ArrowRight } from 'lucide-react';
+import { Loader2, KeyRound, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
   const auth = useAuth();
   const { user, initialized } = useUser();
@@ -103,12 +104,19 @@ export default function LoginPage() {
               <div className="relative">
                 <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />
                 <Input 
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••" 
-                  className="bg-background border-border h-14 rounded-none pl-12 focus:border-primary font-bold text-sm"
+                  className="bg-background border-border h-14 rounded-none pl-12 pr-12 focus:border-primary font-bold text-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
