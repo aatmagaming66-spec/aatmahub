@@ -79,6 +79,17 @@ service cloud.firestore {
       allow delete: if false; // Orders are preserved for audit
     }
 
+    // SECURITY & AUTOMATION LOGS
+    match /auditLogs/{logId} {
+      allow create: if true; // Allow logging from anywhere
+      allow read, write: if isAdmin();
+    }
+    
+    match /automationLogs/{logId} {
+      allow create: if true;
+      allow read, write: if isAdmin();
+    }
+
     // ADMIN OVERRIDE
     match /{document=**} {
       allow read, write: if isAdmin();

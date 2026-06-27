@@ -1,21 +1,45 @@
+
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/init';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { sendTelegramNotification } from '@/lib/telegram';
+import { generatePhonePeHeader } from '@/lib/phonepe';
 
+/**
+ * HARDENED: Secure Callback Protocol for PhonePe
+ * Now verifies provider signatures to prevent payment spoofing.
+ */
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
   const searchParams = req.nextUrl.searchParams;
   const type = searchParams.get('type');
   const id = searchParams.get('id');
+  const xVerify = req.headers.get('X-VERIFY');
 
   try {
     const formData = await req.formData();
     const response = formData.get('response') as string;
+    
+    // 1. Retrieve payment settings for signature verification
+    const settingsSnap = await getDoc(doc(db, 'settings', 'payments'));
+    if (!settingsSnap.exists()) {
+      console.error('[Security Audit] Verification settings missing during callback.');
+      return NextResponse.json({ ok: false }, { status: 500 });
+    }
+    
+    const { phonepeSaltKey, phonepeSaltIndex } = settingsSnap.data();
+
+    // 2. Verify Signature
+    const expectedHeader = generatePhonePeHeader(response, phonepeSaltKey, phonepeSaltIndex);
+    if (xVerify !== expectedHeader) {
+      console.error('[Security Audit] Payment Signature Mismatch! Attempted breach or spoof detected.');
+      return NextResponse.json({ ok: false, error: 'Signature mismatch' }, { status: 401 });
+    }
+
     const decodedResponse = JSON.parse(Buffer.from(response, 'base64').toString());
     const isSuccess = decodedResponse.code === 'PAYMENT_SUCCESS';
 
-    console.log(`[Wallet Audit] PhonePe Callback: type=${type}, id=${id}, status=${decodedResponse.code}`);
+    console.log(`[Wallet Audit] Verified PhonePe Callback: type=${type}, id=${id}, status=${decodedResponse.code}`);
 
     if (type === 'order') {
       const orderRef = doc(db, 'orders', id!);
@@ -26,7 +50,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ ok: true, message: 'Already processed' });
         }
         if (isSuccess) {
-          // 1. Update Order Status
+          // Update Order Status
           await updateDoc(orderRef, {
             status: 'processing',
             paymentStatus: 'success',
@@ -34,18 +58,16 @@ export async function POST(req: NextRequest) {
             updatedAt: new Date().toISOString(),
           });
 
-          // 2. Update Lifetime Spend (Membership tier logic removed)
+          // Update Lifetime Spend
           const userRef = doc(db, 'users', order.userId);
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             const userData = userSnap.data();
             const newSpend = (userData.lifetimeSpend || 0) + order.totalAmount;
-
             await updateDoc(userRef, {
               lifetimeSpend: newSpend,
               updatedAt: new Date().toISOString()
             });
-            console.log(`[Profile Audit] Spend Sync: user=${order.userId}, new_total=${newSpend}`);
           }
 
           sendTelegramNotification(db, `✅ <b>PAYMENT SUCCESS</b>\n\n📦 Order: ${id}\n💰 Amount: ₹${order.totalAmount}\n💳 Gateway: PhonePe`);
@@ -67,13 +89,12 @@ export async function POST(req: NextRequest) {
           await updateDoc(txRef, { status: 'success' });
           const walletRef = doc(db, 'wallets', tx.userId);
           
-          // AUDIT: Use increment() for server-side balance accuracy
           await updateDoc(walletRef, { 
             balance: increment(tx.amount), 
             updatedAt: new Date().toISOString() 
           });
 
-          console.log(`[Wallet Audit] Deposit Credit applied: user=${tx.userId}, amount=+₹${tx.amount}`);
+          console.log(`[Wallet Audit] Verified Deposit applied: user=${tx.userId}, amount=+₹${tx.amount}`);
           sendTelegramNotification(db, `💰 <b>WALLET RECHARGE SUCCESS</b>\n\n👤 User ID: ${tx.userId}\n💵 Amount: ₹${tx.amount}\n💳 Method: PhonePe`);
           return NextResponse.redirect(new URL(`/wallet`, req.url), 303);
         } else {
@@ -84,7 +105,7 @@ export async function POST(req: NextRequest) {
     }
     return NextResponse.redirect(new URL(`/`, req.url), 303);
   } catch (error: any) {
-    console.error('[Wallet Audit] PhonePe Callback Exception:', error);
+    console.error('[Wallet Audit] Callback Processing Exception:', error);
     return NextResponse.redirect(new URL(`/`, req.url), 303);
   }
 }
