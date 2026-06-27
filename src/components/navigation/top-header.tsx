@@ -10,6 +10,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export function TopHeader() {
   const { totalCount } = useCart();
@@ -33,25 +34,39 @@ export function TopHeader() {
           </Link>
         </div>
         
-        {/* Right Side: Actions & Menu */}
-        <div className="flex items-center gap-1">
+        {/* Right Side: Actions & Menu with 3D Aesthetic */}
+        <div className="flex items-center gap-3">
           <Link href="/cart" prefetch={false}>
-            <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full relative hover:bg-white/5 active-press">
-              <ShoppingCart className="h-7 w-7 text-foreground" />
-              {totalCount > 0 && (
-                <span className="absolute top-2 right-2 h-5 w-5 bg-primary rounded-full flex items-center justify-center text-[9px] font-black text-white shadow-[0_0_10px_rgba(220,38,38,0.6)] border-2 border-background">
-                  {totalCount}
-                </span>
-              )}
-            </Button>
+            <div className={cn(
+              "h-11 w-11 rounded-xl flex items-center justify-center transition-all active:scale-95 group relative overflow-hidden",
+              "bg-gradient-to-br from-primary/[0.08] to-accent/[0.08] border border-white/10",
+              "shadow-[0_4px_10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.05)]",
+              "hover:border-primary/30"
+            )}>
+              <div className="h-full w-full flex items-center justify-center bg-gradient-to-b from-white/10 to-transparent border-t border-white/10 shadow-[inset_0_-1px_2px_rgba(0,0,0,0.4)]">
+                <ShoppingCart className="h-5 w-5 text-primary drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)]" />
+                {totalCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 h-4 w-4 bg-primary rounded-full flex items-center justify-center text-[8px] font-black text-white shadow-[0_0_8px_rgba(220,38,38,0.6)] border border-background">
+                    {totalCount}
+                  </span>
+                )}
+              </div>
+            </div>
           </Link>
           
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-14 w-14 rounded-full hover:bg-white/5 active-press relative">
-                <Bell className="h-7 w-7 text-foreground" />
-                <span className="absolute top-4 right-4 h-2 w-2 bg-primary rounded-full animate-pulse border border-background" />
-              </Button>
+              <div className={cn(
+                "h-11 w-11 rounded-xl flex items-center justify-center transition-all active:scale-95 group relative cursor-pointer overflow-hidden",
+                "bg-gradient-to-br from-accent/[0.08] to-primary/[0.08] border border-white/10",
+                "shadow-[0_4px_10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.05)]",
+                "hover:border-accent/30"
+              )}>
+                <div className="h-full w-full flex items-center justify-center bg-gradient-to-b from-white/10 to-transparent border-t border-white/10 shadow-[inset_0_-1px_2px_rgba(0,0,0,0.4)]">
+                  <Bell className="h-5 w-5 text-accent drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)]" />
+                  <span className="absolute top-3 right-3 h-1.5 w-1.5 bg-accent rounded-full animate-pulse border border-background" />
+                </div>
+              </div>
             </PopoverTrigger>
             <PopoverContent className="bg-card border-border w-80 p-0 overflow-hidden shadow-2xl rounded-2xl" align="end">
               <div className="p-4 border-b border-white/5 bg-white/[0.02]">
@@ -77,18 +92,21 @@ export function TopHeader() {
             </PopoverContent>
           </Popover>
 
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-14 w-14 rounded-full hover:bg-white/5 active-press"
+          <button 
+            className={cn(
+              "h-11 w-11 rounded-xl flex items-center justify-center transition-all active:scale-95 group relative overflow-hidden",
+              "bg-gradient-to-br from-primary/[0.06] to-accent/[0.06] border border-white/10",
+              "shadow-[0_4px_10px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.05)]",
+              "hover:border-white/20"
+            )}
             onClick={toggleSidebar}
           >
-            <Menu className="h-7 w-7 text-foreground" />
-          </Button>
+            <div className="h-full w-full flex items-center justify-center bg-gradient-to-b from-white/5 to-transparent border-t border-white/10 shadow-[inset_0_-1px_1px_rgba(0,0,0,0.3)]">
+              <Menu className="h-5 w-5 text-foreground drop-shadow-[0_2px_3px_rgba(0,0,0,0.8)]" />
+            </div>
+          </button>
         </div>
       </div>
     </header>
   );
 }
-
-import { cn } from "@/lib/utils";
