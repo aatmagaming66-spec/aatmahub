@@ -46,8 +46,6 @@ export default function GamesPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {games.map((game) => {
-            const isMlbb = game.name?.toLowerCase().includes('mlbb');
-
             return (
               <Link 
                 key={game.id} 
@@ -65,12 +63,6 @@ export default function GamesPage() {
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center opacity-10">
                       <Gamepad2 size={40} className="text-white" />
-                    </div>
-                  )}
-
-                  {isMlbb && (
-                    <div className="absolute top-1.5 left-1.5 z-30 bg-red-600/90 px-1.5 py-0.5 rounded-lg flex items-center justify-center shadow-md border border-white/10">
-                      <span className="text-[8px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
                     </div>
                   )}
                 </div>

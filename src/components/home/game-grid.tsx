@@ -67,8 +67,6 @@ export function GameGrid() {
 }
 
 function GameCard({ game }: { game: any }) {
-  const isMlbb = game.name?.toLowerCase().includes('mlbb');
-
   return (
     <Link 
       href={`/product/${game.id}`} 
@@ -87,12 +85,6 @@ function GameCard({ game }: { game: any }) {
         ) : (
           <div className="absolute inset-0 flex items-center justify-center opacity-10">
             <Gamepad2 size={32} className="text-white" />
-          </div>
-        )}
-
-        {isMlbb && (
-          <div className="absolute top-1 left-1 z-30 bg-red-600/90 px-1.5 py-0.5 rounded-lg flex items-center justify-center shadow-lg border border-white/10">
-            <span className="text-[8px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
           </div>
         )}
       </div>

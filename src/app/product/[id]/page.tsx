@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Zap, ArrowRight, Loader2, ImageIcon, MessageCircle } from "lucide-react";
+import { Zap, ArrowRight, Loader2, ImageIcon, MessageCircle } from "lucide-react";
 import { useUser } from "@/firebase/auth/use-user";
 import { useFirestore } from "@/firebase/provider";
 import { doc } from "firebase/firestore";
@@ -143,17 +143,6 @@ export default function ProductPage() {
       </div>
 
       <div className="p-4 pt-0 space-y-6 max-w-4xl mx-auto w-full relative z-30 -mt-12">
-        <div className="flex flex-row justify-center gap-3">
-          <div className="bg-primary px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8 rounded-lg">
-            <Zap size={10} className="text-white fill-white" />
-            <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
-          </div>
-          <div className="bg-green-600 px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8 rounded-lg">
-            <ShieldCheck size={10} className="text-white fill-white" />
-            <span className="text-[9px] font-black uppercase text-white tracking-widest">Official Partner</span>
-          </div>
-        </div>
-
         <div className="text-center space-y-1">
           <h1 className="text-3xl md:text-5xl font-headline font-black text-white uppercase tracking-tighter drop-shadow-2xl">
             {gameInfo?.name}
