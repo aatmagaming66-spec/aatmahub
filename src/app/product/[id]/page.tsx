@@ -171,16 +171,16 @@ export default function ProductPage() {
                 key={pack.id} 
                 onClick={() => setSelectedPack(pack)} 
                 className={cn(
-                  "p-3 rounded-xl border transition-all text-center bg-card group relative shadow-2xl flex flex-col items-center justify-center gap-1 min-h-[70px]", 
+                  "p-4 rounded-xl border transition-all text-center bg-card group relative shadow-2xl flex flex-col items-center justify-center gap-2 min-h-[100px]", 
                   selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border"
                 )}
               >
-                <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight uppercase line-clamp-2">{pack.name}</p>
-                <p className="text-sm font-black text-primary leading-none tracking-tighter mt-0.5">₹{pack.price}</p>
+                <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight uppercase">{pack.name}</p>
+                <p className="text-sm font-black text-primary leading-none tracking-tighter">₹{pack.price}</p>
               </button>
             ))}
             {productsLoading && Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-16 bg-white/5 animate-pulse rounded-xl border border-white/5" />
+              <div key={i} className="h-24 bg-white/5 animate-pulse rounded-xl border border-white/5" />
             ))}
           </div>
         </section>
