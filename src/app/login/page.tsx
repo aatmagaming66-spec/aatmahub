@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
 } from 'firebase/auth';
-import { useAuth } from '@/firebase/provider';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useAuth, useFirestore } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { Loader2, KeyRound, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Loader2, KeyRound, Mail, ArrowRight, Eye, EyeOff, ShieldAlert } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -22,6 +24,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   
   const auth = useAuth();
+  const db = useFirestore();
   const { user, initialized } = useUser();
   const router = useRouter();
   const { toast } = useToast();
@@ -31,6 +34,19 @@ export default function LoginPage() {
       router.replace('/profile');
     }
   }, [user, initialized, router]);
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast({ variant: 'destructive', title: 'Email Required', description: 'Please enter your email address first.' });
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({ title: "Reset Email Sent", description: "Check your inbox for password reset instructions." });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,9 +59,35 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const loggedUser = userCredential.user;
+
+      // Check for 2FA status in Firestore
+      const userDoc = await getDoc(doc(db, 'users', loggedUser.uid));
+      const userData = userDoc.data();
+
+      if (userData?.is2FAEnabled) {
+        // Generate a simple 6-digit OTP and store it in Firestore for the session
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiry = new Date();
+        expiry.setMinutes(expiry.getMinutes() + 5);
+
+        await updateDoc(doc(db, 'users', loggedUser.uid), {
+          twoFactorSecret: otp,
+          twoFactorExpiry: expiry.toISOString()
+        });
+
+        // Store temp UID for verification page and sign out to force verification
+        sessionStorage.setItem('pending_2fa_uid', loggedUser.uid);
+        await auth.signOut(); 
+        
+        console.log(`[SECURITY] 2FA OTP GENERATED: ${otp}`); // For dev testing
+        router.push('/login/verify');
+        return;
+      }
+
+      router.push('/profile');
     } catch (error: any) {
-      // Log as info to prevent development error overlay for standard auth failures
       console.log("[Login] Auth state info:", error.code);
       toast({ 
         variant: 'destructive', 
@@ -101,7 +143,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Password</Label>
-                <button type="button" className="text-[9px] font-black uppercase text-primary hover:underline">Forgot?</button>
+                <button type="button" onClick={handleForgotPassword} className="text-[9px] font-black uppercase text-primary hover:underline">Forgot?</button>
               </div>
               <div className="relative">
                 <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" />

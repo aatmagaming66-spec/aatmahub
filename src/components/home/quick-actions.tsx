@@ -13,7 +13,7 @@ export function QuickActions() {
           </div>
           <span className="text-[8px] font-black text-center uppercase tracking-widest leading-none text-white/90">Top-Up</span>
         </Link>
-        <Link href="#" className="flex flex-col items-center justify-center bg-card p-1.5 rounded-xl border border-border shadow-lg transition-all active:scale-95 hover:border-accent/30 group">
+        <Link href="/games" className="flex flex-col items-center justify-center bg-card p-1.5 rounded-xl border border-border shadow-lg transition-all active:scale-95 hover:border-accent/30 group">
           <div className="h-8 w-8 bg-accent/10 rounded-lg flex items-center justify-center mb-1 group-hover:scale-110 transition-transform">
             <Search className="h-4 w-4 text-accent" />
           </div>

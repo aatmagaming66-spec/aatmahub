@@ -1,6 +1,13 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { 
+  linkWithPopup, 
+  GoogleAuthProvider 
+} from 'firebase/auth';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useAuth, useFirestore } from '@/firebase/provider';
+import { useUser } from '@/firebase/auth/use-user';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { 
@@ -10,16 +17,47 @@ import {
   ChevronRight,
   ShieldCheck,
   Facebook,
-  Mail
+  Mail,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 
-/**
- * Linked Accounts Page
- * Optimized for instant shell mounting and zero-latency navigation.
- */
 export default function LinkedAccountsPage() {
+  const { user, profile } = useUser();
+  const auth = useAuth();
+  const db = useFirestore();
   const router = useRouter();
+  const { toast } = useToast();
+  const [linking, setLinking] = useState<string | null>(null);
+
+  const isGoogleLinked = user?.providerData.some(p => p.providerId === 'google.com');
+
+  const linkGoogle = async () => {
+    if (!user) return;
+    setLinking('google');
+    try {
+      const provider = new GoogleAuthProvider();
+      await linkWithPopup(user, provider);
+      
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        authProvider: 'google.com',
+        updatedAt: new Date().toISOString()
+      });
+
+      toast({ title: "Account Linked", description: "Google identity successfully synchronized." });
+    } catch (error: any) {
+      if (error.code === 'auth/credential-already-in-use') {
+        toast({ variant: 'destructive', title: 'Already Linked', description: 'This Google account is already associated with another user.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Link Failed', description: error.message });
+      }
+    } finally {
+      setLinking(null);
+    }
+  };
 
   return (
     <div className="flex flex-col w-full p-4 space-y-8 animate-in fade-in duration-200">
@@ -51,21 +89,22 @@ export default function LinkedAccountsPage() {
             <LinkedAccountItem 
               icon={Mail}
               title="Email Login"
-              description="Your primary sign-in method"
+              description={user?.email || "Primary login method"}
               status="Connected"
               color="text-primary"
             />
             <LinkedAccountItem 
               icon={Globe}
               title="Google Account"
-              description="Login using Google"
-              status="Disconnected"
-              color="text-white/20"
+              description={isGoogleLinked ? "Google login enabled" : "Link your Google account"}
+              status={linking === 'google' ? <Loader2 className="animate-spin h-3 w-3" /> : (isGoogleLinked ? "Connected" : "Disconnected")}
+              color={isGoogleLinked ? "text-green-500" : "text-white/20"}
+              onClick={!isGoogleLinked ? linkGoogle : undefined}
             />
             <LinkedAccountItem 
               icon={Facebook}
               title="Facebook Account"
-              description="Login using Facebook"
+              description="Facebook login service"
               status="Unavailable"
               color="text-white/20"
               disabled
@@ -87,10 +126,11 @@ export default function LinkedAccountsPage() {
   );
 }
 
-function LinkedAccountItem({ icon: Icon, title, description, status, color, disabled }: any) {
+function LinkedAccountItem({ icon: Icon, title, description, status, color, disabled, onClick }: any) {
   return (
     <button 
       disabled={disabled}
+      onClick={onClick}
       className={cn(
         "w-full flex items-center justify-between p-6 transition-colors group",
         disabled ? "opacity-40 grayscale cursor-not-allowed" : "hover:bg-white/5"

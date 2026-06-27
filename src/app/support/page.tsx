@@ -14,17 +14,25 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useGlobalSettings } from '@/firebase/settings-context';
 
 const SUPPORT_TOPICS = [
-  { icon: Package, label: 'Order Status', desc: 'Track your active and completed purchases.' },
-  { icon: AlertTriangle, label: 'Payment Issues', desc: 'Help with failed or pending transactions.' },
-  { icon: Zap, label: 'Topup Delays', desc: 'Assistance if your currency is taking time.' },
-  { icon: HelpCircle, label: 'Refund Requests', desc: 'Start a manual review for eligible refunds.' },
-  { icon: UserCheck, label: 'Account Verification', desc: 'Verify your ID for higher transaction limits.' },
-  { icon: Settings, label: 'Technical Support', desc: 'Help with site bugs or interface issues.' },
+  { icon: Package, label: 'Order Status', desc: 'Track your active and completed purchases.', message: 'I need help with my Order Status.' },
+  { icon: AlertTriangle, label: 'Payment Issues', desc: 'Help with failed or pending transactions.', message: 'I am having issues with my Payment.' },
+  { icon: Zap, label: 'Topup Delays', desc: 'Assistance if your currency is taking time.', message: 'My topup is delayed. Please check.' },
+  { icon: HelpCircle, label: 'Refund Requests', desc: 'Start a manual review for eligible refunds.', message: 'I want to request a refund for an order.' },
+  { icon: UserCheck, label: 'Account Verification', desc: 'Verify your ID for higher transaction limits.', message: 'Help me with Account Verification.' },
+  { icon: Settings, label: 'Technical Support', desc: 'Help with site bugs or interface issues.', message: 'I need Technical Support for the website.' },
 ];
 
 export default function SupportPage() {
+  const { siteSettings } = useGlobalSettings();
+  
+  const handleTopicClick = (message: string) => {
+    const whatsappNumber = siteSettings?.contactWhatsApp?.replace(/\D/g, '') || "918566936666";
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Hello Aatma HUB, ' + message)}`, '_blank');
+  };
+
   return (
     <div className="flex flex-col w-full p-4 space-y-10 animate-in fade-in duration-700 pb-20">
       <header className="py-8 text-center space-y-3">
@@ -38,7 +46,11 @@ export default function SupportPage() {
       <div className="max-w-5xl mx-auto w-full space-y-12">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {SUPPORT_TOPICS.map((topic, i) => (
-            <Card key={i} className="bg-card border-border rounded-none shadow-lg hover:border-primary/30 transition-all group">
+            <Card 
+              key={i} 
+              onClick={() => handleTopicClick(topic.message)}
+              className="bg-card border-border rounded-none shadow-lg hover:border-primary/30 transition-all group cursor-pointer active:scale-[0.98]"
+            >
               <CardContent className="p-6 space-y-4">
                 <div className="h-10 w-10 bg-white/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                   <topic.icon size={20} />
@@ -46,6 +58,10 @@ export default function SupportPage() {
                 <div className="space-y-1">
                   <h3 className="text-xs font-black uppercase tracking-widest text-white">{topic.label}</h3>
                   <p className="text-[9px] text-muted-foreground uppercase font-bold leading-relaxed">{topic.desc}</p>
+                </div>
+                <div className="pt-2 flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[8px] font-black uppercase text-primary tracking-widest">Connect Support</span>
+                  <ArrowRight size={10} className="text-primary" />
                 </div>
               </CardContent>
             </Card>

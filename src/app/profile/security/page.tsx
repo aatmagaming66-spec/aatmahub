@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { deleteUser } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useUser } from '@/firebase/auth/use-user';
-import { useFirestore } from '@/firebase/provider';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useFirestore, useAuth } from '@/firebase/provider';
+import { doc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
@@ -20,16 +21,29 @@ import {
   ShieldAlert,
   Trash2,
   Loader2,
-  KeyRound
+  KeyRound,
+  AlertTriangle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog";
 
 export default function SecuritySettingsPage() {
   const { user, profile, initialized } = useUser();
   const db = useFirestore();
+  const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [updating, setUpdating] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const toggle2FA = async (enabled: boolean) => {
     if (!user) return;
@@ -48,6 +62,31 @@ export default function SecuritySettingsPage() {
       toast({ variant: 'destructive', title: 'Error', description: e.message });
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    setDeleting(true);
+    try {
+      // 1. Delete Firestore User Doc
+      await deleteDoc(doc(db, 'users', user.uid));
+      // 2. Delete Firestore Wallet
+      await deleteDoc(doc(db, 'wallets', user.uid));
+      // 3. Delete Auth User
+      await deleteUser(user);
+      
+      toast({ title: "Account Deleted", description: "Your data has been permanently removed." });
+      router.replace('/login');
+    } catch (error: any) {
+      if (error.code === 'auth/requires-recent-login') {
+        toast({ variant: 'destructive', title: 'Action Required', description: 'Please logout and log back in to verify your identity before deleting.' });
+      } else {
+        toast({ variant: 'destructive', title: 'Failed', description: error.message });
+      }
+    } finally {
+      setDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -115,14 +154,24 @@ export default function SecuritySettingsPage() {
               color="text-green-500"
             />
 
-            <SecurityActionItem 
-              icon={Trash2}
-              title="Delete Account"
-              description="Permanently remove your account and data"
-              status="Disabled"
-              color="text-white/20"
-              danger
-            />
+            <button 
+              onClick={() => setShowDeleteDialog(true)}
+              className="w-full flex items-center justify-between p-6 hover:bg-primary/5 transition-colors group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="h-10 w-10 rounded-none bg-primary/10 flex items-center justify-center text-primary transition-transform group-active:scale-95">
+                  <Trash2 size={18} />
+                </div>
+                <div className="text-left space-y-0.5">
+                  <p className="text-xs font-black uppercase tracking-tight text-primary">Delete Account</p>
+                  <p className="text-[8px] text-muted-foreground uppercase font-black">Permanently remove your account and data</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[9px] font-black uppercase tracking-widest text-primary/50">DANGER</span>
+                <ChevronRight size={14} className="text-primary/20" />
+              </div>
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -136,6 +185,33 @@ export default function SecuritySettingsPage() {
           Enabling two-factor authentication (2FA) provides an extra layer of protection. A 6-digit verification code will be required for all future login attempts to your account.
         </p>
       </div>
+
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="bg-card border-border rounded-none p-8 max-w-sm">
+          <DialogHeader className="items-center text-center">
+            <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <AlertTriangle className="h-8 w-8 text-primary" />
+            </div>
+            <DialogTitle className="text-xl font-black uppercase tracking-tighter">Confirm Deletion</DialogTitle>
+            <DialogDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              This action is irreversible. All orders, credits, and profile data will be permanently purged.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-3 sm:flex-col mt-6">
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="w-full h-14 rounded-none font-black uppercase text-[11px] tracking-widest"
+            >
+              {deleting ? <Loader2 className="animate-spin" /> : "Purge Account Now"}
+            </Button>
+            <DialogClose asChild>
+              <Button variant="outline" className="w-full h-12 rounded-none font-black uppercase text-[10px]">Cancel</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

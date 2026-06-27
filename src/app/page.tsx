@@ -38,6 +38,12 @@ export default function Home() {
     };
   }, [siteSettings]);
 
+  const socialLinks = {
+    instagram: siteSettings?.socialInstagram || "#",
+    telegram: siteSettings?.socialTelegram || "https://t.me/aatmaplays",
+    whatsapp: siteSettings?.contactWhatsApp ? `https://wa.me/${siteSettings.contactWhatsApp.replace(/\D/g, '')}` : "https://wa.me/918566936666"
+  };
+
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700 page-shell">
       <HeroBanner />
@@ -76,16 +82,16 @@ export default function Home() {
             </p>
             
             <div className="flex items-center justify-center lg:justify-start gap-4 pt-2">
-              <a href="https://t.me/aatmaplays" target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
+              <a href={socialLinks.telegram} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
                 <Send size={20} className="text-white group-hover:text-primary transition-colors" />
               </a>
               <a href="#" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
                 <Facebook size={20} className="text-white group-hover:text-primary transition-colors" />
               </a>
-              <a href="#" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
+              <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
                 <Instagram size={20} className="text-white group-hover:text-primary transition-colors" />
               </a>
-              <a href="https://wa.me/918566936666" target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
+              <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="h-12 w-12 bg-white/5 border border-white/10 flex items-center justify-center rounded-xl hover:border-primary/50 hover:bg-primary/10 transition-all group shadow-3d">
                 <WhatsAppIcon className="h-5 w-5 text-white group-hover:text-primary transition-colors" />
               </a>
             </div>
