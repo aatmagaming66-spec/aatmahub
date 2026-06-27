@@ -8,7 +8,8 @@ import {
   AlertTriangle, 
   UserCheck, 
   ArrowRight,
-  Headphones
+  Headphones,
+  Zap
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

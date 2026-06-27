@@ -4,9 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   createUserWithEmailAndPassword, 
-  updateProfile as firebaseUpdateProfile, 
-  setPersistence, 
-  browserLocalPersistence 
+  updateProfile as firebaseUpdateProfile
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
@@ -62,7 +60,6 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await setPersistence(auth, browserLocalPersistence);
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const newUser = userCredential.user;
       await firebaseUpdateProfile(newUser, { displayName: fullName });
@@ -84,7 +81,7 @@ export default function RegisterPage() {
       await setDoc(doc(db, 'users', newUser.uid), profileData);
       sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
     } catch (error: any) {
-      console.error("[Register] Error:", error.code, error.message);
+      console.log("[Register] Auth state info:", error.code);
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
       setLoading(false);
     }
@@ -114,7 +111,7 @@ export default function RegisterPage() {
           <div className="h-12 w-12 bg-accent/10 rounded-none flex items-center justify-center mx-auto mb-2 border border-accent/20">
              <UserPlus className="h-6 w-6 text-accent" />
           </div>
-          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Sign Up</CardTitle>
+          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter text-white">Sign Up</CardTitle>
           <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Join the elite gaming community</CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-6">
@@ -124,14 +121,14 @@ export default function RegisterPage() {
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Full Name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
-                  <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full Name" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                  <Input value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Full Name" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs text-white" />
                 </div>
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Phone Number</Label>
                 <div className="relative">
                   <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
-                  <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+91..." className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                  <Input value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="+91..." className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs text-white" />
                 </div>
               </div>
             </div>
@@ -139,7 +136,7 @@ export default function RegisterPage() {
               <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Email Address</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/20" />
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@email.com" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs" />
+                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@email.com" className="bg-background border-border h-12 rounded-none pl-10 font-bold text-xs text-white" />
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -152,7 +149,7 @@ export default function RegisterPage() {
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
                     placeholder="Min 8 chars" 
-                    className="bg-background border-border h-12 rounded-none pl-10 pr-10 font-bold text-xs" 
+                    className="bg-background border-border h-12 rounded-none pl-10 pr-10 font-bold text-xs text-white" 
                   />
                   <button
                     type="button"
@@ -172,7 +169,7 @@ export default function RegisterPage() {
                     value={confirmPassword} 
                     onChange={(e) => setConfirmPassword(e.target.value)} 
                     placeholder="Repeat password" 
-                    className="bg-background border-border h-12 rounded-none pl-10 pr-10 font-bold text-xs" 
+                    className="bg-background border-border h-12 rounded-none pl-10 pr-10 font-bold text-xs text-white" 
                   />
                   <button
                     type="button"

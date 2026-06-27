@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
-  signInWithEmailAndPassword, 
-  setPersistence, 
-  browserLocalPersistence 
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { useAuth } from '@/firebase/provider';
 import { useUser } from '@/firebase/auth/use-user';
@@ -45,11 +43,15 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await setPersistence(auth, browserLocalPersistence);
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error: any) {
-      console.error("[Login] Auth error:", error.code, error.message);
-      toast({ variant: 'destructive', title: 'Login Failed', description: 'Invalid email or password.' });
+      // Log as info to prevent development error overlay for standard auth failures
+      console.log("[Login] Auth state info:", error.code);
+      toast({ 
+        variant: 'destructive', 
+        title: 'Login Failed', 
+        description: 'Invalid email or password. Please try again.' 
+      });
       setLoading(false);
     }
   };
@@ -78,7 +80,7 @@ export default function LoginPage() {
           <div className="h-12 w-12 bg-primary/10 rounded-none flex items-center justify-center mx-auto mb-2 border border-primary/20">
              <KeyRound className="h-6 w-6 text-primary" />
           </div>
-          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter">Login HUB</CardTitle>
+          <CardTitle className="text-3xl font-headline font-black uppercase tracking-tighter text-white">Login HUB</CardTitle>
           <CardDescription className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">Authorize your gaming session</CardDescription>
         </CardHeader>
         <CardContent className="p-8 space-y-6">
@@ -90,7 +92,7 @@ export default function LoginPage() {
                 <Input 
                   type="email"
                   placeholder="name@email.com" 
-                  className="bg-background border-border h-14 rounded-none pl-12 focus:border-primary font-bold text-sm"
+                  className="bg-background border-border h-14 rounded-none pl-12 focus:border-primary font-bold text-sm text-white"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -106,7 +108,7 @@ export default function LoginPage() {
                 <Input 
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••" 
-                  className="bg-background border-border h-14 rounded-none pl-12 pr-12 focus:border-primary font-bold text-sm"
+                  className="bg-background border-border h-14 rounded-none pl-12 pr-12 focus:border-primary font-bold text-sm text-white"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
