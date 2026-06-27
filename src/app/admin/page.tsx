@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect, memo } from 'react';
@@ -24,7 +23,9 @@ import {
   Gamepad2,
   Settings,
   Image as ImageIcon,
-  Zap
+  Zap,
+  CreditCard,
+  Ticket
 } from 'lucide-react';
 import Link from 'next/link';
 import { format, subDays, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
@@ -116,15 +117,15 @@ export default function AdminDashboard() {
   }, [orders, isMounted]);
 
   const superModules = useMemo(() => [
-    { label: 'Hero Banners', href: '/admin/banners', icon: ImageIcon, desc: 'Homepage slide management' },
-    { label: 'Game Registry', href: '/admin/games', icon: Gamepad2, desc: 'Manage games and categories' },
-    { label: 'Catalog & Prices', href: '/admin/products', icon: Package, desc: 'Manage digital product SKUs' },
-    { label: 'Member Registry', href: '/admin/users', icon: Users, desc: 'View and edit user accounts' },
-    { label: 'Payment Settings', href: '/admin/settings/payments', icon: IndianRupee, desc: 'Configure payment gateways' },
-    { label: 'Automation Hub', href: '/admin/settings/smileone', icon: Zap, desc: 'API Fulfilment integration' },
-    { label: 'Layout Editor', href: '/admin/homepage', icon: HomeIcon, desc: 'Change site visual layout' },
-    { label: 'System Master', href: '/admin/system', icon: Settings, desc: 'Core platform settings' },
-    { label: 'Data Archives', href: '/admin/backups', icon: Database, desc: 'Export system registries' },
+    { label: 'Banner Management', href: '/admin/banners', icon: ImageIcon, desc: 'Manage sliders and promo graphics' },
+    { label: 'Game Management', href: '/admin/games', icon: Gamepad2, desc: 'Add or organize supported games' },
+    { label: 'Products & Pricing', href: '/admin/products', icon: Ticket, desc: 'SKU management and denomination pricing' },
+    { label: 'User Management', href: '/admin/users', icon: Users, desc: 'Customer accounts and verification' },
+    { label: 'Payment Gateway', href: '/admin/settings/payments', icon: CreditCard, desc: 'Payment provider and webhook config' },
+    { label: 'Automation Hub', href: '/admin/settings/smileone', icon: Zap, desc: 'Smile.one API fulfillment settings' },
+    { label: 'Website Settings', href: '/admin/homepage', icon: HomeIcon, desc: 'Branding, themes, and layout editor' },
+    { label: 'System Settings', icon: Settings, href: '/admin/system', desc: 'Maintenance mode and global params' },
+    { label: 'Backup & Logs', href: '/admin/backups', icon: Database, desc: 'Export system history and data' },
   ], []);
 
   if (!isMounted) return null;
@@ -133,12 +134,12 @@ export default function AdminDashboard() {
     <div className="space-y-6 animate-in fade-in duration-700 pb-10">
       <header className="flex justify-between items-end px-1">
         <div>
-          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Admin Dashboard</h1>
-          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Store Operations Manager</p>
+          <h1 className="text-2xl font-headline font-black tracking-tighter uppercase">Super Admin Hub</h1>
+          <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-black opacity-60">Enterprise Store Control</p>
         </div>
         <div className="flex gap-2">
           <Link href="/admin/analytics" prefetch={false}>
-             <div className="p-2 border border-border rounded-none flex items-center bg-white/5 hover:border-primary transition-all">
+             <div className="p-2 border border-border rounded-none flex items-center bg-white/5 hover:border-primary transition-all active-press">
                 <BarChart3 className="h-4 w-4 text-primary" />
              </div>
           </Link>
@@ -155,7 +156,7 @@ export default function AdminDashboard() {
         <section className="space-y-3">
            <div className="flex items-center gap-2 px-1">
               <ShieldCheck className="h-3 w-3 text-primary" />
-              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Management Tools</h2>
+              <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Management Matrix</h2>
            </div>
            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {superModules.map((mod, i) => (
@@ -168,10 +169,10 @@ export default function AdminDashboard() {
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 bg-card border-border rounded-none overflow-hidden shadow-2xl p-3">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="text-[10px] font-black uppercase tracking-widest">Sales Overview</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-widest">Revenue Velocity</h3>
             <div className="flex items-center gap-1.5">
               <div className="h-1.5 w-1.5 rounded-none bg-primary" />
-              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Last 7 Days</span>
+              <span className="text-[7px] font-black text-muted-foreground uppercase tracking-widest">Last 7 Cycles</span>
             </div>
           </div>
           <div className="h-[110px] w-full">
@@ -180,7 +181,7 @@ export default function AdminDashboard() {
         </Card>
 
         <Card className="bg-card border-border rounded-none overflow-hidden shadow-2xl p-5 space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-widest">Order Status</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-widest">Order Lifecycle</h3>
           <div className="space-y-2">
             <PipelineItem label="Pending" count={orders?.filter(o => o.status === 'pending').length || 0} icon={Clock} color="text-orange-400" />
             <PipelineItem label="Processing" count={orders?.filter(o => o.status === 'processing').length || 0} icon={TrendingUp} color="text-accent" />
@@ -194,7 +195,7 @@ export default function AdminDashboard() {
 
 const StatCard = memo(function StatCard({ label, value, icon: Icon, color }: any) {
   return (
-    <Card className="h-[64px] bg-card border-border shadow-xl rounded-none overflow-hidden group hover:border-primary/30 transition-all">
+    <Card className="h-[64px] bg-card border-border shadow-xl rounded-none overflow-hidden group hover:border-primary/30 transition-all active-press">
       <CardContent className="p-1.5 flex flex-col justify-center gap-1 h-full">
         <div className={`h-6 w-6 shrink-0 rounded-none bg-white/5 flex items-center justify-center ${color}`}>
           <Icon size={11} />
@@ -211,7 +212,7 @@ const StatCard = memo(function StatCard({ label, value, icon: Icon, color }: any
 const ModuleCard = memo(function ModuleCard({ label, href, icon: Icon, desc }: any) {
   return (
     <Link href={href} prefetch={false}>
-      <Card className="bg-card border-border h-[72px] rounded-none hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl">
+      <Card className="bg-card border-border h-[72px] rounded-none hover:border-primary/40 transition-all group flex items-center px-4 shadow-xl active-press">
         <div className="flex items-center gap-4 w-full">
           <div className="h-10 w-10 flex-shrink-0 rounded-none bg-primary/10 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
             <Icon size={20} />

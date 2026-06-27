@@ -1,4 +1,3 @@
-
 'use client';
 
 import { memo } from 'react';
@@ -20,27 +19,27 @@ import {
   Home as HomeIcon,
   Settings,
   Zap,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Ticket
 } from 'lucide-react';
 
 const ADMIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-  { href: '/admin/reports', label: 'Reports', icon: FileText },
+  { href: '/admin/reports', label: 'Sales Reports', icon: FileText },
 ];
 
 const SUPER_ADMIN_LINKS = [
   { href: '/admin/analytics', label: 'Store Insights', icon: BarChart3 },
-  { href: '/admin/banners', label: 'Hero Banners', icon: ImageIcon },
-  { href: '/admin/games', label: 'Products Registry', icon: Gamepad2 },
-  { href: '/admin/users', label: 'Members', icon: Users },
-  { href: '/admin/settings/payments', label: 'Payments', icon: CreditCard },
-  { href: '/admin/settings/smileone', label: 'Smile.one', icon: Zap },
-  { href: '/admin/settings/unipin', label: 'UniPin', icon: Zap },
-  { href: '/admin/settings/moogold', label: 'MooGold', icon: Zap },
-  { href: '/admin/homepage', label: 'Home Editor', icon: HomeIcon },
-  { href: '/admin/system', label: 'Settings', icon: Settings },
-  { href: '/admin/backups', label: 'Backup', icon: Database },
+  { href: '/admin/banners', label: 'Banner Management', icon: ImageIcon },
+  { href: '/admin/games', label: 'Game Management', icon: Gamepad2 },
+  { href: '/admin/products', label: 'Products & Pricing', icon: Ticket },
+  { href: '/admin/users', label: 'User Management', icon: Users },
+  { href: '/admin/settings/payments', label: 'Payment Gateway', icon: CreditCard },
+  { href: '/admin/settings/smileone', label: 'Automation Hub', icon: Zap },
+  { href: '/admin/homepage', label: 'Website Settings', icon: HomeIcon },
+  { href: '/admin/system', label: 'System Settings', icon: Settings },
+  { href: '/admin/backups', label: 'Backup & Logs', icon: Database },
 ];
 
 export const AdminNav = memo(function AdminNav({ onItemClick }: { onItemClick?: () => void }) {
@@ -49,7 +48,7 @@ export const AdminNav = memo(function AdminNav({ onItemClick }: { onItemClick?: 
   const isSuper = profile?.role === 'admin' || profile?.role === 'super_admin';
 
   return (
-    <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10 flex-1">
+    <nav className="flex flex-col gap-2 p-4 overflow-y-auto no-scrollbar pb-10 flex-1 bg-background">
       <Link href="/" prefetch={false} onClick={onItemClick} className="flex items-center gap-2 mb-6 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-white transition-colors px-4 group">
         <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" /> Back to Store
       </Link>

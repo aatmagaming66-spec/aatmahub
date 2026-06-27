@@ -1,11 +1,11 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { initializeFirebase } from '@/firebase/init';
-import { processSmileOneOrder, processUniPinOrder } from '@/lib/fulfillment';
+import { processSmileOneOrder } from '@/lib/fulfillment';
 import { doc, getDoc } from 'firebase/firestore';
 
 /**
  * Secure API route for Admins to trigger fulfillment.
+ * Strictly limited to Smile.one integration.
  */
 export async function POST(req: NextRequest) {
   const { db } = initializeFirebase();
@@ -25,26 +25,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Order document not found' }, { status: 404 });
     }
 
-    const orderData = orderSnap.data();
-    const internalId = orderData.items?.[0]?.id?.split('-')[0];
-    const mappingSnap = await getDoc(doc(db, 'productMappings', internalId));
-
-    if (mappingSnap.exists()) {
-      const mapping = mappingSnap.data();
-      if (mapping.provider === 'smileone') {
-        await processSmileOneOrder(db, orderId);
-      } else if (mapping.provider === 'unipin') {
-        await processUniPinOrder(db, orderId);
-      } else {
-        await processSmileOneOrder(db, orderId);
-      }
-    } else {
-      await processSmileOneOrder(db, orderId);
-    }
+    // Trigger the Smile.one sequence immediately
+    await processSmileOneOrder(db, orderId);
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Fulfillment sequence dispatched successfully',
+      message: 'Smile.one fulfillment sequence dispatched',
       orderId 
     });
   } catch (error: any) {
