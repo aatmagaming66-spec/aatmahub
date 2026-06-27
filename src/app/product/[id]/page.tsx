@@ -173,13 +173,13 @@ export default function ProductPage() {
                 className={cn(
                   "p-4 rounded-xl border transition-all text-center group relative shadow-2xl flex flex-col items-center justify-center gap-2 min-h-[100px]", 
                   selectedPack?.id === pack.id 
-                    ? "bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#991b1b] border-primary/50 shadow-[0_0_25px_rgba(220,38,38,0.4)]" 
-                    : "bg-gradient-to-br from-black to-[#1a0000] border-white/5 hover:border-primary/30"
+                    ? "bg-gradient-to-br from-[#110000] via-[#dc2626] to-[#ec4899] border-primary shadow-[0_0_30px_rgba(220,38,38,0.4)] scale-[1.02]" 
+                    : "bg-white/5 border-white/5 hover:border-primary/40"
                 )}
               >
                 <p className={cn(
                   "text-[10px] font-black uppercase transition-colors leading-tight",
-                  selectedPack?.id === pack.id ? "text-white" : "text-white/80 group-hover:text-white"
+                  selectedPack?.id === pack.id ? "text-white" : "text-white/60 group-hover:text-white"
                 )}>
                   {pack.name}
                 </p>
