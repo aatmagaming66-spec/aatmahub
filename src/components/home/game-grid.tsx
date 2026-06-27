@@ -29,12 +29,12 @@ export function GameGrid() {
 
   if (loading) {
     return (
-      <section className="py-6 px-4">
-        <div className="flex items-center gap-2 mb-6">
+      <section className="py-6 px-2">
+        <div className="flex items-center gap-2 mb-6 px-2">
           <div className="w-1 h-5 bg-primary rounded-full shadow-[0_0_8px_#DC2626]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">Mobile Games</h2>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="w-full aspect-square rounded-2xl bg-white/5" />
           ))}
@@ -46,8 +46,8 @@ export function GameGrid() {
   if (games.length === 0) return null;
 
   return (
-    <section className="py-6 px-4">
-      <div className="flex items-center justify-between mb-6">
+    <section className="py-6 px-2">
+      <div className="flex items-center justify-between mb-6 px-2">
         <div className="flex items-center gap-2">
           <div className="w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">
@@ -56,7 +56,7 @@ export function GameGrid() {
         </div>
       </div>
       
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2">
         {games.map((game) => (
           <GameCard key={game.id} game={game} />
         ))}
@@ -97,7 +97,7 @@ function GameCard({ game }: { game: any }) {
               "object-contain transition-transform duration-700 z-10",
               isActive ? "opacity-100 group-hover:scale-105" : "opacity-60 grayscale-[0.3]"
             )}
-            sizes="(max-width: 768px) 33vw, 120px"
+            sizes="(max-width: 768px) 33vw, 150px"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center opacity-10">
@@ -116,9 +116,9 @@ function GameCard({ game }: { game: any }) {
         )}
       </div>
       
-      <div className="text-center mt-2.5 px-1">
+      <div className="text-center mt-2 px-1">
         <span className={cn(
-          "text-[9px] font-black uppercase tracking-tight transition-colors line-clamp-1",
+          "text-[10px] font-black uppercase tracking-tight transition-colors line-clamp-1",
           isActive ? "text-muted-foreground group-hover:text-primary" : "text-white/40"
         )}>
           {game.name} {game.flag}
