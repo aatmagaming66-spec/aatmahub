@@ -101,12 +101,12 @@ export default function ProductPage() {
   if (isManualCategory) {
     return (
       <div className="flex flex-col w-full animate-in fade-in duration-700">
-        <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl">
+        <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl md:rounded-b-3xl">
           {gameInfo?.banner && <Image src={gameInfo.banner} alt={gameInfo.name} fill className="object-cover" priority />}
           <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent z-20" />
         </div>
         <div className="p-6 max-w-4xl mx-auto w-full -mt-20 relative z-30 space-y-8 text-center">
-          <div className="inline-flex bg-accent/20 border border-accent/30 px-4 py-2 rounded-none items-center gap-2 shadow-2xl">
+          <div className="inline-flex bg-accent/20 border border-accent/30 px-4 py-2 rounded-xl items-center gap-2 shadow-2xl">
             <MessageCircle size={16} className="text-accent" />
             <span className="text-[10px] font-black uppercase text-accent tracking-[0.2em]">Manual Order Required</span>
           </div>
@@ -119,7 +119,7 @@ export default function ProductPage() {
           <div className="pt-8">
             <Button 
               onClick={handleWhatsAppOrder} 
-              className="w-full max-w-md h-14 bg-green-600 hover:bg-green-700 text-[11px] font-black uppercase tracking-[0.2em] rounded-none shadow-2xl shadow-green-500/20 group transition-all gap-3"
+              className="w-full max-w-md h-14 bg-green-600 hover:bg-green-700 text-[11px] font-black uppercase tracking-[0.2em] rounded-xl shadow-2xl shadow-green-500/20 group transition-all gap-3"
             >
               <MessageCircle size={18} /> 
               Order via WhatsApp 
@@ -133,7 +133,7 @@ export default function ProductPage() {
 
   return (
     <div className="flex flex-col w-full animate-in fade-in duration-700">
-      <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl">
+      <div className="relative w-full aspect-video bg-background overflow-hidden border-b border-white/5 shadow-2xl md:rounded-b-3xl">
         {gameInfo?.banner ? (
           <Image src={gameInfo.banner} alt={gameInfo.name} fill className="object-cover" priority />
         ) : (
@@ -144,11 +144,11 @@ export default function ProductPage() {
 
       <div className="p-4 pt-0 space-y-6 max-w-4xl mx-auto w-full relative z-30 -mt-12">
         <div className="flex flex-row justify-center gap-3">
-          <div className="bg-primary px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8">
+          <div className="bg-primary px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8 rounded-lg">
             <Zap size={10} className="text-white fill-white" />
             <span className="text-[9px] font-black uppercase text-white tracking-widest">Instant Delivery</span>
           </div>
-          <div className="bg-green-600 px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8">
+          <div className="bg-green-600 px-3 py-1 flex items-center gap-2 shadow-xl border border-white/5 h-8 rounded-lg">
             <ShieldCheck size={10} className="text-white fill-white" />
             <span className="text-[9px] font-black uppercase text-white tracking-widest">Official Partner</span>
           </div>
@@ -160,30 +160,30 @@ export default function ProductPage() {
           </h1>
         </div>
 
-        <section className="bg-card border border-border p-6 rounded-none space-y-4 shadow-2xl">
+        <section className="bg-card border border-border p-6 rounded-2xl space-y-4 shadow-2xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="space-y-1.5">
                <Label className="text-[9px] font-black uppercase text-muted-foreground">User ID</Label>
-               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter ID" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold" />
+               <Input value={playerId} onChange={(e) => { setPlayerId(e.target.value); setIsVerified(false); }} placeholder="Enter ID" className="bg-black/50 border-border h-14 rounded-xl text-sm font-bold" />
              </div>
              <div className="space-y-1.5">
                <Label className="text-[9px] font-black uppercase text-muted-foreground">Server</Label>
-               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 1234" className="bg-black/50 border-border h-14 rounded-none text-sm font-bold" />
+               <Input value={serverId} onChange={(e) => { setServerId(e.target.value); setIsVerified(false); }} placeholder="e.g. 1234" className="bg-black/50 border-border h-14 rounded-xl text-sm font-bold" />
              </div>
           </div>
-          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-none font-black uppercase text-[11px] tracking-widest transition-all", isVerified ? "bg-green-600 hover:bg-green-600" : "bg-primary")}>
+          <Button onClick={handleVerify} disabled={verifying || isVerified} className={cn("w-full h-14 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all", isVerified ? "bg-green-600 hover:bg-green-600" : "bg-primary")}>
             {verifying ? <Loader2 className="animate-spin h-5 w-5" /> : (isVerified ? "Verified" : "Verify Account")}
           </Button>
         </section>
 
         <section className="space-y-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-none mb-6">
-              {['small', 'large', 'pass', 'promo'].map(t => <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-none data-[state=active]:bg-primary">{t}</TabsTrigger>)}
+            <TabsList className="w-full bg-card/50 border border-border h-14 p-1.5 rounded-xl mb-6">
+              {['small', 'large', 'pass', 'promo'].map(t => <TabsTrigger key={t} value={t} className="flex-1 text-[10px] font-black uppercase rounded-lg data-[state=active]:bg-primary">{t}</TabsTrigger>)}
             </TabsList>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {packs?.filter(p => p.tab === activeTab).map((pack) => (
-                <button key={pack.id} onClick={() => setSelectedPack(pack)} className={cn("p-6 rounded-none border transition-all text-left bg-card group relative shadow-2xl", selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border")}>
+                <button key={pack.id} onClick={() => setSelectedPack(pack)} className={cn("p-6 rounded-2xl border transition-all text-left bg-card group relative shadow-2xl", selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border")}>
                   <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight mb-3 uppercase">{pack.name}</p>
                   <p className="text-2xl font-black text-primary leading-none tracking-tighter">₹{pack.price}</p>
                 </button>
@@ -193,7 +193,7 @@ export default function ProductPage() {
         </section>
 
         <div className="flex flex-col gap-4 pb-24 pt-4">
-          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-none shadow-2xl h-20">
+          <Button onClick={handleBuyNow} disabled={!selectedPack || !isVerified} className="w-full bg-primary hover:bg-secondary text-base font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl h-20">
             Buy Now <ArrowRight size={20} className="ml-2" />
           </Button>
         </div>

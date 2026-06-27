@@ -35,11 +35,11 @@ export default function GamesPage() {
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square w-full rounded-none bg-white/5" />
+            <Skeleton key={i} className="aspect-square w-full rounded-2xl bg-white/5" />
           ))}
         </div>
       ) : games.length === 0 ? (
-        <div className="bg-card border border-dashed border-border rounded-[2.5rem] p-20 text-center space-y-4">
+        <div className="bg-card border border-dashed border-border rounded-2xl p-20 text-center space-y-4">
            <Gamepad2 className="h-10 w-10 text-muted-foreground mx-auto opacity-20" />
            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Global Registry Empty</p>
         </div>
@@ -54,7 +54,7 @@ export default function GamesPage() {
                 href={`/product/${game.id}`} 
                 className="group transition-all duration-300 active:scale-95"
               >
-                <div className="relative aspect-square w-full rounded-none overflow-hidden mb-3 border border-border shadow-2xl bg-transparent group-hover:border-primary/50 transition-all duration-500">
+                <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-3 border border-border shadow-2xl bg-transparent group-hover:border-primary/50 transition-all duration-500">
                   {game.logo ? (
                     <Image 
                       src={game.logo} 
@@ -69,7 +69,7 @@ export default function GamesPage() {
                   )}
 
                   {isMlbb && (
-                    <div className="absolute top-1.5 left-1.5 z-30 bg-red-600/90 px-1.5 py-0.5 rounded-none flex items-center justify-center shadow-md border border-white/10">
+                    <div className="absolute top-1.5 left-1.5 z-30 bg-red-600/90 px-1.5 py-0.5 rounded-lg flex items-center justify-center shadow-md border border-white/10">
                       <span className="text-[8px] font-black uppercase text-white tracking-tighter leading-none">Instant ⚡</span>
                     </div>
                   )}

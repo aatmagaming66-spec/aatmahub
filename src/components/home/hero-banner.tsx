@@ -72,7 +72,7 @@ export function HeroBanner() {
   if (loading && activeBanners.length === 0) {
     return (
       <section className="relative w-full h-[220px] px-4 mt-4">
-        <Skeleton className="w-full h-full bg-white/5 rounded-none" />
+        <Skeleton className="w-full h-full bg-white/5 rounded-2xl" />
       </section>
     );
   }
@@ -81,7 +81,7 @@ export function HeroBanner() {
     <section className="relative w-full h-[220px] overflow-hidden px-4 mt-4">
       <div 
         key={`carousel-${displayBanners.length}-${loading}`}
-        className="relative w-full h-full rounded-none overflow-hidden shadow-2xl border border-white/5 bg-neutral-900" 
+        className="relative w-full h-full rounded-2xl overflow-hidden shadow-2xl border border-white/5 bg-neutral-900" 
         ref={emblaRef}
       >
         <div className="flex h-full">
@@ -117,7 +117,7 @@ export function HeroBanner() {
                 {slide.ctaText && slide.ctaLink && (
                   <div>
                     <Link href={slide.ctaLink}>
-                      <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-none border-none active-press">
+                      <Button className="h-8 px-6 bg-primary hover:bg-secondary text-[10px] font-black uppercase tracking-widest rounded-xl border-none active-press">
                         {slide.ctaText}
                       </Button>
                     </Link>
@@ -135,7 +135,7 @@ export function HeroBanner() {
                 key={index}
                 onClick={() => scrollTo(index)}
                 className={cn(
-                  "h-1 transition-all rounded-none",
+                  "h-1 transition-all rounded-full",
                   selectedIndex === index ? "w-4 bg-primary" : "w-1.5 bg-white/20"
                 )}
               />

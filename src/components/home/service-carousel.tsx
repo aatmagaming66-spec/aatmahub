@@ -46,8 +46,8 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
         <div className="flex gap-3 overflow-x-auto no-scrollbar">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className={cn(
-              "flex-shrink-0 w-[calc((100vw-56px)/3)] bg-white/5",
-              isOtt ? "aspect-[3/4] rounded-none" : "aspect-square rounded-none"
+              "flex-shrink-0 w-[calc((100vw-56px)/3)] bg-white/5 rounded-2xl",
+              isOtt ? "aspect-[3/4]" : "aspect-square"
             )} />
           ))}
         </div>
@@ -78,7 +78,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
             className="flex-shrink-0 w-[calc((100vw-56px)/3)] group transition-all flex flex-col active:scale-95"
           >
             <div className={cn(
-              "relative overflow-hidden mb-2 border border-white/5 bg-card shadow-xl transition-all",
+              "relative overflow-hidden mb-2 border border-white/5 bg-card shadow-xl transition-all rounded-2xl",
               isOtt ? "aspect-[3/4]" : "aspect-square"
             )}>
               {item.logo ? (

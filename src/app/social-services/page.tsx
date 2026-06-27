@@ -43,19 +43,19 @@ export default function SocialServicesPage() {
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-square w-full rounded-none bg-white/5" />
+            <Skeleton key={i} className="aspect-square w-full rounded-2xl bg-white/5" />
           ))}
         </div>
       ) : items.length === 0 ? (
-        <div className="bg-card border border-dashed border-border rounded-none p-20 text-center space-y-4">
+        <div className="bg-card border border-dashed border-border rounded-2xl p-20 text-center space-y-4">
            <Share2 className="h-10 w-10 text-muted-foreground mx-auto opacity-20" />
            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">Growth Registry Empty</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {items.map((item) => (
-            <div key={item.id} className="bg-card border border-border rounded-none overflow-hidden flex flex-col p-4 shadow-xl">
-              <div className="relative aspect-square w-full mb-4 bg-white/5">
+            <div key={item.id} className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col p-4 shadow-xl">
+              <div className="relative aspect-square w-full mb-4 bg-white/5 rounded-xl overflow-hidden">
                 {item.logo ? (
                   <Image 
                     src={item.logo} 
@@ -75,7 +75,7 @@ export default function SocialServicesPage() {
                 </h3>
                 <Button 
                   onClick={() => handleWhatsAppOrder(item.name)}
-                  className="w-full h-10 bg-primary hover:bg-primary/90 rounded-none text-[9px] font-black uppercase tracking-widest gap-2 shadow-xl"
+                  className="w-full h-10 bg-primary hover:bg-primary/90 rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 shadow-xl"
                 >
                   <MessageCircle size={14} />
                   Order via WhatsApp
