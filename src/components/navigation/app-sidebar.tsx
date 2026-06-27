@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/sidebar";
 import { 
   Gamepad2, 
-  Tv, 
   Share2, 
   HelpCircle, 
   Settings, 
@@ -56,12 +55,6 @@ export function AppSidebar() {
                 <SidebarMenuButton className="active-press" onClick={() => navigateTo('/games')}>
                   <Gamepad2 className="h-4 w-4" />
                   <span className="font-bold text-sm text-white">Games</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton className="active-press" onClick={() => navigateTo('/ott-services')}>
-                  <Tv className="h-4 w-4" />
-                  <span className="font-bold text-sm text-white">OTT Services</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>

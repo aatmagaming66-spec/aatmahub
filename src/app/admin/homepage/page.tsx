@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Home, Layers, Save, Loader2, Sparkles, Layout } from 'lucide-react';
+import { Home, Layout, Save, Loader2, Sparkles } from 'lucide-react';
 
 export default function HomepageManagementPage() {
   const db = useFirestore();
@@ -23,7 +22,6 @@ export default function HomepageManagementPage() {
 
   const settings = localConfig || config || {
     showGames: true,
-    showOtt: true,
     showSocial: true,
     showLiveActivity: true,
     showTrustBadges: true,
@@ -69,7 +67,6 @@ export default function HomepageManagementPage() {
           <CardContent className="p-8 space-y-6">
             {[
               { key: 'showGames', label: 'Mobile Games Grid', desc: 'Display regional game top-ups' },
-              { key: 'showOtt', label: 'OTT Services Shelf', desc: 'Premium streaming accounts' },
               { key: 'showSocial', label: 'Social Growth Hub', desc: 'SMM & Engagement services' },
               { key: 'showLiveActivity', label: 'Live Activity Feed', desc: 'Real-time distribution logs' },
               { key: 'showTrustBadges', label: 'Security Trust Bar', desc: 'Top platform safety badges' },

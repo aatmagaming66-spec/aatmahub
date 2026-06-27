@@ -7,18 +7,17 @@ import { useFirestore } from "@/firebase/provider";
 import { collection, query, where } from "firebase/firestore";
 import { useCollection } from "@/firebase/firestore/use-collection";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tv, Share2, Zap } from "lucide-react";
+import { Share2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ServiceCarouselProps {
   title: string;
-  category: "OTT Services" | "Social Services";
+  category: "Social Services";
 }
 
 export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
   const db = useFirestore();
-  const isOtt = category === 'OTT Services';
-  const Icon = isOtt ? Tv : Share2;
+  const Icon = Share2;
 
   const servicesQuery = useMemo(() => 
     query(
@@ -38,7 +37,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
     return (
       <section className="py-6 px-2">
         <div className="flex items-center gap-2 mb-6 px-2">
-          <div className={isOtt ? "w-1.5 h-5 bg-accent rounded-full shadow-[0_0_12px_#EC4899]" : "w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_#DC2626]"} />
+          <div className="w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_#DC2626]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">{title}</h2>
         </div>
         <div className="grid grid-cols-3 gap-2 px-2">
@@ -56,7 +55,7 @@ export function ServiceCarousel({ title, category }: ServiceCarouselProps) {
     <section className="py-6 px-2">
       <div className="flex items-center justify-between mb-6 px-2">
         <div className="flex items-center gap-2">
-          <div className={isOtt ? "w-1.5 h-5 bg-accent rounded-full shadow-[0_0_12px_rgba(236,72,153,0.5)]" : "w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]"} />
+          <div className="w-1.5 h-5 bg-primary rounded-full shadow-[0_0_12px_rgba(220,38,38,0.5)]" />
           <h2 className="text-base font-headline font-black uppercase tracking-tighter text-white">
             {title}
           </h2>

@@ -31,7 +31,6 @@ export default function Home() {
   const homepageConfig = useMemo(() => {
     return siteSettings?.homepage || {
       showGames: true,
-      showOtt: true,
       showSocial: true,
       showLiveActivity: true,
       showTrustBadges: true,
@@ -57,12 +56,6 @@ export default function Home() {
       {homepageConfig.showSocial && (
         <div className="bg-gradient-to-b from-transparent via-primary/5 to-transparent">
           <ServiceCarousel title="MLBB Specialized Services" category="Social Services" />
-        </div>
-      )}
-
-      {homepageConfig.showOtt && (
-        <div className="bg-gradient-to-b from-transparent via-accent/5 to-transparent">
-          <ServiceCarousel title="Premium OTT Access" category="OTT Services" />
         </div>
       )}
       

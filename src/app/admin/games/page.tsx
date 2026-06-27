@@ -24,11 +24,11 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, CheckCircle2, Layers, X, Bug, Globe, ShieldCheck } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader2, Search, Gamepad2, Image as ImageIcon, Globe, ShieldCheck, Bug } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 
-const CATEGORIES = ["Mobile Games", "OTT Services", "Social Services"];
+const CATEGORIES = ["Mobile Games", "Social Services"];
 const CLOUDINARY_UPLOAD_URL = "https://api.cloudinary.com/v1_1/dynduenfb/image/upload";
 const CLOUDINARY_UPLOAD_PRESET = "aatmahub_upload";
 
