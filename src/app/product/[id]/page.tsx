@@ -171,23 +171,12 @@ export default function ProductPage() {
                 key={pack.id} 
                 onClick={() => setSelectedPack(pack)} 
                 className={cn(
-                  "p-3 rounded-xl border transition-all text-left bg-card group relative shadow-2xl flex flex-col gap-3", 
+                  "p-3 rounded-xl border transition-all text-center bg-card group relative shadow-2xl flex flex-col items-center justify-center gap-1 min-h-[70px]", 
                   selectedPack?.id === pack.id ? "border-primary bg-primary/5" : "border-border"
                 )}
               >
-                <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 bg-white/5 rounded-lg overflow-hidden flex-shrink-0 relative border border-white/5">
-                    {pack.imageUrl ? (
-                      <Image src={pack.imageUrl} alt={pack.name} fill className="object-cover" />
-                    ) : (
-                      <div className="flex items-center justify-center h-full opacity-10"><ImageIcon size={16} /></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[8px] font-black text-white group-hover:text-primary transition-colors leading-tight uppercase truncate">{pack.name}</p>
-                    <p className="text-sm font-black text-primary leading-none tracking-tighter mt-1">₹{pack.price}</p>
-                  </div>
-                </div>
+                <p className="text-[10px] font-black text-white group-hover:text-primary transition-colors leading-tight uppercase line-clamp-2">{pack.name}</p>
+                <p className="text-sm font-black text-primary leading-none tracking-tighter mt-0.5">₹{pack.price}</p>
               </button>
             ))}
             {productsLoading && Array.from({ length: 6 }).map((_, i) => (
