@@ -1,6 +1,5 @@
 import crypto from 'crypto';
 import { Firestore, doc, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { sendTelegramNotification } from './telegram';
 import { triggerFailover } from './automation';
 
 export interface SmileOneOrderRequest {
@@ -70,7 +69,6 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
         status: 'completed',
         updatedAt: new Date().toISOString(),
       });
-      sendTelegramNotification(db, `✅ <b>SMILE.ONE SUCCESS</b>\n\n📦 Order: ${orderId}\n🎮 Product: ${order.items[0].name}\n👤 Player: ${order.playerInfo.playerId}`);
     } else {
       // Increment retry count on failure
       const currentRetry = (order.retryCount || 0) + 1;
@@ -88,6 +86,5 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
 
   } catch (error: any) {
     console.error('Smile.one Processing Error:', error);
-    sendTelegramNotification(db, `⚠️ <b>SMILE.ONE EXCEPTION</b>\n\n📦 Order: ${orderId}\n🚨 Exception: ${error.message}`);
   }
 }

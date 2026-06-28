@@ -15,7 +15,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
-import { sendTelegramNotification } from '@/lib/telegram';
 import { Loader2, UserPlus, User, Mail, Smartphone, KeyRound, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const SUPER_ADMIN_EMAIL = 'aatmagaming66@gmail.com';
@@ -79,7 +78,6 @@ export default function RegisterPage() {
         createdAt: new Date().toISOString(),
       };
       await setDoc(doc(db, 'users', newUser.uid), profileData);
-      sendTelegramNotification(db, `🆕 <b>USER REG</b>\n\n👤 ${fullName}\n📧 ${email}`);
     } catch (error: any) {
       console.log("[Register] Auth state info:", error.code);
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });

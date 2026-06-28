@@ -1,15 +1,17 @@
-
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-/**
- * AATMA HUB MIDDLEWARE
- * Simplified to prevent blocking the development preview pane.
- */
-export function middleware(request: NextRequest) {
+export function middleware(req: NextRequest) {
+  const token = req.cookies.get('token')?.value;
+
+  const protectedRoutes = ['/dashboard', '/admin', '/checkout'];
+
+  const isProtected = protectedRoutes.some(route =>
+    req.nextUrl.pathname.startsWith(route)
+  );
+
+    return NextResponse.redirect(new URL('/login', req.url));
+  }
+
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: '/((?!api/payments|_next/static|_next/image|favicon.ico|logo.png).*)',
-};

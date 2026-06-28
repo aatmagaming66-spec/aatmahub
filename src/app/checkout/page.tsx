@@ -29,7 +29,6 @@ import {
   Receipt,
   MessageCircle
 } from 'lucide-react';
-import { sendTelegramNotification } from '@/lib/telegram';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 
@@ -161,7 +160,6 @@ export default function CheckoutPage() {
         updatedAt: new Date().toISOString()
       }).catch(err => console.error("Update fail", err));
 
-      sendTelegramNotification(db, `📦 <b>NEW ORDER</b>\n\nID: ${orderId}\nUser: ${profile?.fullName || user.email}\nAmount: ₹${grandTotal}`);
       router.push(`/checkout/success/${orderId}`);
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Order Error', description: error.message });
