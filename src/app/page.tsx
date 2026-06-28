@@ -24,7 +24,6 @@ export default function Home() {
     const mountTime = performance.now();
     if ((window as any).__nav_click_time) {
       const duration = mountTime - (window as any).__nav_click_time;
-      console.log(`[PERF] Navigation Load: ${duration.toFixed(2)}ms`);
       (window as any).__nav_click_time = undefined;
     }
   }, []);

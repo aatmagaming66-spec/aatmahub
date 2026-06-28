@@ -31,7 +31,6 @@ export default function OrderSuccessPage() {
 
         localStorage.removeItem('aatma_verification');
         clearCart();
-        console.log(`[Wallet Audit] Protocol Fulfilled: Order ${orderId} confirmed. Identity and Cart purged.`);
       }
       setLoading(false);
     }

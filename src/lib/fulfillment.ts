@@ -63,7 +63,6 @@ export async function processSmileOneOrder(db: Firestore, orderId: string) {
         fulfillmentType: 'live',
         updatedAt: new Date().toISOString(),
       });
-      console.log(`[Fulfillment] Success: Order ${orderId} delivered.`);
     } else {
       await updateDoc(orderRef, {
         smileOneStatus: 'failed',

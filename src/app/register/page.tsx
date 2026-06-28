@@ -79,7 +79,6 @@ export default function RegisterPage() {
       };
       await setDoc(doc(db, 'users', newUser.uid), profileData);
     } catch (error: any) {
-      console.log("[Register] Auth state info:", error.code);
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
       setLoading(false);
     }
