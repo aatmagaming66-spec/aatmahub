@@ -15,9 +15,7 @@ const CONTACT_METHODS = [
   },
   {
     icon: Send,
-    label: 'Telegram Official',
     value: '@aatmaplays',
-    link: 'https://t.me/aatmaplays',
     color: 'text-primary',
     bg: 'bg-primary/10'
   },

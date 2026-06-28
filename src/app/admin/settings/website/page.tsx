@@ -25,7 +25,6 @@ export default function WebsiteSettingsPage() {
     heroSubtitle: 'Fast • Secure • Reliable',
     footerText: 'Premium Digital Solutions for Gaming and Social Needs.',
     socialInstagram: '',
-    socialTelegram: '',
     socialWhatsApp: '',
   });
 
@@ -120,10 +119,7 @@ export default function WebsiteSettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Telegram Link</Label>
               <Input 
-                value={settings.socialTelegram}
-                onChange={(e) => setSettings({...settings, socialTelegram: e.target.value})}
                 placeholder="https://t.me/..."
                 className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold"
               />

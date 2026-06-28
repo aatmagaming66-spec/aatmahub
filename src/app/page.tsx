@@ -39,7 +39,6 @@ export default function Home() {
 
   const socialLinks = {
     instagram: siteSettings?.socialInstagram || "#",
-    telegram: siteSettings?.socialTelegram || "https://t.me/aatmaplays",
     whatsapp: siteSettings?.contactWhatsApp ? `https://wa.me/${siteSettings.contactWhatsApp.replace(/\D/g, '')}` : "https://wa.me/918566936666"
   };
 

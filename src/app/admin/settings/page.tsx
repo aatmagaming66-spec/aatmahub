@@ -24,7 +24,6 @@ export default function GeneralSettingsPage() {
     announcementText: '',
     contactWhatsApp: '+91 8566936666',
     contactEmail: 'shivatetz@gmail.com',
-    contactTelegram: '@aatmaplays',
     siteBranding: 'AATMA HUB'
   });
 
@@ -132,10 +131,7 @@ export default function GeneralSettingsPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Telegram Handle</Label>
               <Input 
-                value={settings.contactTelegram}
-                onChange={(e) => setSettings({...settings, contactTelegram: e.target.value})}
                 className="bg-black/50 border-border h-12 rounded-xl focus:border-primary font-bold"
               />
             </div>

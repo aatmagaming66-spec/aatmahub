@@ -23,7 +23,6 @@ export default function SystemSettingsPage() {
     maintenanceMessage: 'The site is currently under maintenance. Please check back soon.',
     contactWhatsApp: '+91 8566936666',
     contactEmail: 'shivatetz@gmail.com',
-    contactTelegram: '@aatmaplays',
     siteBranding: 'AATMA HUB'
   });
 
@@ -96,7 +95,6 @@ export default function SystemSettingsPage() {
           </CardHeader>
           <CardContent className="p-8 space-y-6">
             <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">WhatsApp Number</Label><Input value={settings.contactWhatsApp} onChange={(e) => setSettings({...settings, contactWhatsApp: e.target.value})} className="bg-black/50 border-border h-12 rounded-none font-bold" /></div>
-            <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Telegram Username</Label><Input value={settings.contactTelegram} onChange={(e) => setSettings({...settings, contactTelegram: e.target.value})} className="bg-black/50 border-border h-12 rounded-none font-bold" /></div>
             <div className="space-y-2"><Label className="text-[9px] font-black uppercase text-muted-foreground">Support Email</Label><Input value={settings.contactEmail} onChange={(e) => setSettings({...settings, contactEmail: e.target.value})} className="bg-black/50 border-border h-12 rounded-none font-bold" /></div>
           </CardContent>
         </Card>
