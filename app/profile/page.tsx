@@ -4,12 +4,20 @@ import AuthGuard from "@/components/AuthGuard";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, User } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
 
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState({
+    name: "",
+    totalOrders: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+    walletBalance: 0,
+  });
 
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {
@@ -41,11 +49,11 @@ export default function ProfilePage() {
 
         <div className="rounded-2xl border border-white/10 bg-[#171d26] p-5 text-center">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-500 text-3xl font-extrabold">
-            {(user.displayName || user.email || "A")[0].toUpperCase()}
+            {(profile.name || user.displayName || user.email || "A")[0].toUpperCase()}
           </div>
 
           <h1 className="mt-4 text-2xl font-extrabold">
-            {user.displayName || "AatmaHub User"}
+            {profile.name || user.displayName || "AatmaHub User"}
           </h1>
 
           <p className="mt-1 text-sm text-gray-400">
@@ -60,12 +68,12 @@ export default function ProfilePage() {
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-[#171d26] p-4 text-center">
-            <p className="text-2xl font-extrabold text-yellow-400">0</p>
+            <p className="text-2xl font-extrabold text-yellow-400">{profile.pendingOrders}</p>
             <p className="text-xs text-gray-400">Pending</p>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-[#171d26] p-4 text-center">
-            <p className="text-2xl font-extrabold text-green-400">0</p>
+            <p className="text-2xl font-extrabold text-green-400">{profile.completedOrders}</p>
             <p className="text-xs text-gray-400">Completed</p>
           </div>
         </div>
@@ -76,7 +84,7 @@ export default function ProfilePage() {
           </Link>
 
           <Link href="/wallet" className="flex justify-between rounded-xl bg-[#0f1117] px-4 py-4">
-            <span>Wallet</span><span>→</span>
+            <span>Wallet</span><span>₹{profile.walletBalance.toFixed(2)} →</span>
           </Link>
           <Link
             href="/settings"

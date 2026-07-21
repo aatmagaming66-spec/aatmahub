@@ -5,7 +5,8 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { createUserWithEmailAndPassword, onAuthStateChanged, updateProfile } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export default function RegisterPage() {
   const router = useRouter();

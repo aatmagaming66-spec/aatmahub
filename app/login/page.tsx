@@ -5,7 +5,8 @@ import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,10 +29,36 @@ export default function LoginPage() {
     try {
       setLoading(true);
 
-      await signInWithEmailAndPassword(
+      const credential = await signInWithEmailAndPassword(
         auth,
         email.trim(),
         password
+      );
+
+      const ref = doc(db, "users", credential.user.uid);
+      const snap = await getDoc(ref);
+
+      await setDoc(
+        ref,
+        {
+          uid: credential.user.uid,
+          name: credential.user.displayName || "",
+          email: credential.user.email,
+          walletBalance: snap.exists()
+            ? Number(snap.data().walletBalance || 0)
+            : 0,
+          totalOrders: snap.exists()
+            ? Number(snap.data().totalOrders || 0)
+            : 0,
+          pendingOrders: snap.exists()
+            ? Number(snap.data().pendingOrders || 0)
+            : 0,
+          completedOrders: snap.exists()
+            ? Number(snap.data().completedOrders || 0)
+            : 0,
+          ...(snap.exists() ? {} : { createdAt: serverTimestamp() }),
+        },
+        { merge: true }
       );
 
       router.replace("/profile");

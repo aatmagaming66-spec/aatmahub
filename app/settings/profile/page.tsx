@@ -4,7 +4,8 @@ import AuthGuard from "@/components/AuthGuard";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { onAuthStateChanged, updateProfile, User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, setDoc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 
 export default function ProfileInformationPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -22,7 +23,19 @@ export default function ProfileInformationPage() {
   
   async function saveName() {
     if (!auth.currentUser) return;
-    await updateProfile(auth.currentUser, { displayName: name });
+
+    const cleanName = name.trim();
+
+    await updateProfile(auth.currentUser, {
+      displayName: cleanName,
+    });
+
+    await setDoc(
+      doc(db, "users", auth.currentUser.uid),
+      { name: cleanName },
+      { merge: true }
+    );
+
     alert("Profile updated.");
   }
 
