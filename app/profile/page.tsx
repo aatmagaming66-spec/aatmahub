@@ -16,7 +16,7 @@ export default function ProfilePage() {
     totalOrders: 0,
     pendingOrders: 0,
     completedOrders: 0,
-    walletBalance: 0,
+    
   });
 
   useEffect(() => {
@@ -83,9 +83,6 @@ export default function ProfilePage() {
             <span>My Orders</span><span>→</span>
           </Link>
 
-          <Link href="/wallet" className="flex justify-between rounded-xl bg-[#0f1117] px-4 py-4">
-            <span>Wallet</span><span>₹{profile.walletBalance.toFixed(2)} →</span>
-          </Link>
           <Link
             href="/settings"
             className="flex justify-between rounded-xl bg-[#0f1117] px-4 py-4"

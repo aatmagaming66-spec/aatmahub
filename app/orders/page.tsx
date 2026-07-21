@@ -1,13 +1,61 @@
 "use client";
 
 import AuthGuard from "@/components/AuthGuard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, onSnapshot, query, where } from "firebase/firestore";
 
 const tabs = ["All", "Pending", "Success", "Failed"];
 
 export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("All");
+  const [orders, setOrders] = useState<any[]>([]);
+
+  const pendingCount = orders.filter(
+    (order) => String(order.status || "").toLowerCase() === "pending"
+  ).length;
+
+  const successCount = orders.filter(
+    (order) => ["success", "completed"].includes(
+      String(order.status || "").toLowerCase()
+    )
+  ).length;
+
+  const failedCount = orders.filter(
+    (order) => String(order.status || "").toLowerCase() === "failed"
+  ).length;
+
+  const filteredOrders = activeTab === "All"
+    ? orders
+    : orders.filter((order) => {
+        const status = String(order.status || "").toLowerCase();
+
+        if (activeTab === "Success") {
+          return status === "success" || status === "completed";
+        }
+
+        return status === activeTab.toLowerCase();
+      });
+
+  useEffect(() => {
+    return onAuthStateChanged(auth, (user) => {
+      if (!user) return;
+
+      const q = query(
+        collection(db, "orders"),
+        where("uid", "==", user.uid)
+      );
+
+      return onSnapshot(q, (snap) => {
+        setOrders(snap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })));
+      });
+    });
+  }, []);
 
   return (
     <AuthGuard>
@@ -33,7 +81,7 @@ export default function OrdersPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-400">Total Orders</p>
-              <p className="mt-2 text-4xl font-extrabold">0</p>
+              <p className="mt-2 text-4xl font-extrabold">{orders.length}</p>
             </div>
 
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10">
@@ -53,17 +101,17 @@ export default function OrdersPage() {
           <div className="mt-5 grid grid-cols-3 gap-3">
             <div className="rounded-2xl border border-yellow-500/15 bg-yellow-500/5 p-3 text-center">
               <p className="text-xs text-gray-400">Pending</p>
-              <p className="mt-1 text-lg font-bold text-yellow-400">0</p>
+              <p className="mt-1 text-lg font-bold text-yellow-400">{pendingCount}</p>
             </div>
 
             <div className="rounded-2xl border border-green-500/15 bg-green-500/5 p-3 text-center">
               <p className="text-xs text-gray-400">Success</p>
-              <p className="mt-1 text-lg font-bold text-green-400">0</p>
+              <p className="mt-1 text-lg font-bold text-green-400">{successCount}</p>
             </div>
 
             <div className="rounded-2xl border border-red-500/15 bg-red-500/5 p-3 text-center">
               <p className="text-xs text-gray-400">Failed</p>
-              <p className="mt-1 text-lg font-bold text-red-400">0</p>
+              <p className="mt-1 text-lg font-bold text-red-400">{failedCount}</p>
             </div>
           </div>
         </section>
@@ -84,34 +132,55 @@ export default function OrdersPage() {
           ))}
         </div>
 
-        <section className="mt-6 rounded-[28px] border border-white/10 bg-[#12151d] px-5 py-12 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-red-500/20 bg-red-500/10">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              className="h-10 w-10 text-red-400"
-              stroke="currentColor"
-              strokeWidth="1.7"
-            >
-              <path d="M5 4h14v17l-3-2-4 2-4-2-3 2V4Z" />
-              <path d="M8 9h8M8 13h6" />
-            </svg>
-          </div>
+        <section className="mt-6">
+          {filteredOrders.length === 0 ? (
+            <div className="rounded-[28px] border border-white/10 bg-[#12151d] px-5 py-12 text-center">
+              <h2 className="text-xl font-bold">
+                No {activeTab === "All" ? "" : activeTab.toLowerCase()} orders yet
+              </h2>
 
-          <h2 className="mt-5 text-xl font-bold">
-            No {activeTab === "All" ? "" : activeTab.toLowerCase()} orders yet
-          </h2>
+              <p className="mt-2 text-sm text-gray-400">
+                Your game top-up orders will appear here.
+              </p>
 
-          <p className="mt-2 text-sm leading-6 text-gray-400">
-            Your game top-up orders will appear here with payment and delivery status.
-          </p>
+              <Link
+                href="/"
+                className="mt-6 inline-flex rounded-2xl bg-red-600 px-6 py-3 font-bold"
+              >
+                Browse Games
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="rounded-2xl border border-white/10 bg-[#12151d] p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-bold">
+                      {order.game || "Game Top-up"}
+                    </h3>
 
-          <Link
-            href="/"
-            className="mt-6 inline-flex rounded-2xl bg-red-600 px-6 py-3 font-bold"
-          >
-            Browse Games
-          </Link>
+                    <span className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-400">
+                      {order.status || "Pending"}
+                    </span>
+                  </div>
+
+                  <p className="mt-2 text-sm text-gray-400">
+                    {order.package || "-"}
+                  </p>
+
+                  <div className="mt-3 flex justify-between text-sm">
+                    <span className="text-gray-400">Amount</span>
+                    <span className="font-bold">
+                      ₹{order.amount ?? 0}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="mt-6 rounded-[28px] border border-white/10 bg-[#12151d] p-5">

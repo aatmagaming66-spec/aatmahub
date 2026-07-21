@@ -10,17 +10,6 @@ const items = [
     icon: <path d="M3 10.8 12 3l9 7.8V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10.8Z" />,
   },
   {
-    href: "/wallet",
-    label: "Wallet",
-    icon: (
-      <>
-        <path d="M4 6h14a2 2 0 0 1 2 2v10H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z" />
-        <path d="M16 11h5v4h-5a2 2 0 0 1 0-4Z" />
-        <path d="M5 6V4h11" />
-      </>
-    ),
-  },
-  {
     href: "/orders",
     label: "Orders",
     icon: (
@@ -47,7 +36,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-red-500/20 bg-[#12090d]/95 shadow-[0_-10px_35px_rgba(255,45,53,0.22)] backdrop-blur-2xl">
-      <div className="mx-auto grid max-w-md grid-cols-4 px-2 py-1 pb-[calc(env(safe-area-inset-bottom)+6px)]">
+      <div className="mx-auto grid max-w-md grid-cols-3 px-2 py-1 pb-[calc(env(safe-area-inset-bottom)+6px)]">
         {items.map((item) => {
           const active =
             item.href === "/"

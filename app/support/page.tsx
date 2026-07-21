@@ -15,7 +15,7 @@ export default function SupportPage() {
           <h1 className="mt-2 text-3xl font-bold">Customer Support</h1>
           <p className="mt-3 text-sm leading-6 text-gray-400">
             Choose the right support option below. Our team will help you with
-            orders, payments, wallet recharges, and account-related issues.
+            orders, payments, account-related issues.
           </p>
         </div>
 
@@ -26,7 +26,7 @@ export default function SupportPage() {
 
           <h2 className="mt-4 text-xl font-bold">WhatsApp Support</h2>
           <p className="mt-2 text-sm leading-6 text-gray-400">
-            Chat with support for order, payment, wallet, or recharge help.
+            Chat with support for order, payment, recharge help.
           </p>
 
           <a

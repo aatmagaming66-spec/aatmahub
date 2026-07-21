@@ -3,8 +3,8 @@
 import { useState } from "react";
 
 export default function CheckoutPage() {
-  const [payment, setPayment] = useState("wallet");
-  const walletBalance = 0;
+  const [payment, setPayment] = useState("upi");
+  
 
   return (
     <main className="min-h-screen bg-[#080808] text-white px-4 py-6">
@@ -43,21 +43,7 @@ export default function CheckoutPage() {
 
             <div className="flex items-center gap-2"><img src="/images/google pay.jpg" className="h-10 w-10 rounded-md object-cover" alt="GPay" /><img src="/images/phone pay.jpeg" className="h-10 w-10 rounded-md object-cover" alt="PhonePe" /><img src="/images/paytm.png" className="h-10 w-10 rounded-md object-cover" alt="Paytm" /></div></button>
 
-          <button
-            onClick={() => setPayment("wallet")}
-            className={`w-full rounded-xl border px-4 py-3 mt-3 flex items-center items-center justify-between h-16 transition ${
-              payment==="wallet"
-                ? "bg-[#6b161a] border-red-500/50"
-                : "bg-gray-700 border-gray-600 opacity-50 cursor-not-allowed"
-            }`}
-          >
-            <p className="font-bold text-lg">Wallet</p>
-
-            <span className="text-sm text-gray-300">
-              Balance ₹{walletBalance}
-            </span>
-          </button>
-        </div>
+          </div>
 
         <button onClick={() => window.location.href="/payment"} className="mt-6 w-full rounded-xl bg-red-600 py-4 text-lg font-semibold hover:bg-red-700 transition">Proceed to Checkout</button>
 

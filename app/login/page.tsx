@@ -44,9 +44,6 @@ export default function LoginPage() {
           uid: credential.user.uid,
           name: credential.user.displayName || "",
           email: credential.user.email,
-          walletBalance: snap.exists()
-            ? Number(snap.data().walletBalance || 0)
-            : 0,
           totalOrders: snap.exists()
             ? Number(snap.data().totalOrders || 0)
             : 0,

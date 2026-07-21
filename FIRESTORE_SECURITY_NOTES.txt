@@ -1,0 +1,10 @@
+Recommended additional Firestore rule for /users:
+
+allow update: if request.auth != null
+  && request.auth.uid == userId
+  && request.resource.data.uid == resource.data.uid
+  && request.resource.data.email == resource.data.email
+  && request.resource.data.walletBalance == resource.data.walletBalance
+  && request.resource.data.totalOrders == resource.data.totalOrders
+  && request.resource.data.pendingOrders == resource.data.pendingOrders
+  && request.resource.data.completedOrders == resource.data.completedOrders;

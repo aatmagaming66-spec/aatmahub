@@ -80,7 +80,7 @@ export default function DeveloperPage() {
 
           <p className="mt-3 text-sm leading-6 text-gray-400">
             AatmaHub is built to provide a fast, secure, and reliable experience
-            for gaming top-ups, digital products, wallet services, and customer
+            for gaming top-ups, digital products, and customer
             support.
           </p>
         </section>
