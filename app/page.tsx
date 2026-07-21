@@ -15,16 +15,25 @@ export default function Home() {
           </h1>
 
           <div className="flex gap-2">
-            <button
-              aria-label="Cart"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#181c26]"
+            <Link
+              href="/developer"
+              aria-label="Developer"
+              className="flex h-12 w-12 items-center justify-center rounded-full border border-red-500/30 bg-[#181c26] text-red-400 shadow-[0_0_18px_rgba(239,68,68,0.18)] transition active:scale-95"
             >
-              <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7" stroke="currentColor" strokeWidth="2">
-                <circle cx="9" cy="20" r="1" />
-                <circle cx="19" cy="20" r="1" />
-                <path d="M3 4h2l2.4 10.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L21 7H6" />
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-7 w-7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m8 9-4 3 4 3" />
+                <path d="m16 9 4 3-4 3" />
+                <path d="m14 5-4 14" />
               </svg>
-            </button>
+            </Link>
 
             <button
               aria-label="Menu"
@@ -87,7 +96,7 @@ export default function Home() {
     <span className="text-red-400">•</span>
     <span>🎮 Magic Chess Top-Up Available</span>
     <span className="text-red-400">•</span>
-    <span>💬 ML Gifting, HOK & BGMI via WhatsApp</span>
+    <span>💬 ML Gifting via WhatsApp</span>
     <span className="text-red-400">•</span>
     <span>🔒 Safe & Secure Orders</span>
 
@@ -95,7 +104,7 @@ export default function Home() {
     <span className="text-red-400">•</span>
     <span>🎮 Magic Chess Top-Up Available</span>
     <span className="text-red-400">•</span>
-    <span>💬 ML Gifting, HOK & BGMI via WhatsApp</span>
+    <span>💬 ML Gifting via WhatsApp</span>
     <span className="text-red-400">•</span>
     <span>🔒 Safe & Secure Orders</span>
   </div>
@@ -123,22 +132,12 @@ export default function Home() {
       {
         title: "Magic Chess",
         image: "/images/mcgg.jpg",
-        href: "/product/magic-chess",
+        href: "/product/magic-chess-go-go",
       },
       {
         title: "ML Gifting",
         image: "/images/ml gifting.png",
         href: "/product/mlbb-gifting",
-      },
-      {
-        title: "HOK",
-        image: "/images/honor-of-kings.webp",
-        href: "/product/honor-of-kings",
-      },
-      {
-        title: "BGMI",
-        image: "/images/BGMI.jpg",
-        href: "/product/bgmi",
       },
     ].map((game) => (
       <Link
@@ -164,6 +163,78 @@ export default function Home() {
   </div>
 </section>
 
-    </main>
+    
+      <section className="px-3 pb-8">
+        <a
+          href="https://whatsapp.com/channel/0029VbB4dcm23n3fVHpH0r45"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="relative block overflow-hidden rounded-[28px] border border-white/20 bg-gradient-to-br from-[#17171f] via-[#5a171b] to-[#ff202b] px-5 py-6 text-center shadow-[0_0_35px_rgba(255,35,45,0.28)] active:scale-[0.98]"
+        >
+          <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-red-500/20 blur-3xl" />
+          <div className="absolute -bottom-16 -left-10 h-28 w-28 rounded-full bg-black/30 blur-3xl" />
+
+          <div className="relative">
+            <h2 className="text-[22px] font-extrabold leading-tight text-white">
+              <img src="/images/whatsapp.svg" alt="WhatsApp" className="inline h-7 w-7 mr-2"/> JOIN OUR WHATSAPP
+            </h2>
+
+            <p className="mt-1 text-[18px] font-medium text-white">
+              COMMUNITY TODAY
+            </p>
+
+            <p className="mx-auto mt-3 max-w-md text-[14px] leading-6 text-white/90">
+              Get instant order updates, exclusive offers, new game launches &amp; 24×7 customer support directly on WhatsApp.
+            </p>
+
+            <p className="mt-3 text-[18px] font-extrabold text-white">
+              +91 85669 36666
+            </p>
+
+            <div className="mx-auto mt-4 flex max-w-[300px] items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 text-[15px] font-extrabold text-red-500">
+              <img src="/images/whatsapp.svg" alt="" className="h-5 w-5" />
+              <span>JOIN WHATSAPP CHANNEL</span>
+            </div>
+          </div>
+        </a>
+      </section>
+
+
+      <footer className="border-t border-white/10 bg-[#171d26] px-5 pb-16 pt-5">
+        <div className="text-center">
+          <h2 className="text-2xl font-extrabold text-white">
+            AATMA<span className="text-red-500">HUB</span>
+          </h2>
+
+          <p className="mt-1 text-xs text-gray-400">
+            Fast, secure &amp; trusted digital gaming top-ups.
+          </p>
+      </div>
+
+        <div className="my-4 h-px bg-white/15" />
+
+        <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-[16px] text-white">
+          <div className="space-y-3">
+            <a href="/" className="block">Home</a>
+            <a href="/login" className="block">Login</a>
+            <a href="/register" className="block">Register</a>
+            <a href="/support" className="block">Customer Support</a>
+          </div>
+
+          <div className="space-y-3">
+            <a href="/privacy-policy" className="block">Privacy Policy</a>
+            <a href="/terms-and-conditions" className="block">Terms &amp; Conditions</a>
+            <a href="/refund-policy" className="block">Refund Policy</a>
+          </div>
+        </div>
+
+        <div className="my-4 h-px bg-white/15" />
+<p className="text-center text-sm text-gray-300">
+
+          All Rights Reserved © 2026 | AATMAHUB
+        </p>
+      </footer>
+
+</main>
   );
 }
