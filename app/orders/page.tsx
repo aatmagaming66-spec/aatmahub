@@ -1,5 +1,6 @@
 "use client";
 
+import AuthGuard from "@/components/AuthGuard";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -9,6 +10,7 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState("All");
 
   return (
+    <AuthGuard>
     <main className="min-h-screen bg-[#080a0f] px-4 pb-28 pt-6 text-white">
       <div className="mx-auto max-w-md">
         <div className="flex items-center justify-between">
@@ -167,5 +169,6 @@ export default function OrdersPage() {
         </section>
       </div>
     </main>
+    </AuthGuard>
   );
 }

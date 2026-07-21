@@ -1,7 +1,9 @@
 import Link from "next/link";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function WalletPage() {
   return (
+    <AuthGuard>
     <main className="min-h-screen bg-[#0f1117] text-white p-5">
       <h1 className="text-2xl font-bold text-red-500">Wallet</h1>
 
@@ -130,5 +132,6 @@ export default function WalletPage() {
         </div>
       </div>
     </main>
+    </AuthGuard>
   );
 }

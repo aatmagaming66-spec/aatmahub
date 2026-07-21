@@ -1,5 +1,6 @@
 "use client";
 
+import AuthGuard from "@/components/AuthGuard";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -27,6 +28,7 @@ export default function AddMoneyPage() {
   };
 
   return (
+    <AuthGuard>
     <main className="min-h-screen bg-[#0f1117] p-5 text-white">
       <div className="flex items-center gap-4">
         <Link href="/wallet" className="text-2xl">
@@ -118,5 +120,6 @@ export default function AddMoneyPage() {
         </button>
       </div>
     </main>
+    </AuthGuard>
   );
 }

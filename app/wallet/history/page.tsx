@@ -1,7 +1,9 @@
 import Link from "next/link";
+import AuthGuard from "@/components/AuthGuard";
 
 export default function WalletHistoryPage() {
   return (
+    <AuthGuard>
     <main className="min-h-screen bg-[#0f1117] p-5 text-white">
       <header className="flex items-center gap-4">
         <Link
@@ -43,5 +45,6 @@ export default function WalletHistoryPage() {
         </Link>
       </section>
     </main>
+    </AuthGuard>
   );
 }
