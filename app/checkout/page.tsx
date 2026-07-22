@@ -151,57 +151,11 @@ export default function CheckoutPage() {
         </div>
 
         <button
-          disabled={!order.smileProductId || submitting}
-          onClick={async () => {
-            const user = auth.currentUser;
-
-            if (!user) {
-              alert("Please log in before placing an order.");
-              window.location.href = "/login";
-              return;
-            }
-
-            try {
-              setSubmitting(true);
-
-              const orderReference = await addDoc(collection(db, "orders"), {
-                uid: user.uid,
-                email: user.email || "",
-                game: order.game,
-                package: order.package,
-                amount: Number(String(order.price).replace("₹", "")),
-                playerId: order.userid,
-                serverId: order.zoneid,
-                smileProduct: order.smileProduct,
-                smileProductId: order.smileProductId,
-                status: "Pending",
-                paymentStatus: "Pending",
-                createdAt: serverTimestamp(),
-              });
-
-              sessionStorage.setItem("currentOrderId", orderReference.id);
-
-              const params = new URLSearchParams({
-                orderId: orderReference.id,
-                game: order.game,
-                package: order.package,
-                amount: String(order.price).replace("₹", ""),
-              });
-
-              window.location.href = `/payment?${params.toString()}`;
-            } catch (error) {
-              console.error("Failed to create order:", error);
-              alert("Failed to create order. Please try again.");
-              setSubmitting(false);
-            }
-          }}
-          className="mt-6 w-full rounded-xl bg-red-600 py-4 text-lg font-semibold transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-700 disabled:text-gray-400"
+          type="button"
+          disabled
+          className="mt-6 w-full cursor-not-allowed rounded-xl bg-gray-700 py-4 text-lg font-semibold text-gray-400"
         >
-          {submitting
-            ? "Creating Order..."
-            : order.smileProductId
-              ? "Proceed to Checkout"
-              : "Package Unavailable"}
+          Checkout Unavailable — Payment Coming Soon
         </button>
       </div>
     </main>
