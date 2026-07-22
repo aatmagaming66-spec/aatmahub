@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { doc, onSnapshot } from "firebase/firestore";
@@ -16,6 +18,8 @@ export default function Home() {
     magicChessEnabled: true,
     mlGiftingEnabled: true,
   });
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     return onSnapshot(doc(db, "settings", "general"), (snap) => {
@@ -283,6 +287,67 @@ export default function Home() {
           All Rights Reserved © 2026 | AATMAHUB
         </p>
       </footer>
+
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        >
+          <aside
+            className="h-full w-[82%] max-w-[330px] border-r border-white/10 bg-[#0d1017] shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-5">
+              <Link
+                href="/"
+                onClick={() => setSidebarOpen(false)}
+                className="text-xl font-black text-white"
+              >
+                Aatma<span className="text-red-500">Hub</span>
+              </Link>
+
+              <button
+                type="button"
+                aria-label="Close menu"
+                onClick={() => setSidebarOpen(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 active:scale-95"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-6 w-6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
+
+            <nav className="space-y-2 p-4">
+              {[
+                { href: "/", label: "Home" },
+                { href: "/guide", label: "How to Recharge" },
+                { href: "/search", label: "Search" },
+                { href: "/orders", label: "My Orders" },
+                { href: "/support", label: "Customer Support" },
+                { href: "/privacy-policy", label: "Privacy Policy" },
+                { href: "/terms-and-conditions", label: "Terms & Conditions" },
+              ].map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className="flex items-center justify-between rounded-xl border border-white/10 bg-[#151923] px-4 py-4 font-semibold text-gray-200 transition active:scale-[0.98] active:border-red-500/50 active:bg-red-500/10"
+                >
+                  <span>{item.label}</span>
+                  <span className="text-gray-500">›</span>
+                </Link>
+              ))}
+            </nav>
+          </aside>
+        </div>
+      )}
 
 </main>
   );
