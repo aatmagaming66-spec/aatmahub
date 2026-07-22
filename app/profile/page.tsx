@@ -91,6 +91,16 @@ export default function ProfilePage() {
             <span>→</span>
           </Link>
 
+          {user.email === "shivatetz@gmail.com" && (
+            <Link
+              href="/super-admin"
+              className="flex items-center justify-between rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-4 font-bold text-red-400"
+            >
+              <span>Super Admin Panel</span>
+              <span>→</span>
+            </Link>
+          )}
+
           <button
             onClick={logout}
             className="w-full rounded-xl bg-red-500 px-4 py-4 font-bold"

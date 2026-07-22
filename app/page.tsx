@@ -1,4 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import {
   BookOpenIcon,
   MagnifyingGlassIcon,
@@ -6,6 +11,24 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 export default function Home() {
+  const [gameStatus, setGameStatus] = useState({
+    mobileLegendsEnabled: true,
+    magicChessEnabled: true,
+    mlGiftingEnabled: true,
+  });
+
+  useEffect(() => {
+    return onSnapshot(doc(db, "settings", "general"), (snap) => {
+      const data = snap.data();
+
+      setGameStatus({
+        mobileLegendsEnabled: data?.mobileLegendsEnabled !== false,
+        magicChessEnabled: data?.magicChessEnabled !== false,
+        mlGiftingEnabled: data?.mlGiftingEnabled !== false,
+      });
+    });
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#080a0f] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#11141c]/95 shadow-lg backdrop-blur">
@@ -128,42 +151,68 @@ export default function Home() {
         title: "Mobile Legends",
         image: "/images/MLBB.jpg",
         href: "/product/mobile-legends",
+        enabled: gameStatus.mobileLegendsEnabled,
       },
       {
         title: "Magic Chess",
         image: "/images/mcgg.jpg",
         href: "/product/magic-chess-go-go",
+        enabled: gameStatus.magicChessEnabled,
       },
       {
         title: "ML Gifting",
         image: "/images/ml gifting.png",
         href: "/product/mlbb-gifting",
+        enabled: gameStatus.mlGiftingEnabled,
       },
     ].map((game) => (
-      <Link
+      <div
         key={game.title}
-        href={game.href}
-        className="group overflow-hidden rounded-2xl border border-white/10 bg-[#151922] shadow-lg transition-all duration-200 active:scale-95 active:border-red-500/60 active:shadow-red-500/20"
+        className="group overflow-hidden rounded-2xl border border-white/10 bg-[#151922] shadow-lg"
       >
-        <div className="relative aspect-square overflow-hidden bg-zinc-900">
-          <img
-            src={game.image}
-            alt={game.title}
-            className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-          />
-        </div>
+        {game.enabled ? (
+          <Link href={game.href} className="block active:scale-95">
+            <div className="relative aspect-square overflow-hidden bg-zinc-900">
+              <img
+                src={game.image}
+                alt={game.title}
+                className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+              />
+            </div>
 
-        <div className="flex h-11 items-center justify-center bg-gradient-to-b from-[#171b25] to-[#10131a] px-2">
-          <h3 className="line-clamp-1 text-center text-[13px] font-semibold leading-tight text-white">
-            {game.title}
-          </h3>
-        </div>
-      </Link>
+            <div className="flex h-11 items-center justify-center bg-gradient-to-b from-[#171b25] to-[#10131a] px-2">
+              <h3 className="line-clamp-1 text-center text-[13px] font-semibold text-white">
+                {game.title}
+              </h3>
+            </div>
+          </Link>
+        ) : (
+          <>
+            <div className="relative aspect-square overflow-hidden bg-zinc-900">
+              <img
+                src={game.image}
+                alt={game.title}
+                className="h-full w-full object-cover grayscale"
+              />
+
+              <div className="absolute inset-0 flex items-center justify-center bg-black/60">
+                <span className="rounded-lg bg-red-600 px-2 py-1 text-[10px] font-bold text-white">
+                  OUT OF STOCK
+                </span>
+              </div>
+            </div>
+
+            <div className="flex h-11 items-center justify-center bg-gradient-to-b from-[#171b25] to-[#10131a] px-2">
+              <h3 className="line-clamp-1 text-center text-[13px] font-semibold text-gray-400">
+                {game.title}
+              </h3>
+            </div>
+          </>
+        )}
+      </div>
     ))}
   </div>
 </section>
-
-    
       <section className="px-3 pb-8">
         <a
           href="https://whatsapp.com/channel/0029VbB4dcm23n3fVHpH0r45"

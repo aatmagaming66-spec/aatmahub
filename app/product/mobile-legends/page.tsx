@@ -1,7 +1,9 @@
  "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function MobileLegendsPage() {
   const [selected, setSelected] = useState<any>(null);
@@ -9,45 +11,50 @@ export default function MobileLegendsPage() {
   const [playerId, setPlayerId] = useState("");
   const [serverId, setServerId] = useState("");
   const [verified, setVerified] = useState(false);
+  const [username, setUsername] = useState("");
+  const [verifying, setVerifying] = useState(false);
 
-  const diamonds = [
-    { name: "86 Diamonds", bonus: "78 + 8 Bonus", price: "₹129", image: "/images/86 diamonds.png" },
-    { name: "172 Diamonds", bonus: "156 + 16 Bonus", price: "₹270", image: "/images/86 diamonds.png" },
-    { name: "257 Diamonds", bonus: "234 + 23 Bonus", price: "₹380", image: "/images/86 diamonds.png" },
-    { name: "706 Diamonds", bonus: "625 + 81 Bonus", price: "₹1019", image: "/images/514 diamonds.png" },
-    { name: "1412 Diamonds", bonus: "1250 + 162 Bonus", price: "₹1999", image: "/images/2195-3688 diamonds.png" },
-    { name: "2195 Diamonds", bonus: "1860 + 335 Bonus", price: "₹3100", image: "/images/2195-3688 diamonds.png" },
-    { name: "3688 Diamonds", bonus: "3099 + 589 Bonus", price: "₹5100", image: "/images/2195-3688 diamonds.png" },
-    { name: "5532 Diamonds", bonus: "4640 + 892 Bonus", price: "₹7499", image: "/images/5532-9288 diamonds.png" },
-    { name: "7720 Diamonds", bonus: "6483 + 1237 Bonus", price: "₹10499", image: "/images/5532-9288 diamonds.png" },
-    { name: "9288 Diamonds", bonus: "7740 + 1548 Bonus", price: "₹12499", image: "/images/5532-9288 diamonds.png" },
-  ];
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const bundles = [
-    { name: "Weekly Bundle", bonus: "Popular", price: "₹99", image: "/images/bundle tabs.png" },
-    { name: "Monthly Bundle", bonus: "Best Value", price: "₹399", image: "/images/bundle tabs.png" },
-  ];
+  useEffect(() => {
+    const productRef = doc(db, "products", "mobile-legends");
 
-  const doubles = [
-  { name: "55 Diamonds", bonus: "50+50 Bonus", price: "₹90", image: "/images/special.png" },
-  { name: "165 Diamonds", bonus: "150+150 Bonus", price: "₹259", image: "/images/special.png" },
-  { name: "275 Diamonds", bonus: "250+250 Bonus", price: "₹399", image: "/images/special.png" },
-  { name: "565 Diamonds", bonus: "500+500 Bonus", price: "₹799", image: "/images/special.png" },
-];
+    return onSnapshot(
+      productRef,
+      (snapshot) => {
+        setProduct(snapshot.exists() ? snapshot.data() : null);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Failed to load Mobile Legends product:", error);
+        setLoading(false);
+      }
+    );
+  }, []);
 
-  const passes = [
-    { name: "Weekly Pass", bonus: "7 Days", price: "₹159", image: "/images/weekly pass.png" },
-    { name: "Twilight Pass", bonus: "Premium", price: "₹899", image: "/images/ml gifting.png" },
-  ];
+  const packages = product?.categories?.[activeTab] ?? [];
 
-  const packages =
-    activeTab === "Diamonds"
-      ? diamonds
-      : activeTab === "Special Bundle"
-      ? bundles
-      : activeTab === "Double Diamonds"
-      ? doubles
-      : passes;
+  const formatPrice = (price: number | string) => {
+    const value = String(price);
+    return value.startsWith("₹") ? value : `₹${value}`;
+  };
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0b0b] text-white">
+        Loading product...
+      </main>
+    );
+  }
+
+  if (!product) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#0b0b0b] px-4 text-center text-white">
+        Product data was not found.
+      </main>
+    );
+  }
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white">
       <div className="max-w-md mx-auto pb-10">
@@ -60,7 +67,7 @@ export default function MobileLegendsPage() {
 
         <div className="relative">
           <Image
-            src="/images/moba legends banner.jpg"
+            src={product.banner || "/images/moba legends banner.jpg"}
             alt="Mobile Legends"
             width={1200}
             height={450}
@@ -71,7 +78,7 @@ export default function MobileLegendsPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent rounded-b-3xl" />
 
           <div className="absolute bottom-5 left-5">
-            <h1 className="text-3xl font-extrabold">Mobile Legends</h1>
+            <h1 className="text-3xl font-extrabold">{product.name || "Mobile Legends"}</h1>
             <p className="text-red-400">Fast & Secure Top-Up</p>
           </div>
         </div>
@@ -98,17 +105,57 @@ export default function MobileLegendsPage() {
           />
 
           <button
-            onClick={() => {
+            disabled={verifying}
+            onClick={async () => {
               if (!playerId.trim() || !serverId.trim()) {
                 alert("Enter Player ID and Server ID");
                 return;
               }
-              setVerified(true);
+
+              try {
+                setVerifying(true);
+                setVerified(false);
+                setUsername("");
+
+                const response = await fetch(
+                  `/api/smile/get-role?userid=${encodeURIComponent(
+                    playerId.trim()
+                  )}&zoneid=${encodeURIComponent(serverId.trim())}`
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || data.status !== 200 || !data.username) {
+                  throw new Error(data.message || "Player verification failed");
+                }
+
+                setUsername(data.username);
+                setVerified(true);
+              } catch (error) {
+                alert(
+                  error instanceof Error
+                    ? error.message
+                    : "Player verification failed"
+                );
+              } finally {
+                setVerifying(false);
+              }
             }}
-            className="w-full mt-4 rounded-xl bg-red-600 py-3 font-semibold"
+            className="w-full mt-4 rounded-xl bg-red-600 py-3 font-semibold disabled:opacity-60"
           >
-            {verified ? "ID Verified ✓" : "Verify ID"}
+            {verifying
+              ? "Verifying..."
+              : verified
+                ? "ID Verified ✓"
+                : "Verify ID"}
           </button>
+
+          {verified && username && (
+            <div className="mt-3 flex items-center justify-between rounded-xl border border-green-500/40 bg-[#102018] px-4 py-3">
+              <span className="text-sm text-gray-300">In-Game Name</span>
+              <span className="font-bold text-green-400">{username} ✓</span>
+            </div>
+          )}
 
           <div className="grid grid-cols-4 gap-1 mt-6">
             {[
@@ -146,7 +193,7 @@ export default function MobileLegendsPage() {
           </h2>
 
           <div className="grid grid-cols-2 gap-3">
-            {packages.map((pkg) => (
+            {packages.map((pkg: any) => (
               <button
                 key={pkg.name}
                 onClick={() => setSelected(pkg)}
@@ -172,7 +219,7 @@ export default function MobileLegendsPage() {
                   />
 
                   <span className="self-end text-sm font-extrabold text-red-500">
-                    {pkg.price}
+                    {formatPrice(pkg.price)}
                   </span>
                 </div>
               </button>
@@ -199,7 +246,7 @@ export default function MobileLegendsPage() {
               Price:
               <span className="text-red-400">
                 {" "}
-                {selected ? selected.price : "--"}
+                {selected ? formatPrice(selected.price) : "--"}
               </span>
             </p>
           </div>
@@ -208,8 +255,21 @@ export default function MobileLegendsPage() {
             disabled={!verified || !selected}
             onClick={() => {
               if (verified && selected) {
-                window.location.href = "/checkout";
-              }
+                  sessionStorage.setItem(
+                    "checkoutOrder",
+                    JSON.stringify({
+                      game: "Mobile Legends",
+                      smileProduct: "mobilelegends",
+                      userid: playerId.trim(),
+                      zoneid: serverId.trim(),
+                      package: selected.name,
+                      price: selected.price,
+                      smileProductId: selected.smileProductId || "",
+                    })
+                  );
+
+                  window.location.href = "/checkout";
+                }
             }}
             className={`mt-6 w-full rounded-xl py-4 font-semibold transition ${
               verified && selected
