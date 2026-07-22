@@ -64,6 +64,7 @@ export default function Home() {
 
             <button
               aria-label="Menu"
+              onClick={() => setSidebarOpen(true)}
               className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#181c26]"
             >
               <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7" stroke="currentColor" strokeWidth="2">
