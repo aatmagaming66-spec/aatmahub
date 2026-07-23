@@ -39,21 +39,25 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#080a0f] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[#11141c]/95 shadow-lg backdrop-blur">
-        <div className="flex items-center justify-between px-5 py-4">
-          <h1 className="text-4xl font-black tracking-tight">
-            Aatma<span className="text-[#ff4d5a]">Hub</span>
-          </h1>
+        <div className="flex items-center justify-between px-5 py-2">
+          <Link href="/" className="flex h-10 items-center overflow-hidden">
+            <img
+              src="/logo/aatmahub-logo.png"
+              alt="AatmaHub Logo"
+              className="h-14 w-auto object-contain"
+            />
+          </Link>
 
           <div className="flex gap-2">
             <Link
               href="/developer"
               aria-label="Developer"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-red-500/30 bg-[#181c26] text-red-400 shadow-[0_0_18px_rgba(239,68,68,0.18)] transition active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-red-500/30 bg-[#181c26] text-red-400 shadow-[0_0_18px_rgba(239,68,68,0.18)] transition active:scale-95"
             >
               <svg
                 viewBox="0 0 24 24"
                 fill="none"
-                className="h-7 w-7"
+                className="h-5 w-5"
                 stroke="currentColor"
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -68,9 +72,9 @@ export default function Home() {
             <button
               aria-label="Menu"
               onClick={() => setSidebarOpen(true)}
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-[#181c26]"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#181c26]"
             >
-              <svg viewBox="0 0 24 24" fill="none" className="h-7 w-7" stroke="currentColor" strokeWidth="2">
+              <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" stroke="currentColor" strokeWidth="2">
                 <path d="M4 7h16M4 12h16M4 17h16" />
               </svg>
             </button>
@@ -78,14 +82,14 @@ export default function Home() {
         </div>
       </header>
 <section className="px-3 pt-3">
-  <img src="/images/aatmahub-banner.png" alt="AatmaHub Banner" className="w-full rounded-2xl scale-[1.08] object-cover" />
+  <img src="/images/aatmahub-banner.png" alt="AatmaHub Banner" className="mx-auto w-[98%] rounded-2xl object-cover" />
 </section>
 <section className="grid grid-cols-4 gap-3 px-3 py-4">
   <Link
     href="/guide"
     className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-red-500/30 bg-gradient-to-b from-[#4a0f16] via-[#2b0c12] to-[#14090d] px-2 py-2 shadow-[0_0_18px_rgba(239,68,68,0.18),inset_0_1px_0_rgba(255,255,255,0.05)] transition active:scale-95 active:border-red-400"
   >
-    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/15 bg-gradient-to-b from-[#17191f] to-[#08090d] shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_5px_12px_rgba(0,0,0,0.5)]">
+    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/15 bg-gradient-to-b from-[#17191f] to-[#08090d] shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_5px_12px_rgba(0,0,0,0.5)]">
       <BookOpenIcon className="h-6 w-6 text-white" strokeWidth={1.8} />
     </div>
     <span className="text-xs font-medium text-white">Guide</span>
@@ -95,7 +99,7 @@ export default function Home() {
     href="/search"
     className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-red-500/30 bg-gradient-to-b from-[#4a0f16] via-[#2b0c12] to-[#14090d] px-2 py-2 shadow-[0_0_18px_rgba(239,68,68,0.18),inset_0_1px_0_rgba(255,255,255,0.05)] transition active:scale-95 active:border-red-400"
   >
-    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/15 bg-gradient-to-b from-[#17191f] to-[#08090d] shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_5px_12px_rgba(0,0,0,0.5)]">
+    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/15 bg-gradient-to-b from-[#17191f] to-[#08090d] shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_5px_12px_rgba(0,0,0,0.5)]">
       <MagnifyingGlassIcon className="h-6 w-6 text-white" strokeWidth={1.8} />
     </div>
     <span className="text-xs font-medium text-white">Search</span>
@@ -105,7 +109,7 @@ export default function Home() {
     href="/follow"
     className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-red-500/30 bg-gradient-to-b from-[#4a0f16] via-[#2b0c12] to-[#14090d] px-2 py-2 shadow-[0_0_18px_rgba(239,68,68,0.18),inset_0_1px_0_rgba(255,255,255,0.05)] transition active:scale-95 active:border-red-400"
   >
-    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/15 bg-gradient-to-b from-[#17191f] to-[#08090d] shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_5px_12px_rgba(0,0,0,0.5)]">
+    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/15 bg-gradient-to-b from-[#17191f] to-[#08090d] shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_5px_12px_rgba(0,0,0,0.5)]">
       <GlobeAltIcon className="h-6 w-6 text-white" strokeWidth={1.8} />
     </div>
     <span className="text-xs font-medium text-white">Follow</span>
@@ -115,14 +119,14 @@ export default function Home() {
     href="/support"
     className="flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-red-500/30 bg-gradient-to-b from-[#4a0f16] via-[#2b0c12] to-[#14090d] px-2 py-2 shadow-[0_0_18px_rgba(239,68,68,0.18),inset_0_1px_0_rgba(255,255,255,0.05)] transition active:scale-95 active:border-red-400"
   >
-    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-500/15 bg-gradient-to-b from-[#17191f] to-[#08090d] shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_5px_12px_rgba(0,0,0,0.5)]">
+    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/15 bg-gradient-to-b from-[#17191f] to-[#08090d] shadow-[inset_0_1px_2px_rgba(255,255,255,0.06),0_5px_12px_rgba(0,0,0,0.5)]">
       <ShieldCheckIcon className="h-6 w-6 text-white" strokeWidth={1.8} />
     </div>
     <span className="text-xs font-medium text-white">Support</span>
   </Link>
 </section>
 <section className="overflow-hidden rounded-xl mx-3 my-3 border border-red-500/40 bg-gradient-to-r from-[#6b0f1a] via-[#b91c1c] to-[#6b0f1a] py-2 shadow-[0_0_20px_rgba(239,68,68,0.35)]">
-  <div className="animate-marquee flex min-w-max items-center gap-8 whitespace-nowrap text-sm font-medium text-white">
+  <div className="animate-marquee flex min-w-max items-center gap-8 whitespace-nowrap text-lg font-medium text-white">
     <span>⚡ Fast Mobile Legends Top-Up</span>
     <span className="text-red-400">•</span>
     <span>🎮 Magic Chess Top-Up Available</span>
@@ -145,7 +149,7 @@ export default function Home() {
   <div className="flex items-center justify-between">
     <div>
       <h2 className="text-2xl font-extrabold text-white">🎮 Mobile Games</h2>
-      <p className="mt-1 text-sm text-gray-400">Fast & Secure Top-ups</p>
+      <p className="mt-1 text-lg text-gray-400">Fast & Secure Top-ups</p>
     </div>
     <span className="rounded-full border border-red-500/30 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400">HOT</span>
   </div>
@@ -153,7 +157,7 @@ export default function Home() {
 
 
 <section className="px-3 pb-6">
-  <div className="grid grid-cols-3 gap-3">
+  <div className="grid grid-cols-2 gap-3">
     {[
       {
         title: "Mobile Legends",
@@ -196,7 +200,7 @@ export default function Home() {
             </div>
 
             <div className="flex h-11 items-center justify-center bg-gradient-to-b from-[#171b25] to-[#10131a] px-2">
-              <h3 className="line-clamp-1 text-center text-[13px] font-semibold text-white">
+              <h3 className="line-clamp-1 text-center text-[18px] font-bold text-white">
                 {game.title}
               </h3>
             </div>
@@ -218,7 +222,7 @@ export default function Home() {
             </div>
 
             <div className="flex h-11 items-center justify-center bg-gradient-to-b from-[#171b25] to-[#10131a] px-2">
-              <h3 className="line-clamp-1 text-center text-[13px] font-semibold text-gray-400">
+              <h3 className="line-clamp-1 text-center text-[18px] font-bold text-gray-400">
                 {game.title}
               </h3>
             </div>
@@ -233,9 +237,9 @@ export default function Home() {
           href="https://whatsapp.com/channel/0029VbB4dcm23n3fVHpH0r45"
           target="_blank"
           rel="noopener noreferrer"
-          className="relative block overflow-hidden rounded-[28px] border border-white/20 bg-gradient-to-br from-[#17171f] via-[#5a171b] to-[#ff202b] px-5 py-6 text-center shadow-[0_0_35px_rgba(255,35,45,0.28)] active:scale-[0.98]"
+          className="relative block overflow-hidden rounded-[28px] border border-white/20 bg-gradient-to-br from-[#0b1610] via-[#0f4f3f] to-[#157347] px-5 py-6 text-center shadow-[0_0_18px_rgba(21,115,71,0.18)] active:scale-[0.98]"
         >
-          <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-red-500/20 blur-3xl" />
+          <div className="absolute -right-12 -top-12 h-28 w-28 rounded-full bg-green-900/25 blur-3xl" />
           <div className="absolute -bottom-16 -left-10 h-28 w-28 rounded-full bg-black/30 blur-3xl" />
 
           <div className="relative">
@@ -255,7 +259,7 @@ export default function Home() {
               +91 85669 36666
             </p>
 
-            <div className="mx-auto mt-4 flex max-w-[300px] items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 text-[15px] font-extrabold text-red-500">
+            <div className="mx-auto mt-4 flex max-w-[300px] items-center justify-center gap-2 rounded-xl bg-white px-3 py-2.5 text-[15px] font-extrabold text-red-600">
               <img src="/images/whatsapp.svg" alt="" className="h-5 w-5" />
               <span>JOIN WHATSAPP CHANNEL</span>
             </div>
@@ -267,7 +271,7 @@ export default function Home() {
       <footer className="border-t border-white/10 bg-[#171d26] px-5 pb-16 pt-5">
         <div className="text-center">
           <h2 className="text-2xl font-extrabold text-white">
-            AATMA<span className="text-red-500">HUB</span>
+            AATMA<span className="text-red-600">HUB</span>
           </h2>
 
           <p className="mt-1 text-xs text-gray-400">
@@ -277,7 +281,7 @@ export default function Home() {
 
         <div className="my-4 h-px bg-white/15" />
 
-        <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-[16px] text-white">
+        <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-[20px] text-white">
           <div className="space-y-3">
             <a href="/" className="block">Home</a>
             <a href="/login" className="block">Login</a>
@@ -293,7 +297,7 @@ export default function Home() {
         </div>
 
         <div className="my-4 h-px bg-white/15" />
-<p className="text-center text-sm text-gray-300">
+<p className="text-center text-lg text-gray-300">
 
           All Rights Reserved © 2026 | AATMAHUB
         </p>
@@ -314,7 +318,7 @@ export default function Home() {
                 onClick={() => setSidebarOpen(false)}
                 className="text-xl font-black text-white"
               >
-                Aatma<span className="text-red-500">Hub</span>
+                Aatma<span className="text-red-600">Hub</span>
               </Link>
 
               <button

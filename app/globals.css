@@ -39,3 +39,51 @@ body {
   width: max-content;
   animation: marquee 18s linear infinite;
 }
+
+/* Premium HDR + 3D depth */
+body {
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.035), transparent 32%),
+    linear-gradient(180deg, #10131a 0%, #080a0f 48%, #050609 100%);
+  color: #f5f7fb;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+main {
+  isolation: isolate;
+}
+
+img {
+  filter: contrast(1.06) saturate(1.05) brightness(1.02);
+}
+
+.group,
+section > a,
+section > div {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.group {
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
+}
+
+.group:active {
+  transform: perspective(700px) scale(0.985) translateY(1px);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+h1,
+h2,
+h3 {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
