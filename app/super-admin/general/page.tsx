@@ -9,7 +9,6 @@ export default function GeneralPage() {
   const [maintenance, setMaintenance] = useState(false);
   const [mobileLegendsEnabled, setMobileLegendsEnabled] = useState(true);
   const [mobileLegendsSmallPacksEnabled, setMobileLegendsSmallPacksEnabled] = useState(true);
-  const [honorOfKingsEnabled, setHonorOfKingsEnabled] = useState(true);
   const [magicChessEnabled, setMagicChessEnabled] = useState(true);
   const [mlGiftingEnabled, setMlGiftingEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -24,7 +23,6 @@ export default function GeneralPage() {
       setMaintenance(!!data.maintenance);
       setMobileLegendsEnabled(data.mobileLegendsEnabled !== false);
       setMobileLegendsSmallPacksEnabled(data.mobileLegendsSmallPacksEnabled !== false);
-      setHonorOfKingsEnabled(data.honorOfKingsEnabled !== false);
       setMagicChessEnabled(data.magicChessEnabled !== false);
       setMlGiftingEnabled(data.mlGiftingEnabled !== false);
     }
@@ -42,7 +40,6 @@ export default function GeneralPage() {
           maintenance,
             mobileLegendsEnabled,
             mobileLegendsSmallPacksEnabled,
-            honorOfKingsEnabled,
             magicChessEnabled,
             mlGiftingEnabled,
         },
@@ -68,11 +65,6 @@ export default function GeneralPage() {
       name: "MLBB Small Packs",
       enabled: mobileLegendsSmallPacksEnabled,
       setEnabled: setMobileLegendsSmallPacksEnabled,
-    },
-    {
-      name: "Honor of Kings",
-      enabled: honorOfKingsEnabled,
-      setEnabled: setHonorOfKingsEnabled,
     },
     {
       name: "Magic Chess",

@@ -13,10 +13,6 @@ const products = [
     id: "magic-chess",
     name: "Magic Chess",
   },
-  {
-    id: "honor-of-kings",
-    name: "Honor of Kings",
-  },
 ];
 
 export default function ProductsPage() {

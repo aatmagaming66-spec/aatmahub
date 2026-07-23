@@ -16,7 +16,6 @@ export default function Home() {
   const [gameStatus, setGameStatus] = useState({
     mobileLegendsEnabled: true,
     mobileLegendsSmallPacksEnabled: true,
-    honorOfKingsEnabled: true,
     magicChessEnabled: true,
     mlGiftingEnabled: true,
   });
@@ -31,8 +30,6 @@ export default function Home() {
         mobileLegendsEnabled: data?.mobileLegendsEnabled !== false,
         mobileLegendsSmallPacksEnabled:
           data?.mobileLegendsSmallPacksEnabled !== false,
-        honorOfKingsEnabled:
-          data?.honorOfKingsEnabled !== false,
         magicChessEnabled: data?.magicChessEnabled !== false,
         mlGiftingEnabled: data?.mlGiftingEnabled !== false,
       });
@@ -170,12 +167,6 @@ export default function Home() {
         image: "/images/MLBB.jpg",
         href: "/product/mobile-legends-small-packs",
         enabled: gameStatus.mobileLegendsSmallPacksEnabled,
-      },
-      {
-        title: "Honor of Kings",
-        image: "/images/honor-of-kings.webp",
-        href: "/product/honor-of-kings",
-        enabled: gameStatus.honorOfKingsEnabled,
       },
       {
         title: "Magic Chess",
