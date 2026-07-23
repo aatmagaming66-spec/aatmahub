@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+
 
 type CheckoutOrder = {
   game: string;
@@ -18,7 +17,6 @@ export default function CheckoutPage() {
   const [payment] = useState("upi");
   const [order, setOrder] = useState<CheckoutOrder | null>(null);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const savedOrder = sessionStorage.getItem("checkoutOrder");

@@ -6,8 +6,20 @@ const products = [
     name: "Mobile Legends",
   },
   {
+    id: "mobile-legends-small-packs",
+    name: "MLBB Small Packs",
+  },
+  {
+    id: "mobile-legends-ph",
+    name: "Mobile Legends 🇵🇭",
+  },
+  {
     id: "magic-chess",
     name: "Magic Chess",
+  },
+  {
+    id: "honor-of-kings",
+    name: "Honor of Kings",
   },
 ];
 
