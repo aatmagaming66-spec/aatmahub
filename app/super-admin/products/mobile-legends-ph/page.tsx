@@ -9,7 +9,7 @@ type PackageItem = {
   name: string;
   bonus: string;
   price: string | number;
-  image: string;
+  image?: string;
   smileProductId?: string;
 };
 
