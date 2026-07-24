@@ -211,8 +211,8 @@ export default function Home() {
                   OUT OF STOCK
                 </span>
               </div>
-            </div>
 
+              </div>
             <div className="flex h-11 items-center justify-center bg-gradient-to-b from-[#171b25] to-[#10131a] px-2">
               <h3 className="line-clamp-1 text-center text-[18px] font-bold text-gray-400">
                 {game.title}
@@ -255,42 +255,39 @@ export default function Home() {
               <img src="/images/whatsapp.svg" alt="" className="h-5 w-5" />
               <span>JOIN WHATSAPP CHANNEL</span>
             </div>
-          </div>
+            </div>
         </a>
       </section>
 
 
-      <footer className="border-t border-white/10 bg-[#171d26] px-5 pb-16 pt-5">
+      <footer className="border-t border-white/10 bg-[#171d26] px-4 pb-10 pt-4">
         <div className="text-center">
-          <h2 className="text-2xl font-extrabold text-white">
+          <h2 className="text-xl font-extrabold text-white">
             AATMA<span className="text-red-600">HUB</span>
           </h2>
 
-          <p className="mt-1 text-xs text-gray-400">
+          <p className="mt-1 text-[11px] text-gray-400">
             Fast, secure &amp; trusted digital gaming top-ups.
           </p>
-      </div>
-
-        <div className="my-4 h-px bg-white/15" />
-
-        <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-[20px] text-white">
-          <div className="space-y-3">
-            <a href="/" className="block">Home</a>
-            <a href="/login" className="block">Login</a>
-            <a href="/register" className="block">Register</a>
-            <a href="/support" className="block">Customer Support</a>
-          </div>
-
-          <div className="space-y-3">
-            <a href="/privacy-policy" className="block">Privacy Policy</a>
-            <a href="/terms-and-conditions" className="block">Terms &amp; Conditions</a>
-            <a href="/refund-policy" className="block">Refund Policy</a>
-          </div>
         </div>
 
-        <div className="my-4 h-px bg-white/15" />
-<p className="text-center text-lg text-gray-300">
+        <div className="my-3 h-px bg-white/15" />
 
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-[11px] text-white">
+          <a href="/">Home</a>
+          <span className="text-white/30">|</span>
+          <a href="/support">Customer Support</a>
+          <span className="text-white/30">|</span>
+          <a href="/privacy-policy">Privacy Policy</a>
+          <span className="text-white/30">|</span>
+          <a href="/terms-and-conditions">Terms &amp; Conditions</a>
+          <span className="text-white/30">|</span>
+          <a href="/refund-policy">Refund Policy</a>
+        </div>
+
+        <div className="my-3 h-px bg-white/15" />
+
+        <p className="text-center text-[11px] text-gray-300">
           All Rights Reserved © 2026 | AATMAHUB
         </p>
       </footer>
