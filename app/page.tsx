@@ -127,19 +127,11 @@ export default function Home() {
 </section>
 <section className="overflow-hidden rounded-xl mx-3 my-3 border border-red-500/40 bg-gradient-to-r from-[#6b0f1a] via-[#b91c1c] to-[#6b0f1a] py-2 shadow-[0_0_20px_rgba(239,68,68,0.35)]">
   <div className="animate-marquee flex min-w-max items-center gap-8 whitespace-nowrap text-lg font-medium text-white">
-    <span>⚡ Fast Mobile Legends Top-Up</span>
-    <span className="text-red-400">•</span>
-    <span>🎮 Magic Chess Top-Up Available</span>
-    <span className="text-red-400">•</span>
-    <span>💬 ML Gifting via WhatsApp</span>
+    <span>⭐ Why Choose AatmaHub?</span><span className="text-red-400">•</span><span>Instant Delivery</span><span className="text-red-400">•</span><span>Best Prices</span><span className="text-red-400">•</span><span>24×7 Support</span><span className="text-red-400">•</span><span>100% Secure Top-Ups</span><span className="text-red-400">•</span><span>Trusted by Gamers</span>
     <span className="text-red-400">•</span>
     <span>🔒 Safe & Secure Orders</span>
 
-    <span>⚡ Fast Mobile Legends Top-Up</span>
-    <span className="text-red-400">•</span>
-    <span>🎮 Magic Chess Top-Up Available</span>
-    <span className="text-red-400">•</span>
-    <span>💬 ML Gifting via WhatsApp</span>
+    <span>⭐ Why Choose AatmaHub?</span><span className="text-red-400">•</span><span>Instant Delivery</span><span className="text-red-400">•</span><span>Best Prices</span><span className="text-red-400">•</span><span>24×7 Support</span><span className="text-red-400">•</span><span>100% Secure Top-Ups</span><span className="text-red-400">•</span><span>Trusted by Gamers</span>
     <span className="text-red-400">•</span>
     <span>🔒 Safe & Secure Orders</span>
   </div>
